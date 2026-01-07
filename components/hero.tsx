@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
 interface HeroProps {
   siteName: string;
@@ -9,12 +8,6 @@ interface HeroProps {
 }
 
 export function Hero({ siteName, description }: HeroProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
     <section className="relative overflow-hidden py-20 md:py-32">
       {/* Animated grid background */}
@@ -64,7 +57,7 @@ export function Hero({ siteName, description }: HeroProps) {
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-ping" />
                   <span className="text-sm font-mono text-blue-600 dark:text-blue-400">
-                    {mounted ? 'LIVE' : '...'}
+                    LIVE
                   </span>
                 </div>
               </div>
