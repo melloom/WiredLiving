@@ -83,6 +83,14 @@ export function Footer() {
                     Search
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/categories"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    Categories
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -106,6 +114,14 @@ export function Footer() {
                     className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                   >
                     Newsletter
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/reading-list"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    Reading List
                   </Link>
                 </li>
                 <li>

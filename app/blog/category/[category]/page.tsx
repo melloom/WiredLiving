@@ -1,40 +1,32 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getPostsByCategory, getAllCategories } from '@/lib/supabase-db';
-import { formatDate } from '@/lib/utils';
+import Link from 'next/link';
+import { getAllPosts, getAllCategories } from '@/lib/supabase-db';
 import { PostCard } from '@/components/post-card';
 import { siteConfig } from '@/config/site';
 
 export const dynamic = 'force-dynamic';
 
-export async function generateStaticParams() {
-  const categories = await getAllCategories();
-  return categories.map((category) => ({
-    category: encodeURIComponent(category),
-  }));
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ category: string }> | { category: string } }): Promise<Metadata> {
   const resolvedParams = await Promise.resolve(params);
-  const category = decodeURIComponent(resolvedParams.category);
-  const posts = await getPostsByCategory(category);
+  const decodedCategory = decodeURIComponent(resolvedParams.category);
+  const posts = await getAllPosts();
+  const categoryPosts = posts.filter(post => post.category === decodedCategory);
 
-  if (posts.length === 0) {
+  if (categoryPosts.length === 0) {
     return {
       title: 'Category Not Found',
-      description: `The category "${category}" could not be found`,
     };
   }
 
   return {
-    title: `${category} | ${siteConfig.name}`,
-    description: `Browse all posts in the ${category} category on ${siteConfig.name}`,
-    keywords: [category, 'blog', 'category'],
+    title: `${decodedCategory} | Categories`,
+    description: `Browse all posts in the ${decodedCategory} category. ${categoryPosts.length} ${categoryPosts.length === 1 ? 'article' : 'articles'} available.`,
+    keywords: [decodedCategory, 'Category', 'Blog'],
     openGraph: {
-      title: `${category} | ${siteConfig.name}`,
-      description: `Browse all posts in the ${category} category`,
-      ...(siteConfig.url && { url: `${siteConfig.url}/blog/category/${encodeURIComponent(category)}` }),
+      title: `${decodedCategory} | ${siteConfig.name}`,
+      description: `Browse all posts in the ${decodedCategory} category`,
+      ...(siteConfig.url && { url: `${siteConfig.url}/blog/category/${resolvedParams.category}` }),
       siteName: siteConfig.name,
       type: 'website',
     },
@@ -43,60 +35,74 @@ export async function generateMetadata({ params }: { params: Promise<{ category:
 
 export default async function CategoryPage({ params }: { params: Promise<{ category: string }> | { category: string } }) {
   const resolvedParams = await Promise.resolve(params);
-  const category = decodeURIComponent(resolvedParams.category);
-  const posts = await getPostsByCategory(category);
+  const decodedCategory = decodeURIComponent(resolvedParams.category);
+  const posts = await getAllPosts();
+  const categories = await getAllCategories();
+  
+  const categoryPosts = posts
+    .filter(post => post.category === decodedCategory)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  if (posts.length === 0) {
+  if (!categories.includes(decodedCategory)) {
     notFound();
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      <div className="container mx-auto px-4 py-12 md:py-16">
-        <div className="max-w-7xl mx-auto">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+      <div className="container mx-auto px-4 py-16 md:py-24">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
-              <Link href="/" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
-                Home
-              </Link>
-              <span>/</span>
-              <Link href="/blog" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
-                Blog
-              </Link>
-              <span>/</span>
-              <span className="text-gray-900 dark:text-gray-100 font-medium">Category</span>
-              <span>/</span>
-              <span className="text-gray-900 dark:text-gray-100 font-medium">{category}</span>
+          <div className="mb-12">
+            <nav className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400">Home</Link>
+              <span className="mx-2">/</span>
+              <Link href="/categories" className="hover:text-blue-600 dark:hover:text-blue-400">Categories</Link>
+              <span className="mx-2">/</span>
+              <span className="text-gray-900 dark:text-gray-100">{decodedCategory}</span>
             </nav>
-
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-50 mb-4">
-              {category}
+            
+            <div className="inline-block mb-6">
+              <div className="px-4 py-2 bg-gradient-to-r from-blue-600/10 to-purple-600/10 dark:from-blue-600/20 dark:to-purple-600/20 backdrop-blur-sm border border-blue-500/30 dark:border-blue-400/30 rounded-full">
+                <span className="text-sm font-mono text-blue-600 dark:text-blue-400">
+                  {categoryPosts.length} {categoryPosts.length === 1 ? 'Post' : 'Posts'}
+                </span>
+              </div>
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+              {decodedCategory}
             </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              {posts.length} {posts.length === 1 ? 'post' : 'posts'} in this category
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              All posts in the {decodedCategory} category
             </p>
           </div>
 
           {/* Posts Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post) => (
-              <PostCard key={post.slug} post={post} />
-            ))}
-          </div>
-
-          {/* Back to Blog */}
-          <div className="mt-12 text-center">
-            <Link
-              href="/blog"
-              className="inline-block px-6 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors font-medium"
-            >
-              View All Posts
-            </Link>
-          </div>
+          {categoryPosts.length === 0 ? (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-12 border border-gray-200 dark:border-gray-800 shadow-lg text-center">
+              <div className="text-6xl mb-4">📁</div>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+                No posts in this category yet
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Check back later for posts in this category
+              </p>
+              <Link
+                href="/blog"
+                className="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105"
+              >
+                Browse All Posts
+              </Link>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {categoryPosts.map((post) => (
+                <PostCard key={post.slug} post={post} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </main>
   );
 }
-

@@ -54,6 +54,18 @@ export function Header() {
             >
               Search
             </Link>
+            <Link
+              href="/categories"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            >
+              Categories
+            </Link>
+            <Link
+              href="/reading-list"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            >
+              Reading List
+            </Link>
             {session && (
               <Link
                 href="/admin"

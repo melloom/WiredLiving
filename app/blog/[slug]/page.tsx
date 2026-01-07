@@ -243,10 +243,22 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     </div>
                   </div>
 
-                  {/* Share Buttons, Likes, and Print Export */}
+                  {/* Share Buttons, Bookmark, Likes, and Print Export */}
                   {articleUrl && (
                     <div className="pt-4 border-t border-gray-200 dark:border-gray-800 space-y-4">
-                      <ShareButtons url={articleUrl} title={post.title} description={post.description} />
+                      <div className="flex items-center gap-4 flex-wrap">
+                        <ShareButtons url={articleUrl} title={post.title} description={post.description} />
+                        <BookmarkButton
+                          post={{
+                            slug: post.slug,
+                            title: post.title,
+                            description: post.description,
+                            coverImage: post.coverImage,
+                            date: post.date,
+                          }}
+                          variant="button"
+                        />
+                      </div>
                       <div className="flex items-center gap-4 flex-wrap">
                         <PostLikes postSlug={post.slug} />
                         <PrintExport postTitle={post.title} postSlug={post.slug} />
