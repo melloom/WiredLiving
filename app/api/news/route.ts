@@ -20,7 +20,7 @@ interface NewsAPIResponse {
 }
 
 export async function GET() {
-  const apiKey = process.env.NEWS_API_KEY;
+  const apiKey = process.env.NEWS_API_KEY?.trim();
 
   if (!apiKey) {
     return NextResponse.json(
@@ -29,6 +29,18 @@ export async function GET() {
         error: 'NEWS_API_KEY not configured',
       },
       { status: 200 } // Return 200 so the UI can handle it gracefully
+    );
+  }
+
+  // Validate API key format (NewsAPI keys are typically 32+ alphanumeric characters)
+  if (apiKey.length < 32) {
+    console.error('NewsAPI key appears to be invalid (too short)');
+    return NextResponse.json(
+      {
+        articles: [],
+        error: 'Invalid API key format. NewsAPI keys should be 32+ characters.',
+      },
+      { status: 200 }
     );
   }
 
