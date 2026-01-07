@@ -32,65 +32,79 @@ export async function GET() {
     );
   }
 
-  // Validate API key format (NewsAPI keys are typically 32+ alphanumeric characters)
-  if (apiKey.length < 32) {
-    console.error('NewsAPI key appears to be invalid (too short)');
-    return NextResponse.json(
-      {
-        articles: [],
-        error: 'Invalid API key format. NewsAPI keys should be 32+ characters.',
-      },
-      { status: 200 }
-    );
-  }
+  // Detect API key format to determine which service to use
+  const isEventRegistry = apiKey.includes('-'); // Event Registry uses UUID format
+  const isNewsAPI = apiKey.length >= 32 && !apiKey.includes('-'); // NewsAPI uses alphanumeric
 
   try {
-    // Fetch technology news
-    const response = await fetch(
-      `https://newsapi.org/v2/top-headlines?category=technology&language=en&pageSize=5&apiKey=${apiKey}`,
-      {
-        next: { revalidate: 3600 }, // Cache for 1 hour
-        headers: {
-          'User-Agent': 'Mozilla/5.0',
-        },
-      }
-    );
+    let articles: NewsArticle[] = [];
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('NewsAPI response error:', response.status, errorText);
-      throw new Error(`NewsAPI error: ${response.status} - ${errorText}`);
+    if (isEventRegistry) {
+      // Event Registry API (newsapi.ai)
+      const response = await fetch(
+        `https://eventregistry.org/api/v1/article/getArticles?apiKey=${apiKey}&action=getArticles&categoryUri=dmoz/Computers/Technology&lang=eng&articlesCount=5&resultType=articles&articlesSortBy=date&includeArticleBody=false`,
+        {
+          next: { revalidate: 3600 },
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Event Registry API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.articles && data.articles.results) {
+        articles = data.articles.results.map((article: any) => ({
+          title: article.title || '',
+          description: article.body?.substring(0, 150) || article.snippet || '',
+          url: article.url || '',
+          urlToImage: article.image || null,
+          publishedAt: article.date || new Date().toISOString(),
+          source: {
+            name: article.source?.title || 'Unknown',
+          },
+        }));
+      }
+    } else if (isNewsAPI) {
+      // NewsAPI.org
+      const response = await fetch(
+        `https://newsapi.org/v2/top-headlines?category=technology&language=en&pageSize=5&apiKey=${apiKey}`,
+        {
+          next: { revalidate: 3600 },
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`NewsAPI error: ${response.status} - ${errorText}`);
+      }
+
+      const data: NewsAPIResponse = await response.json();
+
+      if (data.status === 'ok') {
+        articles = data.articles.filter(
+          (article) => article.title && article.title !== '[Removed]' && article.url
+        );
+      }
+    } else {
+      throw new Error('Invalid API key format');
     }
 
-    const data: NewsAPIResponse = await response.json();
-
-    if (data.status === 'ok') {
-      const filteredArticles = data.articles.filter(
-        (article) => article.title && article.title !== '[Removed]' && article.url
-      );
-      
-      if (filteredArticles.length === 0) {
-        console.warn('No valid articles found after filtering');
-      }
-      
+    if (articles.length === 0) {
       return NextResponse.json({
-        articles: filteredArticles,
+        articles: [],
+        error: 'No articles found',
       });
     }
 
-    // Handle API errors
-    if (data.status === 'error') {
-      console.error('NewsAPI returned error status:', data);
-      return NextResponse.json(
-        {
-          articles: [],
-          error: 'NewsAPI returned an error',
-        },
-        { status: 200 }
-      );
-    }
-
-    return NextResponse.json({ articles: [] });
+    return NextResponse.json({ articles });
   } catch (error) {
     console.error('Error fetching news:', error);
     return NextResponse.json(
