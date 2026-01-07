@@ -41,16 +41,16 @@ export async function GET() {
 
     if (isEventRegistry) {
       // Event Registry API (newsapi.ai / eventregistry.org)
-      // Using POST request with JSON body as per Event Registry API docs
+      // Fetch trending/hot topics - remove keyword filter to get all trending news
       const requestBody = {
         action: 'getArticles',
-        keyword: 'technology',
         lang: 'eng',
         articlesCount: 5,
-        articlesSortBy: 'date',
+        articlesSortBy: 'socialScore', // Sort by social engagement (trending)
         resultType: 'articles',
         includeArticleBody: false,
         includeArticleImage: true,
+        isDuplicate: 'skipDuplicates',
         apiKey: apiKey,
       };
 
@@ -90,9 +90,9 @@ export async function GET() {
         console.warn('Event Registry response structure unexpected:', Object.keys(data));
       }
     } else if (isNewsAPI) {
-      // NewsAPI.org
+      // NewsAPI.org - Get trending headlines (remove category filter for all topics)
       const response = await fetch(
-        `https://newsapi.org/v2/top-headlines?category=technology&language=en&pageSize=5&apiKey=${apiKey}`,
+        `https://newsapi.org/v2/top-headlines?language=en&pageSize=5&apiKey=${apiKey}`,
         {
           next: { revalidate: 3600 },
           headers: {

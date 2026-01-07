@@ -111,7 +111,7 @@ export function NewsFeed({ initialArticles = [] }: NewsFeedProps) {
           rel="noopener noreferrer"
           className="block group"
         >
-          <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+          <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all overflow-hidden">
             <div className="flex items-start gap-3">
               {article.urlToImage && (
                 <img
@@ -123,21 +123,21 @@ export function NewsFeed({ initialArticles = [] }: NewsFeedProps) {
                   }}
                 />
               )}
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-2 mb-1 transition-colors">
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-2 mb-1 transition-colors break-words">
                   {article.title}
                 </h4>
                 {article.description && (
-                  <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mb-2 break-words overflow-hidden">
                     {article.description}
                   </p>
                 )}
-                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
-                  <span>{article.source.name}</span>
+                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500 flex-wrap">
+                  <span className="truncate max-w-[100px]">{article.source.name}</span>
                   {article.publishedAt && (
                     <>
                       <span>•</span>
-                      <span>{formatDate(article.publishedAt)}</span>
+                      <span className="whitespace-nowrap">{formatDate(article.publishedAt)}</span>
                     </>
                   )}
                 </div>
@@ -148,12 +148,12 @@ export function NewsFeed({ initialArticles = [] }: NewsFeedProps) {
       ))}
       <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
         <Link
-          href="https://newsapi.org"
+          href="https://newsapi.ai"
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
         >
-          Powered by NewsAPI
+          Powered by Event Registry
         </Link>
       </div>
     </div>
