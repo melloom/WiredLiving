@@ -1,30 +1,26 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getPostsByTag, getAllTags } from '@/lib/mdx';
+import { getPostsByTag, getAllTags } from '@/lib/supabase-db';
 import { formatDate } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import { siteConfig } from '@/config/site';
 
-export function generateStaticParams() {
-  const tags = getAllTags();
-  return tags.map((tag) => ({
-    tag,
-  }));
-}
+export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: { tag: string } }): Promise<Metadata> {
-  const posts = getPostsByTag(params.tag);
-  const tag = params.tag;
-  const title = `Posts tagged "${tag}" | ${siteConfig.name}`;
-  const description = `Browse ${posts.length} ${posts.length === 1 ? 'post' : 'posts'} tagged with "${tag}"`;
+export async function generateMetadata({ params }: { params: Promise<{ tag: string }> | { tag: string } }): Promise<Metadata> {
+  const resolvedParams = await Promise.resolve(params);
+  const decodedTag = decodeURIComponent(resolvedParams.tag);
+  const posts = await getPostsByTag(decodedTag);
+  const title = `Posts tagged "${decodedTag}" | ${siteConfig.name}`;
+  const description = `Browse ${posts.length} ${posts.length === 1 ? 'post' : 'posts'} tagged with "${decodedTag}"`;
 
   return {
-    title: `Tag: ${tag}`,
+    title: `Tag: ${decodedTag}`,
     description,
     openGraph: {
       title,
       description,
-      url: `${siteConfig.url}/blog/tag/${tag}`,
+      url: `${siteConfig.url}/blog/tag/${encodeURIComponent(decodedTag)}`,
       siteName: siteConfig.name,
     },
     twitter: {
@@ -33,13 +29,15 @@ export async function generateMetadata({ params }: { params: { tag: string } }):
       description,
     },
     alternates: {
-      canonical: `${siteConfig.url}/blog/tag/${tag}`,
+      canonical: `${siteConfig.url}/blog/tag/${encodeURIComponent(decodedTag)}`,
     },
   };
 }
 
-export default function TagPage({ params }: { params: { tag: string } }) {
-  const posts = getPostsByTag(params.tag);
+export default async function TagPage({ params }: { params: Promise<{ tag: string }> | { tag: string } }) {
+  const resolvedParams = await Promise.resolve(params);
+  const decodedTag = decodeURIComponent(resolvedParams.tag);
+  const posts = await getPostsByTag(decodedTag);
 
   if (posts.length === 0) {
     notFound();
@@ -57,7 +55,7 @@ export default function TagPage({ params }: { params: { tag: string } }) {
           </Link>
 
           <h1 className="text-4xl font-bold mb-4">
-            Posts tagged: <span className="text-blue-600 dark:text-blue-400">{params.tag}</span>
+            Posts tagged: <span className="text-blue-600 dark:text-blue-400">{decodedTag}</span>
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
             {posts.length} {posts.length === 1 ? 'post' : 'posts'} found
@@ -92,7 +90,7 @@ export default function TagPage({ params }: { params: { tag: string } }) {
                           key={tag}
                           href={`/blog/tag/${tag}`}
                           className={`px-2 py-1 rounded text-xs transition-colors ${
-                            tag === params.tag
+                            tag === decodedTag
                               ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
                               : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
                           }`}

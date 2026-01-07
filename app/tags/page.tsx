@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getAllTags, getAllPosts } from '@/lib/mdx';
+import { getAllTags, getAllPosts } from '@/lib/supabase-db';
 import { siteConfig } from '@/config/site';
 import { TagCloud } from '@/components/tag-cloud';
 
@@ -49,9 +49,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function TagsPage() {
-  const tags = getAllTags();
-  const posts = getAllPosts();
+export default async function TagsPage() {
+  const tags = await getAllTags();
+  const posts = await getAllPosts();
 
   // Count posts per tag
   const tagCounts = tags.reduce((acc, tag) => {
@@ -116,10 +116,10 @@ export default function TagsPage() {
                 </div>
               </div>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Explore Tags
+                Explore by Topic
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                Discover content by browsing tags and topics. Find exactly what you&apos;re looking for.
+                Discover articles organized by topics. Click any tag to see all posts about that subject, or browse popular topics below.
               </p>
             </div>
 
@@ -169,7 +169,7 @@ export default function TagsPage() {
               </div>
             ) : (
               <>
-                {/* Popular Tags Section */}
+                {/* Popular Tags Section with Post Previews */}
                 {popularTags.length > 0 && (
                   <section className="mb-16">
                     <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 md:p-10 border border-gray-200 dark:border-gray-800 shadow-lg">
@@ -180,24 +180,89 @@ export default function TagsPage() {
                           </svg>
                         </div>
                         <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                          Popular Tags
+                          Popular Topics
                         </h2>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          Most discussed subjects
+                        </span>
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                        {popularTags.map((tag) => (
-                          <Link
-                            key={tag.name}
-                            href={`/blog/tag/${encodeURIComponent(tag.name)}`}
-                            className="group relative p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-xl border border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600 transition-all hover:shadow-lg hover:scale-105"
-                          >
-                            <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                              {tag.name}
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {popularTags.map((tag) => {
+                          // Get recent posts for this tag
+                          const tagPosts = posts
+                            .filter(post => post.tags.includes(tag.name))
+                            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                            .slice(0, 3);
+                          
+                          return (
+                            <div
+                              key={tag.name}
+                              className="group bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-xl border border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600 transition-all hover:shadow-lg overflow-hidden"
+                            >
+                              <Link href={`/blog/tag/${encodeURIComponent(tag.name)}`}>
+                                <div className="p-5">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                      {tag.name}
+                                    </h3>
+                                    <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-semibold rounded-full">
+                                      {tag.count}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                    {tag.count} {tag.count === 1 ? 'article' : 'articles'} on this topic
+                                  </p>
+                                  
+                                  {/* Recent Posts Preview */}
+                                  {tagPosts.length > 0 && (
+                                    <div className="space-y-2 mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
+                                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                                        Latest Posts
+                                      </p>
+                                      {tagPosts.map((post) => (
+                                        <Link
+                                          key={post.slug}
+                                          href={`/blog/${post.slug}`}
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="block group/post"
+                                        >
+                                          <div className="flex items-start gap-2 p-2 rounded-lg hover:bg-white/50 dark:hover:bg-gray-700/50 transition-colors">
+                                            {post.coverImage && (
+                                              <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0 border border-gray-200 dark:border-gray-700">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img
+                                                  src={post.coverImage}
+                                                  alt={post.title}
+                                                  className="w-full h-full object-cover"
+                                                />
+                                              </div>
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 group-hover/post:text-blue-600 dark:group-hover/post:text-blue-400 transition-colors line-clamp-2">
+                                                {post.title}
+                                              </p>
+                                              {post.readingTime && (
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                  {post.readingTime} min read
+                                                </p>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  )}
+                                  
+                                  <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
+                                    <span className="text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:underline">
+                                      View all {tag.count} {tag.count === 1 ? 'post' : 'posts'} →
+                                    </span>
+                                  </div>
+                                </div>
+                              </Link>
                             </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                              {tag.count} {tag.count === 1 ? 'post' : 'posts'}
-                            </div>
-                          </Link>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   </section>
@@ -249,11 +314,50 @@ export default function TagsPage() {
               </>
             )}
 
+            {/* How to Use Section */}
+            <section className="mb-16">
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-8 md:p-10 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    How to Use Tags
+                  </h2>
+                </div>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                    <div className="text-2xl mb-2">🔍</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Discover Topics</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Browse tags to find articles about specific subjects that interest you.
+                    </p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                    <div className="text-2xl mb-2">📚</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Explore Collections</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Click any tag to see all posts related to that topic in one place.
+                    </p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                    <div className="text-2xl mb-2">⭐</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Follow Interests</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Popular tags show the most discussed topics. Great for finding trending content.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {/* CTA Section */}
             <div className="mt-16 text-center">
               <div className="inline-block p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
                 <p className="text-gray-700 dark:text-gray-300 mb-4">
-                  Can&apos;t find what you&apos;re looking for?
+                  Want to see all posts in chronological order?
                 </p>
                 <Link
                   href="/blog"

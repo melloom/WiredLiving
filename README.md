@@ -1,53 +1,86 @@
-# Blog
+# WiredLiving Blog
 
-A modern, performant blog built with Next.js, TypeScript, and Tailwind CSS.
+A modern, feature-rich blog platform built with Next.js 14, TypeScript, Supabase, and Tailwind CSS.
 
-## 🚀 Tech Stack
+🌐 **Live Site**: [wiredliving.vercel.app](https://wiredliving.vercel.app)
 
-- **Framework**: [Next.js 14](https://nextjs.org/) - React framework with App Router
-- **Language**: [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-- **Content**: [MDX](https://mdxjs.com/) - Markdown with JSX support
-- **Code Highlighting**: [Shiki](https://shiki.matsu.io/) or [Prism](https://prismjs.com/) - Syntax highlighting
-- **Deployment**: [Vercel](https://vercel.com/) (recommended) or [Netlify](https://www.netlify.com/)
+## ✨ Features
+
+- 🚀 **Modern Stack**: Next.js 14 with App Router, TypeScript, Tailwind CSS
+- 📝 **Rich Content Management**: Full-featured admin dashboard for creating and managing posts
+- 🔍 **Search Functionality**: Full-text search across all posts
+- 🏷️ **Tags & Categories**: Organize content with tags and categories
+- 📊 **Analytics**: Built-in analytics tracking for page views and visitor insights
+- 📧 **Newsletter**: Email subscription system
+- 🔐 **Admin Dashboard**: Secure admin panel with authentication
+- 📱 **Responsive Design**: Mobile-first, fully responsive design
+- 🌙 **Dark Mode**: Built-in dark mode support
+- 🔗 **SEO Optimized**: Meta tags, sitemap, RSS feed, and structured data
+- 📸 **Image Management**: Upload and manage images with Supabase Storage
+- ⚡ **Fast Performance**: Optimized for speed and performance
+- 🎨 **Beautiful UI**: Modern, clean interface with smooth animations
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 14](https://nextjs.org/) with App Router
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Database**: [Supabase](https://supabase.com/) (PostgreSQL)
+- **Storage**: Supabase Storage for images
+- **Authentication**: [NextAuth.js](https://next-auth.js.org/)
+- **Deployment**: [Vercel](https://vercel.com/)
 
 ## 📁 Project Structure
 
 ```
 blog/
 ├── app/                    # Next.js App Router
-│   ├── layout.tsx         # Root layout
-│   ├── page.tsx           # Home page
-│   ├── blog/              # Blog routes
-│   │   ├── [slug]/        # Dynamic blog post pages
-│   │   └── page.tsx       # Blog listing page
-│   └── globals.css        # Global styles
-├── components/            # React components
-│   ├── ui/                # Reusable UI components
-│   └── blog/              # Blog-specific components
-├── content/               # Blog posts (MDX files)
-│   └── posts/
-├── lib/                   # Utility functions
-│   ├── mdx.ts            # MDX processing
-│   └── utils.ts          # Helper functions
-├── public/                # Static assets
-│   └── images/
-├── types/                 # TypeScript type definitions
-└── config/                # Configuration files
-    └── site.ts            # Site metadata
+│   ├── admin/             # Admin dashboard
+│   ├── api/                # API routes
+│   ├── blog/              # Blog pages
+│   ├── search/            # Search page
+│   ├── tags/               # Tags page
+│   ├── archive/            # Archive page
+│   ├── about/              # About page
+│   ├── contact/            # Contact page
+│   ├── faq/                # FAQ page
+│   ├── newsletter/         # Newsletter page
+│   ├── resources/          # Resources page
+│   └── ...
+├── components/             # React components
+│   ├── admin-dashboard.tsx # Admin panel
+│   ├── header.tsx          # Site header
+│   ├── footer.tsx          # Site footer
+│   └── ...
+├── lib/                    # Utility functions
+│   ├── supabase-db.ts      # Database operations
+│   ├── supabase-storage.ts # Storage operations
+│   ├── supabase-analytics.ts # Analytics
+│   └── ...
+├── config/                 # Configuration
+│   └── site.ts             # Site metadata
+├── types/                  # TypeScript types
+└── public/                 # Static assets
 ```
 
-## 🛠️ Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
 - Node.js 18+ and npm/yarn/pnpm
+- A Supabase account (free tier works)
 - Git
 
 ### Installation
 
-1. Clone the repository (or navigate to the project directory)
-2. Install dependencies:
+1. **Clone the repository**
+
+```bash
+git clone <your-repo-url>
+cd blog
+```
+
+2. **Install dependencies**
 
 ```bash
 npm install
@@ -57,7 +90,34 @@ yarn install
 pnpm install
 ```
 
-3. Run the development server:
+3. **Set up environment variables**
+
+Create a `.env.local` file in the root directory:
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# NextAuth
+AUTH_SECRET=your_auth_secret_generate_with_openssl_rand_base64_32
+AUTH_URL=http://localhost:3000
+
+# Admin Credentials
+ADMIN_EMAIL=your_admin_email@example.com
+ADMIN_PASSWORD=your_secure_password
+```
+
+4. **Set up Supabase**
+
+Follow the instructions in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) to:
+- Create your Supabase project
+- Set up the database schema
+- Create the storage bucket
+- Configure security policies
+
+5. **Run the development server**
 
 ```bash
 npm run dev
@@ -67,47 +127,72 @@ yarn dev
 pnpm dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+6. **Open your browser**
 
-## 📝 Writing Blog Posts
+Navigate to [http://localhost:3000](http://localhost:3000)
 
-Blog posts are written in MDX format and stored in the `content/posts/` directory.
+## 📚 Documentation
 
-### Post Frontmatter
+- **[SUPABASE_SETUP.md](./SUPABASE_SETUP.md)** - Complete Supabase setup guide
+- **[SUPABASE_SECURITY.md](./SUPABASE_SECURITY.md)** - Security configuration and best practices
+- **[ANALYTICS_SETUP.md](./ANALYTICS_SETUP.md)** - Analytics setup and configuration
+- **[ADMIN_SETUP.md](./ADMIN_SETUP.md)** - Admin dashboard setup
+- **[QUICKSTART.md](./QUICKSTART.md)** - Quick start guide
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Deployment instructions
+- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
 
-Each post should include frontmatter with the following fields:
+## 🎯 Key Features Explained
 
-```yaml
----
-title: "Your Post Title"
-description: "A brief description of your post"
-date: "2024-01-01"
-author: "Your Name"
-tags: ["tag1", "tag2"]
-published: true
----
-```
+### Admin Dashboard
 
-### Example Post
+Access the admin dashboard at `/admin` (requires login). Features include:
 
-Create a file `content/posts/my-first-post.mdx`:
+- Create, edit, and delete posts
+- Manage tags
+- Upload images
+- View analytics
+- Schedule posts
+- Set post visibility (public/unlisted/private)
+- Mark posts as featured
 
-```mdx
----
-title: "My First Blog Post"
-description: "This is my first blog post"
-date: "2024-01-01"
-author: "Your Name"
-tags: ["introduction", "getting-started"]
-published: true
----
+### Search
 
-# My First Blog Post
+Full-text search available at `/search`. Search by:
+- Post title
+- Content
+- Tags
+- Author
 
-This is the content of my first blog post. You can use **markdown** syntax and even React components!
+### Analytics
 
-<CustomComponent prop="value" />
-```
+Built-in analytics tracking:
+- Page views
+- Unique visitors
+- Top posts
+- Device types
+- Referrers
+- Daily statistics
+
+### SEO Features
+
+- Automatic sitemap generation (`/sitemap.xml`)
+- RSS feed (`/feed.xml`)
+- Meta tags and Open Graph
+- Structured data (JSON-LD)
+- Robots.txt
+
+## 📝 Writing Posts
+
+Posts are created through the admin dashboard. Each post supports:
+
+- Rich markdown content
+- Cover images
+- Gallery images
+- Tags and categories
+- SEO metadata
+- Custom slugs
+- Scheduled publishing
+- Visibility settings
 
 ## 🎨 Customization
 
@@ -117,13 +202,13 @@ Edit `config/site.ts` to customize:
 - Site name and description
 - Author information
 - Social media links
-- Theme colors
+- Site URL
 
 ### Styling
 
 - Global styles: `app/globals.css`
 - Tailwind config: `tailwind.config.ts`
-- Component styles: Use Tailwind classes or CSS modules
+- Components: Use Tailwind utility classes
 
 ## 🚀 Deployment
 
@@ -131,7 +216,8 @@ Edit `config/site.ts` to customize:
 
 1. Push your code to GitHub
 2. Import your repository in [Vercel](https://vercel.com)
-3. Vercel will automatically detect Next.js and deploy
+3. Add environment variables in Vercel dashboard
+4. Deploy!
 
 Or use the Vercel CLI:
 
@@ -140,15 +226,17 @@ npm i -g vercel
 vercel
 ```
 
-### Deploy to Netlify
+### Environment Variables for Production
 
-1. Build the project: `npm run build`
-2. Deploy using Netlify CLI:
+Make sure to set all environment variables in your deployment platform:
 
-```bash
-npm i -g netlify-cli
-netlify deploy --prod
-```
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SERVICE_ROLE_KEY`
+- `AUTH_SECRET`
+- `AUTH_URL` (your production URL)
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
 
 ## 📦 Available Scripts
 
@@ -158,31 +246,44 @@ netlify deploy --prod
 - `npm run lint` - Run ESLint
 - `npm run type-check` - Run TypeScript type checking
 
-## 🧩 Features
+## 🔒 Security
 
-- ✅ Modern Next.js 14 with App Router
-- ✅ TypeScript for type safety
-- ✅ Tailwind CSS for styling
-- ✅ MDX support for rich content
-- ✅ Syntax highlighting for code blocks
-- ✅ SEO optimized
-- ✅ Responsive design
-- ✅ Dark mode support (optional)
-- ✅ RSS feed (optional)
-- ✅ Search functionality (optional)
+- Row Level Security (RLS) enabled on all Supabase tables
+- Secure authentication with NextAuth.js
+- Service role key only used server-side
+- Environment variables never exposed to client
+- Admin routes protected
 
-## 📚 Resources
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [MDX Documentation](https://mdxjs.com/)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [TypeScript Documentation](https://www.typescriptlang.org/docs/)
+See [SUPABASE_SECURITY.md](./SUPABASE_SECURITY.md) for detailed security information.
 
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is open source and available under the [MIT License](./LICENSE).
 
+## 🙏 Acknowledgments
+
+- Built with [Next.js](https://nextjs.org/)
+- Database powered by [Supabase](https://supabase.com/)
+- Styled with [Tailwind CSS](https://tailwindcss.com/)
+- Icons and UI inspiration from various open-source projects
+
+## 📞 Support
+
+For issues, questions, or contributions:
+- Open an issue on GitHub
+- Contact: contact@mellowsites.com
+- Visit: [mellowsites.com](https://www.mellowsites.com)
+
+---
+
+**Made with ❤️ by [Melvin](https://www.mellowsites.com)**

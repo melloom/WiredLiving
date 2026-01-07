@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
-import { getAllPosts } from '@/lib/mdx';
+import { getAllPostsAdmin } from '@/lib/supabase-db';
 import { AdminDashboard } from '@/components/admin-dashboard';
 
 export const metadata = {
@@ -17,7 +17,8 @@ export default async function AdminPage() {
     redirect('/login?callbackUrl=/admin');
   }
 
-  const posts = getAllPosts();
+  // Get all posts from Supabase (including drafts)
+  const posts = await getAllPostsAdmin();
 
   return <AdminDashboard posts={posts} />;
 }

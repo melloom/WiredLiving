@@ -74,3 +74,4 @@ npm run build
 3. Check Next.js documentation: https://nextjs.org/docs
 4. Review build logs for specific errors
 
+

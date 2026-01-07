@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getAllPosts, getAllTags } from '@/lib/mdx';
+import { getAllPosts, getAllTags } from '@/lib/supabase-db';
 import { formatDate } from '@/lib/utils';
 import { siteConfig } from '@/config/site';
 import { PostCard } from '@/components/post-card';
@@ -53,13 +53,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BlogPage() {
-  const posts = getAllPosts();
-  const tags = getAllTags();
+export default async function BlogPage() {
+  const allPosts = await getAllPosts();
+  const tags = await getAllTags();
 
-  // Get featured post (most recent)
-  const featuredPost = posts[0];
-  const otherPosts = posts.slice(1);
+  // Sort posts by date (newest first) to ensure latest posts are shown
+  const posts = [...allPosts].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return dateB - dateA; // Newest first
+  });
+
+  // Get featured post (most recent published post, or first post if none are featured)
+  const featuredPost = posts.find(p => p.featured && p.published) || posts[0];
+  const otherPosts = posts.filter(p => p.slug !== featuredPost?.slug);
 
   // Create structured data
   const blogPageSchema: Record<string, unknown> = {
@@ -159,20 +166,21 @@ export default function BlogPage() {
                       No Posts Yet
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                      Start writing your first blog post! Create a new .mdx file in the content/posts directory.
+                      Start writing your first blog post! Go to the admin dashboard to create your first post.
                     </p>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 max-w-md mx-auto text-left">
-                      <p className="text-sm text-gray-600 dark:text-gray-400 font-mono">
-                        content/posts/my-first-post.mdx
-                      </p>
-                    </div>
+                    <Link
+                      href="/admin"
+                      className="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105"
+                    >
+                      Create Your First Post
+                    </Link>
                   </div>
                 ) : (
                   <>
                     {otherPosts.length > 0 && (
                       <div className="mb-6">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                          All Posts
+                          Latest Posts
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400">
                           {otherPosts.length} {otherPosts.length === 1 ? 'post' : 'posts'} to explore

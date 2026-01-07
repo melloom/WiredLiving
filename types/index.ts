@@ -8,6 +8,7 @@ export interface BlogPost {
   published: boolean;
   content?: string;
   readingTime?: number;
+  wordCount?: number;
 
   // Enhanced model fields
   /**
@@ -20,6 +21,11 @@ export interface BlogPost {
    */
   coverImage?: string;
   /**
+   * Additional images associated with this post (inline, galleries, callouts).
+   * These are stored as URLs (typically from Blob storage).
+   */
+  galleryImages?: string[];
+  /**
    * Whether this post is highlighted (for featured carousels, etc.).
    */
   featured?: boolean;
@@ -28,6 +34,27 @@ export interface BlogPost {
    */
   seoTitle?: string;
   seoDescription?: string;
+  ogImageOverride?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
+
+  // Publishing & visibility
+  status?: 'draft' | 'scheduled' | 'published';
+  scheduledAt?: string | null;
+  visibility?: 'public' | 'unlisted' | 'private';
+  isPremium?: boolean;
+  requiresLogin?: boolean;
+
+  // Structure & canonical
+  category?: string;
+  series?: string;
+  seriesOrder?: number | null;
+  canonicalUrl?: string;
+  structuredDataType?: 'BlogPosting' | 'NewsArticle' | 'Product' | string;
+
+  // Slug control
+  slugOverride?: string;
+  slugLocked?: boolean;
 }
 
 export interface BlogPostFrontmatter {

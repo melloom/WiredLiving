@@ -1,7 +1,12 @@
+'use client';
+
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { siteConfig } from '@/config/site';
 
 export function Header() {
+  const { data: session } = useSession();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-950/60">
       <div className="container mx-auto px-4">
@@ -43,6 +48,20 @@ export function Header() {
             >
               Tags
             </Link>
+            <Link
+              href="/search"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            >
+              Search
+            </Link>
+            {session && (
+              <Link
+                href="/admin"
+                className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-semibold"
+              >
+                Dashboard
+              </Link>
+            )}
             {siteConfig.links.github && (
               <a
                 href={siteConfig.links.github}

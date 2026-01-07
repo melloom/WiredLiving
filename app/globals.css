@@ -156,3 +156,90 @@ body {
   @apply bg-gray-100 dark:bg-gray-800 font-semibold;
 }
 
+/* Print Styles */
+@media print {
+  /* Hide navigation, sidebar, and non-essential elements */
+  header,
+  footer,
+  nav,
+  aside,
+  .no-print,
+  button,
+  .share-buttons,
+  .reading-progress,
+  .newsletter-signup {
+    display: none !important;
+  }
+
+  /* Full width for print */
+  body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: white;
+    color: black;
+  }
+
+  /* Article styling for print */
+  article {
+    max-width: 100%;
+    margin: 0;
+    padding: 20px;
+  }
+
+  /* Ensure good contrast */
+  .prose {
+    color: #000;
+  }
+
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .prose h5,
+  .prose h6 {
+    color: #000;
+    page-break-after: avoid;
+  }
+
+  /* Prevent page breaks inside important elements */
+  .prose p,
+  .prose li {
+    page-break-inside: avoid;
+  }
+
+  /* Links should show URL */
+  .prose a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  /* Images */
+  .prose img {
+    max-width: 100%;
+    height: auto;
+    page-break-inside: avoid;
+  }
+
+  /* Code blocks */
+  .prose pre {
+    page-break-inside: avoid;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  /* Remove backgrounds and borders for print */
+  * {
+    background: white !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Show URLs for links */
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+}
+

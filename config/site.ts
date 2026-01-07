@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: 'wiredliving',
   description: 'Explore technology, lifestyle, and innovation through insightful articles and stories',
-  url: '',
+  url: 'https://wiredliving.vercel.app',
   keywords: ['blog', 'technology', 'lifestyle', 'innovation', 'wiredliving'],
   author: {
     name: 'Melvin (Melhub)',

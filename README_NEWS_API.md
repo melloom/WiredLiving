@@ -75,3 +75,4 @@ If you want to use a different news source, you can:
 2. Update the component to match the new API structure
 3. Popular alternatives: RSS feeds, Reddit API, custom news aggregator
 
+

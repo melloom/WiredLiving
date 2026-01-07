@@ -74,3 +74,4 @@ Would you like me to set up NextAuth.js for you? It will:
 - Be ready to add OAuth providers later
 - Store sessions in your Postgres database
 
+

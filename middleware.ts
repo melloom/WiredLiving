@@ -37,11 +37,15 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   );
 
   // Strict Content Security Policy tuned for this app
-  // Note: Adjust if you add more external resources
+  // Allow 'unsafe-eval' only in development so React Fast Refresh works
+  const isDev = process.env.NODE_ENV !== 'production';
+  const scriptSrc = isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:"
+    : "script-src 'self' 'unsafe-inline' https:";
+
   const csp = [
     "default-src 'self'",
-    // Next.js / React need 'unsafe-eval' in dev sometimes, but we'll keep it off in prod
-    "script-src 'self' 'unsafe-inline' https:",
+    scriptSrc,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
     "font-src 'self' data: https://fonts.gstatic.com",

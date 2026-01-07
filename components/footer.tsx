@@ -75,6 +75,14 @@ export function Footer() {
                     Archive
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/search"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    Search
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -84,6 +92,40 @@ export function Footer() {
                 Resources
               </h3>
               <ul className="space-y-1">
+                <li>
+                  <Link
+                    href="/resources"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    Tools & Resources
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/newsletter"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    Newsletter
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/faq"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    FAQ
+                  </Link>
+                </li>
+                <li>
+                  <a
+                    href="/feed.xml"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    RSS Feed
+                  </a>
+                </li>
                 {siteConfig.links.github && (
                   <li>
                     <a

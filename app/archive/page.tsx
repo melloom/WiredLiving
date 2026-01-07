@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getAllPosts } from '@/lib/mdx';
+import { getAllPosts } from '@/lib/supabase-db';
 import { formatDate } from '@/lib/utils';
 import { siteConfig } from '@/config/site';
 
@@ -14,8 +14,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ArchivePage() {
-  const posts = getAllPosts();
+export default async function ArchivePage() {
+  const allPosts = await getAllPosts();
+  
+  // Sort posts by date (newest first) to ensure latest posts are shown
+  const posts = [...allPosts].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return dateB - dateA; // Newest first
+  });
   
   // Group posts by year and month
   const postsByDate = posts.reduce((acc, post) => {
@@ -105,4 +112,5 @@ export default function ArchivePage() {
     </main>
   );
 }
+
 

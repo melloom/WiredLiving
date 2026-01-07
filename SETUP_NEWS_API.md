@@ -72,3 +72,4 @@
 - ❌ Does NOT work on deployed sites (production)
 - For production, you need a paid plan
 
+

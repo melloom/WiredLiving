@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import Link from 'next/link';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -49,6 +50,27 @@ function LoginForm() {
       </div>
 
       <div className="relative max-w-md w-full space-y-8">
+        {/* Back to Home Button */}
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors text-sm font-medium"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+          Back to Home
+        </Link>
+
         <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-gray-200/60 dark:border-gray-800/80">
           <div className="text-center mb-6">
             <div className="inline-flex items-center justify-center mb-4 px-3 py-1 rounded-full bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/30 dark:border-blue-400/40">

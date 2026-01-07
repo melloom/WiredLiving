@@ -1,9 +1,18 @@
-import { getAllPosts } from '@/lib/mdx';
+import { getAllPosts } from '@/lib/supabase-db';
 import { PostCard } from './post-card';
 import { NewsFeed } from './news-feed';
 
-export function FeaturedPosts() {
-  const posts = getAllPosts().slice(0, 6);
+export async function FeaturedPosts() {
+  const allPosts = await getAllPosts();
+  
+  // Sort posts by date (newest first) to ensure latest posts are shown
+  const sortedPosts = [...allPosts].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return dateB - dateA; // Newest first
+  });
+  
+  const posts = sortedPosts.slice(0, 6);
 
   if (posts.length === 0) {
     return (
@@ -15,11 +24,14 @@ export function FeaturedPosts() {
                 <div className="text-center">
                   <h2 className="text-3xl md:text-4xl font-bold mb-4">Latest Posts</h2>
                   <p className="text-gray-600 dark:text-gray-400 mb-8">
-                    No posts yet. Create your first post in the content/posts directory!
+                    No posts yet. Go to the admin dashboard to create your first post!
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500">
-                    Add a .mdx file with frontmatter to get started.
-                  </p>
+                  <a
+                    href="/admin"
+                    className="inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105"
+                  >
+                    Create Your First Post
+                  </a>
                 </div>
               </div>
               <aside className="lg:col-span-1">
@@ -44,8 +56,9 @@ export function FeaturedPosts() {
     );
   }
 
-  const featuredPost = posts[0];
-  const otherPosts = posts.slice(1);
+  // Get featured post (first featured post, or most recent if none are featured)
+  const featuredPost = posts.find(p => p.featured && p.published) || posts[0];
+  const otherPosts = posts.filter(p => p.slug !== featuredPost?.slug).slice(0, 5);
 
   return (
     <section id="latest-posts" className="py-20 bg-gray-50 dark:bg-gray-900">

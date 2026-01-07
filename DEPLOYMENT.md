@@ -145,3 +145,4 @@ Your Next.js app is already optimized with:
 - [Netlify Documentation](https://docs.netlify.com)
 - [Next.js Deployment](https://nextjs.org/docs/deployment)
 
+

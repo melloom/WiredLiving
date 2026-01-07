@@ -12,3 +12,4 @@ pkill -f "next dev" || true
 
 echo "✅ Clean complete! Run 'npm run dev' to start fresh."
 
+
