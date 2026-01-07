@@ -26,17 +26,25 @@ export function NewsFeed({ initialArticles = [] }: NewsFeedProps) {
   useEffect(() => {
     if (initialArticles.length === 0) {
       fetch('/api/news')
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
         .then((data) => {
           if (data.error) {
             setError(data.error);
+          } else if (data.articles && data.articles.length > 0) {
+            setArticles(data.articles);
           } else {
-            setArticles(data.articles || []);
+            setError('No articles returned from API');
           }
           setLoading(false);
         })
         .catch((err) => {
-          setError('Failed to load news');
+          console.error('News fetch error:', err);
+          setError(`Failed to load news: ${err.message}`);
           setLoading(false);
         });
     }
@@ -77,11 +85,16 @@ export function NewsFeed({ initialArticles = [] }: NewsFeedProps) {
         <p className="text-sm text-gray-500 dark:text-gray-400">
           {error === 'NEWS_API_KEY not configured'
             ? 'News feed not configured'
-            : 'No news available'}
+            : error || 'No news available'}
         </p>
         {error === 'NEWS_API_KEY not configured' && (
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
             Add NEWS_API_KEY to your environment variables
+          </p>
+        )}
+        {error && error !== 'NEWS_API_KEY not configured' && (
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+            Check console for details or verify your API key
           </p>
         )}
       </div>

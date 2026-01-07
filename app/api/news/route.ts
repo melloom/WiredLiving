@@ -38,21 +38,44 @@ export async function GET() {
       `https://newsapi.org/v2/top-headlines?category=technology&language=en&pageSize=5&apiKey=${apiKey}`,
       {
         next: { revalidate: 3600 }, // Cache for 1 hour
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+        },
       }
     );
 
     if (!response.ok) {
-      throw new Error(`NewsAPI error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('NewsAPI response error:', response.status, errorText);
+      throw new Error(`NewsAPI error: ${response.status} - ${errorText}`);
     }
 
     const data: NewsAPIResponse = await response.json();
 
     if (data.status === 'ok') {
+      const filteredArticles = data.articles.filter(
+        (article) => article.title && article.title !== '[Removed]' && article.url
+      );
+      
+      if (filteredArticles.length === 0) {
+        console.warn('No valid articles found after filtering');
+      }
+      
       return NextResponse.json({
-        articles: data.articles.filter(
-          (article) => article.title && article.title !== '[Removed]'
-        ),
+        articles: filteredArticles,
       });
+    }
+
+    // Handle API errors
+    if (data.status === 'error') {
+      console.error('NewsAPI returned error status:', data);
+      return NextResponse.json(
+        {
+          articles: [],
+          error: 'NewsAPI returned an error',
+        },
+        { status: 200 }
+      );
     }
 
     return NextResponse.json({ articles: [] });
