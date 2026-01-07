@@ -19,10 +19,10 @@ export function Hero() {
       
       {/* Animated particles/circuit pattern */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0s' }} />
-        <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute bottom-1/3 right-1/3 w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-500 rounded-full animate-pulse particle-1" />
+        <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-purple-500 rounded-full animate-pulse particle-2" />
+        <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-blue-400 rounded-full animate-pulse particle-3" />
+        <div className="absolute bottom-1/3 right-1/3 w-2 h-2 bg-purple-400 rounded-full animate-pulse particle-4" />
         
         {/* Circuit lines */}
         <svg className="absolute inset-0 w-full h-full opacity-20 dark:opacity-10" xmlns="http://www.w3.org/2000/svg">
@@ -45,8 +45,7 @@ export function Hero() {
             stroke="url(#circuitGradient)"
             strokeWidth="2"
             fill="none"
-            className="animate-draw"
-            style={{ animationDelay: '1s' }}
+            className="animate-draw circuit-path-2"
           />
         </svg>
       </div>

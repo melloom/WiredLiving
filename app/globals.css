@@ -68,6 +68,27 @@ body {
   animation: draw 3s ease-in-out forwards;
 }
 
+.circuit-path-2 {
+  animation-delay: 1s;
+}
+
+/* Particle animation delays */
+.particle-1 {
+  animation-delay: 0s;
+}
+
+.particle-2 {
+  animation-delay: 1s;
+}
+
+.particle-3 {
+  animation-delay: 2s;
+}
+
+.particle-4 {
+  animation-delay: 1.5s;
+}
+
 /* Markdown/Prose Styles */
 .prose {
   @apply text-gray-900 dark:text-gray-100;
