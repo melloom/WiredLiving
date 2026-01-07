@@ -57,7 +57,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}
       />
-      <Hero />
+      <Hero siteName={siteConfig.name} description={siteConfig.description} />
       <FeaturedPosts />
       <CTASection />
     </>

@@ -1,10 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { siteConfig } from '@/config/site';
 import { useEffect, useState } from 'react';
 
-export function Hero() {
+interface HeroProps {
+  siteName: string;
+  description: string;
+}
+
+export function Hero({ siteName, description }: HeroProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -78,7 +82,7 @@ export function Hero() {
           </div>
           
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            {siteConfig.description}
+            {description}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
