@@ -7,12 +7,12 @@ export function Footer() {
   return (
     <footer className="relative mt-auto border-t border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-gray-950">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-12 lg:py-16">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="py-6 lg:py-8">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {/* Brand Section */}
             <div className="lg:col-span-1">
-              <Link href="/" className="inline-block mb-4">
-                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <Link href="/" className="inline-block mb-2">
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   {siteConfig.name}
                 </span>
               </Link>
@@ -23,10 +23,10 @@ export function Footer() {
 
             {/* Navigation Links */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">
                 Navigation
               </h3>
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 <li>
                   <Link
                     href="/"
@@ -80,10 +80,10 @@ export function Footer() {
 
             {/* Resources */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">
                 Resources
               </h3>
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 {siteConfig.links.github && (
                   <li>
                     <a
@@ -137,10 +137,10 @@ export function Footer() {
 
             {/* Legal */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">
                 Legal
               </h3>
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 <li>
                   <Link
                     href="/terms"
@@ -163,8 +163,8 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-200/80 dark:border-gray-800/80 py-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="border-t border-gray-200/80 dark:border-gray-800/80 py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               © {currentYear} {siteConfig.author.name || siteConfig.name}. All rights reserved.
             </p>

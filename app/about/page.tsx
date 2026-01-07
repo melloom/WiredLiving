@@ -1,19 +1,140 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { siteConfig } from '@/config/site';
 
 export const metadata: Metadata = {
-  title: 'About',
-  description: 'Full-Stack Developer • AI Integrator • Builder of Bold Ideas',
+  title: 'About Melvin | Full-Stack Developer & AI Integrator',
+  description: 'Meet Melvin, a self-taught full-stack developer and AI integrator who builds AI-powered tools, SaaS apps, and experimental games. Learn about his journey, projects, and passion for turning wild ideas into reality.',
+  keywords: [
+    'Melvin',
+    'Full-Stack Developer',
+    'AI Integrator',
+    'Software Developer',
+    'Web Developer',
+    'AI Tools',
+    'SaaS Developer',
+    'Game Developer',
+    'Portfolio',
+    'About',
+    'Developer Profile',
+    'Tech Blog',
+    'AI Development',
+    'Next.js Developer',
+    'React Developer',
+  ],
+  authors: [
+    {
+      name: siteConfig.author.name,
+      ...(siteConfig.author.twitter && { url: `https://twitter.com/${siteConfig.author.twitter}` }),
+    },
+  ],
   openGraph: {
-    title: `About | ${siteConfig.name}`,
-    description: 'Full-Stack Developer • AI Integrator • Builder of Bold Ideas',
+    title: `About Melvin | ${siteConfig.name}`,
+    description: 'Meet Melvin, a self-taught full-stack developer and AI integrator who builds AI-powered tools, SaaS apps, and experimental games. Learn about his journey, projects, and passion for turning wild ideas into reality.',
     ...(siteConfig.url && { url: `${siteConfig.url}/about` }),
+    siteName: siteConfig.name,
+    type: 'profile',
+    images: [
+      {
+        url: siteConfig.ogImage || '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'About Melvin - Full-Stack Developer & AI Integrator',
+      },
+    ],
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `About Melvin | ${siteConfig.name}`,
+    description: 'Meet Melvin, a self-taught full-stack developer and AI integrator who builds AI-powered tools, SaaS apps, and experimental games.',
+    images: [siteConfig.ogImage || '/og-image.jpg'],
+    ...(siteConfig.author.twitter && { creator: `@${siteConfig.author.twitter}` }),
+  },
+  ...(siteConfig.url && {
+    alternates: {
+      canonical: `${siteConfig.url}/about`,
+    },
+  }),
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 };
 
 export default function AboutPage() {
+  const sameAsLinks = [
+    siteConfig.links.portfolio,
+    siteConfig.links.socialHub,
+    ...(siteConfig.links.github ? [`https://github.com/${siteConfig.links.github}`] : []),
+    ...(siteConfig.links.twitter ? [`https://twitter.com/${siteConfig.links.twitter}`] : []),
+  ].filter(Boolean);
+
+  const personSchema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Melvin',
+    jobTitle: 'Full-Stack Developer & AI Integrator',
+    description: 'Self-taught developer who builds AI-powered tools, SaaS apps, and experimental games. Passionate about turning wild ideas into reality.',
+    sameAs: sameAsLinks,
+    knowsAbout: [
+      'Full-Stack Development',
+      'AI Integration',
+      'Web Development',
+      'SaaS Development',
+      'Game Development',
+      'Next.js',
+      'React',
+      'TypeScript',
+      'AI Tools',
+      'Machine Learning',
+    ],
+    worksFor: {
+      '@type': 'Organization',
+      name: 'Freelance Developer',
+    },
+  };
+
+  if (siteConfig.url) {
+    personSchema.url = `${siteConfig.url}/about`;
+  }
+
+  const profilePageSchema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    name: `About Melvin | ${siteConfig.name}`,
+    description: 'About page for Melvin, a full-stack developer and AI integrator',
+    mainEntity: {
+      '@type': 'Person',
+      name: 'Melvin',
+      jobTitle: 'Full-Stack Developer & AI Integrator',
+    },
+  };
+
+  if (siteConfig.url) {
+    profilePageSchema.url = `${siteConfig.url}/about`;
+  }
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+    <>
+      <Script
+        id="person-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+      />
+      <Script
+        id="profile-page-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(profilePageSchema) }}
+      />
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="max-w-4xl mx-auto">
           {/* Hero Section */}
@@ -193,6 +314,7 @@ export default function AboutPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }
 
