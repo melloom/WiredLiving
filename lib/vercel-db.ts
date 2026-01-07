@@ -2,26 +2,6 @@ import { sql } from '@vercel/postgres';
 import { BlogPost } from '@/types';
 import readingTime from 'reading-time';
 
-// Database row types
-interface PostRow {
-  id: string;
-  slug: string;
-  title: string;
-  description: string | null;
-  content: string;
-  author: string;
-  date: string;
-  published: boolean;
-  reading_time: number | null;
-  created_at: string;
-  updated_at: string;
-}
-
-interface TagRow {
-  id: string;
-  name: string;
-}
-
 /**
  * Get all published posts from database
  */
@@ -182,6 +162,11 @@ function transformPostRow(row: any): BlogPost {
     published: row.published,
     content: row.content,
     readingTime: readingTimeMinutes,
+    excerpt: row.excerpt || row.description || '',
+    coverImage: row.cover_image || undefined,
+    featured: typeof row.featured === 'boolean' ? row.featured : false,
+    seoTitle: row.seo_title || undefined,
+    seoDescription: row.seo_description || undefined,
   };
 }
 
@@ -195,8 +180,36 @@ export async function createPost(post: Omit<BlogPost, 'slug'> & { slug?: string 
 
     // Insert post
     const { rows } = await sql`
-      INSERT INTO posts (slug, title, description, content, author, date, published, reading_time)
-      VALUES (${slug}, ${post.title}, ${post.description || ''}, ${post.content || ''}, ${post.author}, ${post.date}, ${post.published ?? false}, ${readingTimeMinutes})
+      INSERT INTO posts (
+        slug,
+        title,
+        description,
+        content,
+        author,
+        date,
+        published,
+        reading_time,
+        excerpt,
+        cover_image,
+        featured,
+        seo_title,
+        seo_description
+      )
+      VALUES (
+        ${slug},
+        ${post.title},
+        ${post.description || ''},
+        ${post.content || ''},
+        ${post.author},
+        ${post.date},
+        ${post.published ?? false},
+        ${readingTimeMinutes},
+        ${post.excerpt || null},
+        ${post.coverImage || null},
+        ${post.featured ?? false},
+        ${post.seoTitle || null},
+        ${post.seoDescription || null}
+      )
       RETURNING *
     `;
 
@@ -322,10 +335,22 @@ export async function initDatabase(): Promise<void> {
         date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         published BOOLEAN DEFAULT false,
         reading_time INTEGER,
+        excerpt TEXT,
+        cover_image TEXT,
+        featured BOOLEAN DEFAULT false,
+        seo_title TEXT,
+        seo_description TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )
     `;
+
+    // Backwards-compatible schema upgrades (in case posts table already existed)
+    await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS excerpt TEXT`;
+    await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS cover_image TEXT`;
+    await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS featured BOOLEAN DEFAULT false`;
+    await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS seo_title TEXT`;
+    await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS seo_description TEXT`;
 
     // Create tags table
     await sql`

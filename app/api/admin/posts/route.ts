@@ -18,7 +18,20 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { title, description, content, author, tags, published, date } = body;
+    const {
+      title,
+      description,
+      content,
+      author,
+      tags,
+      published,
+      date,
+      excerpt,
+      coverImage,
+      featured,
+      seoTitle,
+      seoDescription,
+    } = body;
 
     // Validate required fields
     if (!title || !content || !author) {
@@ -48,6 +61,11 @@ export async function POST(request: Request) {
       tags: tags || [],
       published: published || false,
       date: date || new Date().toISOString(),
+      excerpt: excerpt || '',
+      coverImage: coverImage || '',
+      featured: !!featured,
+      seoTitle: seoTitle || '',
+      seoDescription: seoDescription || '',
     };
 
     const createdPost = await createPost(post);
