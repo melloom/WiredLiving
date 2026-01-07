@@ -4,7 +4,7 @@ export const siteConfig = {
   url: '',
   keywords: ['blog', 'technology', 'lifestyle', 'innovation', 'wiredliving'],
   author: {
-    name: '',
+    name: 'Melvin (Melhub)',
     email: '',
     twitter: '',
     github: '',
@@ -12,6 +12,8 @@ export const siteConfig = {
   links: {
     twitter: '',
     github: '',
+    portfolio: 'https://www.mellowsites.com',
+    socialHub: 'https://melhub.netlify.app',
   },
   ogImage: '/og-image.jpg',
 };
