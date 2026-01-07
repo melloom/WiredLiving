@@ -1,15 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/admin';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +28,9 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Invalid credentials');
       } else if (result?.ok) {
-        router.push('/admin');
+        // Redirect to callback URL or default to /admin
+        const redirectUrl = callbackUrl.startsWith('/') ? callbackUrl : '/admin';
+        router.push(redirectUrl);
         router.refresh();
       }
     } catch (err) {
@@ -218,6 +222,35 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 px-4 overflow-hidden">
+        <div className="relative max-w-md w-full space-y-8">
+          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-gray-200/60 dark:border-gray-800/80">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center mb-4 px-3 py-1 rounded-full bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/30 dark:border-blue-400/40">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2" />
+                <span className="text-xs font-mono uppercase tracking-wide text-blue-600 dark:text-blue-400">
+                  Admin Access
+                </span>
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                Sign in to Dashboard
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Loading...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
 

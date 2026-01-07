@@ -13,6 +13,7 @@
     "clean:dev": "npm run clean && npm run dev"
   },
   "dependencies": {
+    "@auth/pg-adapter": "^1.11.1",
     "@mdx-js/loader": "^3.0.0",
     "@mdx-js/react": "^3.0.0",
     "@next/mdx": "^14.2.0",
@@ -22,6 +23,7 @@
     "gray-matter": "^4.0.3",
     "next": "^14.2.0",
     "next-auth": "^5.0.0-beta.30",
+    "pg": "^8.16.3",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-markdown": "^9.0.0",

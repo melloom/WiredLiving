@@ -13,7 +13,8 @@ export default async function AdminPage() {
   const session = await auth();
   
   if (!session) {
-    redirect('/login');
+    // Redirect to login with callback URL
+    redirect('/login?callbackUrl=/admin');
   }
 
   const posts = getAllPosts();

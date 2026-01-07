@@ -4,11 +4,24 @@ import { NextResponse } from 'next/server';
 export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
+  const pathname = nextUrl.pathname;
 
-  // Protect admin routes
-  if (nextUrl.pathname.startsWith('/admin')) {
+  // Protect admin page routes
+  if (pathname.startsWith('/admin')) {
     if (!isLoggedIn) {
-      return NextResponse.redirect(new URL('/login', nextUrl));
+      // Redirect to login with callback URL
+      const callbackUrl = encodeURIComponent(pathname);
+      return NextResponse.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl));
+    }
+  }
+
+  // Protect admin API routes
+  if (pathname.startsWith('/api/admin')) {
+    if (!isLoggedIn) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
   }
 
@@ -16,6 +29,9 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/admin/:path*',
+    '/api/admin/:path*',
+  ],
 };
 
