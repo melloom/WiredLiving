@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next node_modules/.cache .next/cache",
+    "clean:dev": "npm run clean && npm run dev"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.0.0",
