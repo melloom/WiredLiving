@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "kill:3000": "lsof -ti:3000 | xargs kill -9 2>/dev/null || true",
+    "dev": "npm run kill:3000 && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
