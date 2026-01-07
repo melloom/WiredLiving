@@ -9,6 +9,13 @@ const nextConfig = {
   images: {
     remotePatterns: [],
   },
+  webpack: (config, { dev, isServer }) => {
+    // Fix webpack cache issues in development
+    if (dev && !isServer) {
+      config.cache = false;
+    }
+    return config;
+  },
 };
 
 const withMDX = createMDX({
