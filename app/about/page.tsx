@@ -21,22 +21,51 @@ export default function AboutPage() {
             <div className="inline-block mb-6">
               <div className="px-4 py-2 bg-gradient-to-r from-blue-600/10 to-purple-600/10 dark:from-blue-600/20 dark:to-purple-600/20 backdrop-blur-sm border border-blue-500/30 dark:border-blue-400/30 rounded-full">
                 <span className="text-sm font-mono text-blue-600 dark:text-blue-400">
-                  Full-Stack Developer • AI Integrator
+                  Full-Stack Developer • AI Integrator • Builder of Bold Ideas
                 </span>
               </div>
             </div>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
               Hey, I&apos;m Melvin
             </h1>
-            <p className="text-2xl md:text-3xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-              aka <span className="text-blue-600 dark:text-blue-400">Melhub</span>
-            </p>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed mb-8">
               I&apos;m a solo developer who codes with vision, vibes, and velocity.
               Whether it&apos;s shipping SaaS tools, crafting AI-powered apps, or hacking together games 
               that spark curiosity — I build fast, break limits, and learn even faster.
             </p>
           </div>
+
+          {/* About Me Section */}
+          <section className="mb-16">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 md:p-12 border border-gray-200 dark:border-gray-800 shadow-lg">
+              <h2 className="text-3xl font-bold mb-6 text-center">About Me</h2>
+              <div className="prose prose-lg dark:prose-invert max-w-none space-y-6">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  I&apos;m a self-taught developer who fell in love with code because it&apos;s the closest thing 
+                  to magic in the real world. I don&apos;t just write code — I architect experiences, solve problems, 
+                  and turn wild ideas into reality.
+                </p>
+                
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  My journey started with curiosity and a laptop. Now, I build everything from AI-powered 
+                  dream interpreters to dark survival games. I believe the best products come from combining 
+                  technology with creativity, and I&apos;m always experimenting with new ways to push boundaries.
+                </p>
+
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  When I&apos;m not coding, you&apos;ll find me exploring the latest AI tools, diving deep into 
+                  new frameworks, or building something weird just to see if it works. I thrive on the 
+                  challenge of turning &quot;what if&quot; into &quot;here&apos;s how&quot;.
+                </p>
+
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-lg p-6 mt-8 border border-blue-200 dark:border-blue-800">
+                  <p className="text-gray-800 dark:text-gray-200 font-medium italic">
+                    &quot;I architect apps using AI as my co-pilot. It&apos;s not just coding — it&apos;s orchestration.&quot;
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
 
           {/* What I Build */}
           <section className="mb-16">

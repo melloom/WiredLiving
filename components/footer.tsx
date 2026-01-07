@@ -5,105 +5,184 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <h3 className="text-lg font-semibold mb-4">{siteConfig.name}</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {siteConfig.description}
-            </p>
-          </div>
-          
-          <div>
-            <h4 className="text-sm font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-                >
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/blog"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-                >
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/about"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-                >
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-                >
-                  Contact
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/tags"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-                >
-                  Tags
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/archive"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-                >
-                  Archive
-                </Link>
-              </li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="text-sm font-semibold mb-4">Connect</h4>
-            <ul className="space-y-2">
-              {siteConfig.links.github && (
+    <footer className="relative mt-auto border-t border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-gray-950">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="py-12 lg:py-16">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Brand Section */}
+            <div className="lg:col-span-1">
+              <Link href="/" className="inline-block mb-4">
+                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  {siteConfig.name}
+                </span>
+              </Link>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-xs">
+                {siteConfig.description}
+              </p>
+            </div>
+
+            {/* Navigation Links */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4">
+                Navigation
+              </h3>
+              <ul className="space-y-3">
                 <li>
-                  <a
-                    href={siteConfig.links.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                  <Link
+                    href="/"
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                   >
-                    GitHub
-                  </a>
+                    Home
+                  </Link>
                 </li>
-              )}
-              {siteConfig.links.twitter && (
                 <li>
-                  <a
-                    href={siteConfig.links.twitter}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                  <Link
+                    href="/blog"
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                   >
-                    Twitter
-                  </a>
+                    Blog
+                  </Link>
                 </li>
-              )}
-            </ul>
+                <li>
+                  <Link
+                    href="/about"
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/contact"
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    Contact
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/tags"
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    Tags
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/archive"
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    Archive
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4">
+                Resources
+              </h3>
+              <ul className="space-y-3">
+                {siteConfig.links.github && (
+                  <li>
+                    <a
+                      href={siteConfig.links.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    >
+                      GitHub
+                    </a>
+                  </li>
+                )}
+                {siteConfig.links.twitter && (
+                  <li>
+                    <a
+                      href={siteConfig.links.twitter}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    >
+                      Twitter
+                    </a>
+                  </li>
+                )}
+                {siteConfig.links.portfolio && (
+                  <li>
+                    <a
+                      href={siteConfig.links.portfolio}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    >
+                      Portfolio
+                    </a>
+                  </li>
+                )}
+                {siteConfig.links.socialHub && (
+                  <li>
+                    <a
+                      href={siteConfig.links.socialHub}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    >
+                      Social Hub
+                    </a>
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4">
+                Legal
+              </h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link
+                    href="/terms"
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/privacy"
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-        
-        <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800">
-          <p className="text-sm text-center text-gray-600 dark:text-gray-400">
-            © {currentYear} {siteConfig.author.name || siteConfig.name}. All rights reserved.
-          </p>
+
+        {/* Bottom Bar */}
+        <div className="border-t border-gray-200/80 dark:border-gray-800/80 py-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              © {currentYear} {siteConfig.author.name || siteConfig.name}. All rights reserved.
+            </p>
+            <div className="flex items-center gap-6">
+              <Link
+                href="/terms"
+                className="text-xs text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"
+              >
+                Terms
+              </Link>
+              <Link
+                href="/privacy"
+                className="text-xs text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"
+              >
+                Privacy
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
