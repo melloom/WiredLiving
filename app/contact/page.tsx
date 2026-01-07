@@ -55,13 +55,16 @@ export default function ContactPage() {
     '@type': 'ContactPage',
     name: `Contact | ${siteConfig.name}`,
     description: 'Contact page for getting in touch with Melvin',
-    ...(siteConfig.url && { url: `${siteConfig.url}/contact` }),
     mainEntity: {
       '@type': 'Person',
       name: 'Melvin',
       jobTitle: 'Full-Stack Developer & AI Integrator',
     },
   };
+
+  if (siteConfig.url) {
+    contactPageSchema.url = `${siteConfig.url}/contact`;
+  }
 
   return (
     <>
