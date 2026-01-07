@@ -109,6 +109,28 @@ export default function ContactPage() {
                     Quick Contact
                   </h2>
                   <div className="space-y-6">
+                    {siteConfig.author.email && (
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                          <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Email</h3>
+                          <a
+                            href={`mailto:${siteConfig.author.email}`}
+                            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                          >
+                            {siteConfig.author.email}
+                          </a>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Send me an email directly
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {siteConfig.links.portfolio && (
                       <div className="flex items-start gap-4">
                         <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">

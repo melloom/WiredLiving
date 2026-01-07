@@ -5,7 +5,7 @@ export const siteConfig = {
   keywords: ['blog', 'technology', 'lifestyle', 'innovation', 'wiredliving'],
   author: {
     name: 'Melvin (Melhub)',
-    email: '',
+    email: 'contact@mellowsites.com',
     twitter: '',
     github: '',
   },
