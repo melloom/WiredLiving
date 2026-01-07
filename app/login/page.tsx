@@ -15,28 +15,21 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    // TODO: Implement actual authentication logic
-    // For now, this is just a placeholder
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Add your authentication logic here
-      // Example:
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password }),
-      // });
-      
-      // if (response.ok) {
-      //   router.push('/dashboard');
-      // } else {
-      //   setError('Invalid credentials');
-      // }
-      
-      console.log('Login attempt:', { email, password });
-      setError('Authentication not yet implemented');
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        router.push('/admin');
+        router.refresh();
+      } else {
+        setError(data.error || 'Invalid credentials');
+      }
     } catch (err) {
       setError('An error occurred. Please try again.');
     } finally {
