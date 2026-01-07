@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { createPost } from '@/lib/vercel-db';
+import { createPost, logAdminAction } from '@/lib/vercel-db';
 import { BlogPost } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -57,6 +57,29 @@ export async function POST(request: Request) {
         { success: false, error: 'Failed to create post' },
         { status: 500 }
       );
+    }
+
+    // Audit log for admin action
+    if (session.user?.email) {
+      const ip =
+        (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() ||
+        request.headers.get('x-real-ip') ||
+        null;
+      const userAgent = request.headers.get('user-agent') || null;
+
+      await logAdminAction({
+        userEmail: session.user.email,
+        action: 'create_post',
+        targetType: 'post',
+        targetId: createdPost.slug,
+        ip,
+        userAgent,
+        meta: {
+          title: createdPost.title,
+          tags: createdPost.tags,
+          published: createdPost.published,
+        },
+      });
     }
 
     return NextResponse.json({

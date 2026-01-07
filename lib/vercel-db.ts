@@ -219,6 +219,42 @@ export async function createPost(post: Omit<BlogPost, 'slug'> & { slug?: string 
 }
 
 /**
+ * Admin audit logging
+ */
+export type AdminActionType = 'create_post' | 'update_post' | 'delete_post' | 'login' | 'other';
+
+export async function logAdminAction(params: {
+  userEmail: string;
+  action: AdminActionType;
+  targetType?: string;
+  targetId?: string;
+  ip?: string | null;
+  userAgent?: string | null;
+  meta?: Record<string, unknown>;
+}): Promise<void> {
+  if (!process.env.POSTGRES_URL) return;
+
+  try {
+    const { userEmail, action, targetType, targetId, ip, userAgent, meta } = params;
+
+    await sql`
+      INSERT INTO admin_logs (user_email, action, target_type, target_id, ip, user_agent, meta)
+      VALUES (
+        ${userEmail},
+        ${action},
+        ${targetType || null},
+        ${targetId || null},
+        ${ip || null},
+        ${userAgent || null},
+        ${meta ? JSON.stringify(meta) : null}
+      )
+    `;
+  } catch (error) {
+    console.error('Error logging admin action:', error);
+  }
+}
+
+/**
  * Sync tags for a post
  */
 async function syncPostTags(postId: string, tagNames: string[]): Promise<void> {
@@ -308,12 +344,30 @@ export async function initDatabase(): Promise<void> {
       )
     `;
 
+    // Create admin_logs table for audit logging
+    await sql`
+      CREATE TABLE IF NOT EXISTS admin_logs (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        user_email TEXT NOT NULL,
+        action TEXT NOT NULL,
+        target_type TEXT,
+        target_id TEXT,
+        ip TEXT,
+        user_agent TEXT,
+        meta JSONB,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `;
+
     // Create indexes
     await sql`CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_posts_published ON posts(published)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(date DESC)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_post_tags_post_id ON post_tags(post_id)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_post_tags_tag_id ON post_tags(tag_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_admin_logs_user_email ON admin_logs(user_email)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_admin_logs_action ON admin_logs(action)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_admin_logs_created_at ON admin_logs(created_at DESC)`;
 
     console.log('Database initialized successfully');
   } catch (error) {

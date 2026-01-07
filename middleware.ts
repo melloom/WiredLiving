@@ -1,35 +1,25 @@
 import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
-// Simple in-memory rate limiter (per runtime instance)
-type RateInfo = {
-  count: number;
-  windowStart: number;
-};
+// Upstash Redis rate limiting (shared across all instances)
+const redis =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      })
+    : null;
 
-const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 60; // per IP per window
-const rateLimitStore = new Map<string, RateInfo>();
-
-function isRateLimited(key: string): boolean {
-  const now = Date.now();
-  const info = rateLimitStore.get(key);
-
-  if (!info) {
-    rateLimitStore.set(key, { count: 1, windowStart: now });
-    return false;
-  }
-
-  if (now - info.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateLimitStore.set(key, { count: 1, windowStart: now });
-    return false;
-  }
-
-  info.count += 1;
-  rateLimitStore.set(key, info);
-
-  return info.count > RATE_LIMIT_MAX_REQUESTS;
-}
+const ratelimit =
+  redis &&
+  new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(60, '60 s'), // 60 requests per 60 seconds
+    analytics: true,
+    prefix: 'wiredliving_rl',
+  });
 
 function addSecurityHeaders(response: NextResponse): NextResponse {
   // Clickjacking protection
@@ -45,6 +35,23 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
     'Permissions-Policy',
     'camera=(), microphone=(), geolocation=(), payment=()'
   );
+
+  // Strict Content Security Policy tuned for this app
+  // Note: Adjust if you add more external resources
+  const csp = [
+    "default-src 'self'",
+    // Next.js / React need 'unsafe-eval' in dev sometimes, but we'll keep it off in prod
+    "script-src 'self' 'unsafe-inline' https:",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: https:",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "connect-src 'self' https://newsapi.org https://eventregistry.org https://eventregistry.org/api/v1/article https://eventregistry.org/api/v1/article/getArticles",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ');
+
+  response.headers.set('Content-Security-Policy', csp);
 
   return response;
 }
@@ -67,13 +74,20 @@ export default auth((req) => {
 
   if (isSensitiveApiRoute) {
     const rateKey = `${ip}:${pathname}`;
-    if (isRateLimited(rateKey)) {
-      return addSecurityHeaders(
-        NextResponse.json(
-          { success: false, error: 'Too many requests. Please slow down.' },
-          { status: 429 }
-        )
-      );
+    if (ratelimit) {
+      // Use Upstash Redis rate limiter when configured
+      return ratelimit.limit(rateKey).then((result) => {
+        if (!result.success) {
+          return addSecurityHeaders(
+            NextResponse.json(
+              { success: false, error: 'Too many requests. Please slow down.' },
+              { status: 429 }
+            )
+          );
+        }
+        // Allow request to continue below
+        return null;
+      }) as any;
     }
   }
 
