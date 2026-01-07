@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -16,19 +17,17 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (result?.error) {
+        setError('Invalid credentials');
+      } else if (result?.ok) {
         router.push('/admin');
         router.refresh();
-      } else {
-        setError(data.error || 'Invalid credentials');
       }
     } catch (err) {
       setError('An error occurred. Please try again.');

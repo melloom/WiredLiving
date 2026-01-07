@@ -1,8 +1,12 @@
 # Admin Dashboard Setup
 
+## Authentication with NextAuth.js
+
+The admin dashboard uses **NextAuth.js** for secure authentication.
+
 ## Default Credentials
 
-The admin dashboard uses environment variables for authentication. By default:
+By default (if not set in environment variables):
 
 - **Email**: `admin@wiredliving.com`
 - **Password**: `admin123`
@@ -14,8 +18,14 @@ The admin dashboard uses environment variables for authentication. By default:
 Add to your `.env.local` file:
 
 ```env
+# Admin credentials
 ADMIN_EMAIL=your-email@example.com
 ADMIN_PASSWORD=your-secure-password
+
+# NextAuth secret (required)
+AUTH_SECRET=your-random-secret-key-here
+
+# Generate a secret with: openssl rand -base64 32
 ```
 
 ### For Production (Vercel)
@@ -25,7 +35,18 @@ ADMIN_PASSWORD=your-secure-password
 3. Add:
    - **ADMIN_EMAIL**: Your admin email
    - **ADMIN_PASSWORD**: Your secure password
+   - **AUTH_SECRET**: A random secret (generate with `openssl rand -base64 32`)
 4. Redeploy your application
+
+## Generate AUTH_SECRET
+
+Run this command to generate a secure secret:
+
+```bash
+openssl rand -base64 32
+```
+
+Or use an online generator. This secret is used to encrypt session tokens.
 
 ## Accessing the Admin Dashboard
 

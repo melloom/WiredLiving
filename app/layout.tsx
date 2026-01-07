@@ -4,6 +4,7 @@ import './globals.css';
 import { siteConfig } from '@/config/site';
 import { KeyboardShortcut } from '@/components/keyboard-shortcut';
 import { LayoutWrapper } from '@/components/layout-wrapper';
+import { Providers } from '@/components/providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -118,8 +119,10 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <KeyboardShortcut />
-        <LayoutWrapper>{children}</LayoutWrapper>
+        <Providers>
+          <KeyboardShortcut />
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </Providers>
       </body>
     </html>
   );

@@ -1,8 +1,6 @@
 import { redirect } from 'next/navigation';
-import { isAuthenticated } from '@/lib/auth';
+import { auth } from '@/auth';
 import { getAllPosts } from '@/lib/mdx';
-import { formatDate } from '@/lib/utils';
-import Link from 'next/link';
 import { AdminDashboard } from '@/components/admin-dashboard';
 
 export const metadata = {
@@ -10,9 +8,11 @@ export const metadata = {
   description: 'Manage your blog posts and content',
 };
 
-export default function AdminPage() {
-  // Check authentication
-  if (!isAuthenticated()) {
+export default async function AdminPage() {
+  // Check authentication with NextAuth
+  const session = await auth();
+  
+  if (!session) {
     redirect('/login');
   }
 
