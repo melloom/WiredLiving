@@ -7,7 +7,21 @@ import { initDatabase } from '@/lib/vercel-db';
  * 
  * GET /api/init-db
  */
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET() {
+  // Check if database is configured
+  if (!process.env.POSTGRES_URL) {
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'POSTGRES_URL environment variable is not set. Please set up Vercel Postgres first.' 
+      },
+      { status: 400 }
+    );
+  }
+
   try {
     await initDatabase();
     return NextResponse.json({ 

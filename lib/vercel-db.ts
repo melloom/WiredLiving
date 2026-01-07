@@ -26,6 +26,11 @@ interface TagRow {
  * Get all published posts from database
  */
 export async function getAllPosts(): Promise<BlogPost[]> {
+  // If no database connection, return empty array (fallback to file-based)
+  if (!process.env.POSTGRES_URL) {
+    return [];
+  }
+  
   try {
     const { rows } = await sql`
       SELECT 
@@ -54,6 +59,11 @@ export async function getAllPosts(): Promise<BlogPost[]> {
  * Get a single post by slug
  */
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+  // If no database connection, return null (fallback to file-based)
+  if (!process.env.POSTGRES_URL) {
+    return null;
+  }
+  
   try {
     const { rows } = await sql`
       SELECT 
@@ -86,6 +96,11 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
  * Get posts by tag
  */
 export async function getPostsByTag(tagName: string): Promise<BlogPost[]> {
+  // If no database connection, return empty array (fallback to file-based)
+  if (!process.env.POSTGRES_URL) {
+    return [];
+  }
+  
   try {
     const { rows } = await sql`
       SELECT 
@@ -114,6 +129,11 @@ export async function getPostsByTag(tagName: string): Promise<BlogPost[]> {
  * Get all unique tags
  */
 export async function getAllTags(): Promise<string[]> {
+  // If no database connection, return empty array (fallback to file-based)
+  if (!process.env.POSTGRES_URL) {
+    return [];
+  }
+  
   try {
     const { rows } = await sql`
       SELECT DISTINCT name
