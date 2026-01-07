@@ -6,31 +6,31 @@ export function Footer() {
 
   return (
     <footer className="relative mt-auto border-t border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-gray-950">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-6 lg:py-8">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="py-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {/* Brand Section */}
             <div className="lg:col-span-1">
-              <Link href="/" className="inline-block mb-2">
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <Link href="/" className="inline-block mb-1.5">
+                <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   {siteConfig.name}
                 </span>
               </Link>
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-xs">
+              <p className="text-xs text-gray-600 dark:text-gray-400 leading-snug max-w-xs">
                 {siteConfig.description}
               </p>
             </div>
 
             {/* Navigation Links */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">
+              <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-2">
                 Navigation
               </h3>
-              <ul className="space-y-2">
+              <ul className="space-y-1">
                 <li>
                   <Link
                     href="/"
-                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                   >
                     Home
                   </Link>
@@ -38,7 +38,7 @@ export function Footer() {
                 <li>
                   <Link
                     href="/blog"
-                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                   >
                     Blog
                   </Link>
@@ -46,7 +46,7 @@ export function Footer() {
                 <li>
                   <Link
                     href="/about"
-                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                   >
                     About
                   </Link>
@@ -54,7 +54,7 @@ export function Footer() {
                 <li>
                   <Link
                     href="/contact"
-                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                   >
                     Contact
                   </Link>
@@ -62,7 +62,7 @@ export function Footer() {
                 <li>
                   <Link
                     href="/tags"
-                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                   >
                     Tags
                   </Link>
@@ -70,7 +70,7 @@ export function Footer() {
                 <li>
                   <Link
                     href="/archive"
-                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                   >
                     Archive
                   </Link>
@@ -80,17 +80,17 @@ export function Footer() {
 
             {/* Resources */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">
+              <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-2">
                 Resources
               </h3>
-              <ul className="space-y-2">
+              <ul className="space-y-1">
                 {siteConfig.links.github && (
                   <li>
                     <a
                       href={siteConfig.links.github}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                      className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                     >
                       GitHub
                     </a>
@@ -102,7 +102,7 @@ export function Footer() {
                       href={siteConfig.links.twitter}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                      className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                     >
                       Twitter
                     </a>
@@ -114,7 +114,7 @@ export function Footer() {
                       href={siteConfig.links.portfolio}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                      className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                     >
                       Portfolio
                     </a>
@@ -126,7 +126,7 @@ export function Footer() {
                       href={siteConfig.links.socialHub}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                      className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                     >
                       Social Hub
                     </a>
@@ -137,14 +137,14 @@ export function Footer() {
 
             {/* Legal */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">
+              <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-2">
                 Legal
               </h3>
-              <ul className="space-y-2">
+              <ul className="space-y-1">
                 <li>
                   <Link
                     href="/terms"
-                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                   >
                     Terms of Service
                   </Link>
@@ -152,7 +152,7 @@ export function Footer() {
                 <li>
                   <Link
                     href="/privacy"
-                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
                   >
                     Privacy Policy
                   </Link>
@@ -163,8 +163,8 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-200/80 dark:border-gray-800/80 py-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div className="border-t border-gray-200/80 dark:border-gray-800/80 py-3">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               © {currentYear} {siteConfig.author.name || siteConfig.name}. All rights reserved.
             </p>
