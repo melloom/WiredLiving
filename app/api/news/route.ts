@@ -40,34 +40,54 @@ export async function GET() {
     let articles: NewsArticle[] = [];
 
     if (isEventRegistry) {
-      // Event Registry API (newsapi.ai)
-      const response = await fetch(
-        `https://eventregistry.org/api/v1/article/getArticles?apiKey=${apiKey}&action=getArticles&categoryUri=dmoz/Computers/Technology&lang=eng&articlesCount=5&resultType=articles&articlesSortBy=date&includeArticleBody=false`,
-        {
-          next: { revalidate: 3600 },
-          headers: {
-            'User-Agent': 'Mozilla/5.0',
-          },
-        }
-      );
+      // Event Registry API (newsapi.ai / eventregistry.org)
+      // Using POST request with JSON body as per Event Registry API docs
+      const requestBody = {
+        action: 'getArticles',
+        keyword: 'technology',
+        lang: 'eng',
+        articlesCount: 5,
+        articlesSortBy: 'date',
+        resultType: 'articles',
+        includeArticleBody: false,
+        includeArticleImage: true,
+        apiKey: apiKey,
+      };
+
+      const response = await fetch('https://eventregistry.org/api/v1/article/getArticles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0',
+        },
+        body: JSON.stringify(requestBody),
+        next: { revalidate: 3600 },
+      });
 
       if (!response.ok) {
-        throw new Error(`Event Registry API error: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Event Registry API error:', response.status, errorText);
+        throw new Error(`Event Registry API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('Event Registry response:', JSON.stringify(data).substring(0, 500));
       
-      if (data.articles && data.articles.results) {
-        articles = data.articles.results.map((article: any) => ({
-          title: article.title || '',
-          description: article.body?.substring(0, 150) || article.snippet || '',
-          url: article.url || '',
-          urlToImage: article.image || null,
-          publishedAt: article.date || new Date().toISOString(),
-          source: {
-            name: article.source?.title || 'Unknown',
-          },
-        }));
+      if (data.articles && data.articles.results && Array.isArray(data.articles.results)) {
+        articles = data.articles.results
+          .filter((article: any) => article.title && article.url)
+          .map((article: any) => ({
+            title: article.title || '',
+            description: article.body?.substring(0, 150) || article.snippet || article.title || '',
+            url: article.url || '',
+            urlToImage: article.image || article.images?.[0] || null,
+            publishedAt: article.date || article.dateTime || new Date().toISOString(),
+            source: {
+              name: article.source?.title || article.source?.uri || 'Unknown',
+            },
+          }));
+      } else {
+        console.warn('Event Registry response structure unexpected:', Object.keys(data));
       }
     } else if (isNewsAPI) {
       // NewsAPI.org
