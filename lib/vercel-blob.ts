@@ -8,13 +8,12 @@ export async function uploadFile(
   filename: string,
   options?: {
     contentType?: string;
-    access?: 'public' | 'private';
     addRandomSuffix?: boolean;
   }
 ) {
   try {
     const blob = await put(filename, file, {
-      access: options?.access || 'public',
+      access: 'public',
       contentType: options?.contentType,
       addRandomSuffix: options?.addRandomSuffix || false,
     });
@@ -37,7 +36,6 @@ export async function uploadPostImage(
   const filename = `posts/${postSlug}/${imageName}`;
   return uploadFile(file, filename, {
     contentType: 'image/*',
-    access: 'public',
   });
 }
 

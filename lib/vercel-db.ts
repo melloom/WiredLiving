@@ -43,7 +43,7 @@ export async function getAllPosts(): Promise<BlogPost[]> {
       ORDER BY p.date DESC
     `;
 
-    return rows.map(transformPostRow);
+    return rows.map((row: any) => transformPostRow(row));
   } catch (error) {
     console.error('Error fetching posts:', error);
     return [];
@@ -75,7 +75,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
       return null;
     }
 
-    return transformPostRow(rows[0]);
+    return transformPostRow(rows[0] as any);
   } catch (error) {
     console.error('Error fetching post:', error);
     return null;
@@ -103,7 +103,7 @@ export async function getPostsByTag(tagName: string): Promise<BlogPost[]> {
       ORDER BY p.date DESC
     `;
 
-    return rows.map(transformPostRow);
+    return rows.map((row: any) => transformPostRow(row));
   } catch (error) {
     console.error('Error fetching posts by tag:', error);
     return [];
@@ -121,7 +121,7 @@ export async function getAllTags(): Promise<string[]> {
       ORDER BY name
     `;
 
-    return rows.map((row: TagRow) => row.name);
+    return rows.map((row: any) => row.name);
   } catch (error) {
     console.error('Error fetching tags:', error);
     return [];
@@ -131,7 +131,7 @@ export async function getAllTags(): Promise<string[]> {
 /**
  * Transform database row to BlogPost type
  */
-function transformPostRow(row: PostRow & { tags?: Array<{ name: string }> }): BlogPost {
+function transformPostRow(row: any): BlogPost {
   // Handle tags - could be JSON array or already parsed
   let tags: string[] = [];
   if (row.tags) {
@@ -143,7 +143,7 @@ function transformPostRow(row: PostRow & { tags?: Array<{ name: string }> }): Bl
         tags = [];
       }
     } else if (Array.isArray(row.tags)) {
-      tags = row.tags.map((t) => t.name).filter(Boolean);
+      tags = row.tags.map((t: any) => t.name).filter(Boolean);
     }
   }
 
