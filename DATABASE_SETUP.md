@@ -48,18 +48,29 @@ npm install @vercel/postgres @vercel/blob
 4. **Environment Variables**
 
    Vercel automatically adds these to your project:
-   - `POSTGRES_URL` - Database connection string
-   - `POSTGRES_PRISMA_URL` - Prisma connection string (if using Prisma)
-   - `POSTGRES_URL_NON_POOLING` - Direct connection string
-   - `BLOB_READ_WRITE_TOKEN` - Blob storage token
+   - `POSTGRES_URL` - Database connection string (✅ **REQUIRED** - This is what we use)
+   - `POSTGRES_PRISMA_URL` - Prisma connection string (optional, only if using Prisma)
+   - `POSTGRES_URL_NON_POOLING` - Direct connection string (optional, for migrations)
+   - `BLOB_READ_WRITE_TOKEN` - Blob storage token (optional, for file uploads)
+
+   **How to Get Your Credentials:**
+   
+   1. Go to your Vercel project dashboard
+   2. Click on **Storage** tab
+   3. Click on your Postgres database
+   4. Click on **.env.local** tab - you'll see all connection strings there
+   5. Copy the values you need
 
    For local development, add these to `.env.local`:
    ```env
    POSTGRES_URL=your-postgres-url
+   # Optional - only if you need them:
    POSTGRES_PRISMA_URL=your-prisma-url
    POSTGRES_URL_NON_POOLING=your-non-pooling-url
    BLOB_READ_WRITE_TOKEN=your-blob-token
    ```
+
+   **Note:** Our code only requires `POSTGRES_URL`. The other variables are optional.
 
 5. **Initialize Database Schema**
 
