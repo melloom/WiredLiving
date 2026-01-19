@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { generateHeadingId } from '@/lib/utils';
 
 interface Heading {
@@ -44,6 +44,8 @@ export function TableOfContents({ content, inline = false, onLinkClick }: TableO
   const [activeId, setActiveId] = useState<string>('');
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  const rafRef = useRef<number | null>(null);
+
   useEffect(() => {
     // Extract headings from content (markdown headings)
     const headingRegex = /^(#{1,6})\s+(.+?)(?:\s*\{#([^}]+)\})?$/gm;
@@ -62,7 +64,7 @@ export function TableOfContents({ content, inline = false, onLinkClick }: TableO
     setHeadings(extractedHeadings);
 
     // Update active heading on scroll
-    const handleScroll = () => {
+    const updateActiveHeading = () => {
       const headingElements = extractedHeadings.map(h => document.getElementById(h.id));
       const scrollPosition = window.scrollY + 100;
 
@@ -75,10 +77,22 @@ export function TableOfContents({ content, inline = false, onLinkClick }: TableO
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
+    const handleScroll = () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      rafRef.current = requestAnimationFrame(updateActiveHeading);
+    };
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    updateActiveHeading();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, [content]);
 
   if (headings.length === 0) {

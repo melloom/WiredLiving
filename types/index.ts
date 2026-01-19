@@ -105,3 +105,17 @@ export interface BlogPostFrontmatter {
   published: boolean;
 }
 
+export interface SeriesMetadata {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  cover_image?: string;
+  color_scheme?: string;
+  tags?: string[];
+  is_active?: boolean;
+  is_featured?: boolean;
+  display_order?: number;
+  created_at?: string;
+  updated_at?: string;
+}

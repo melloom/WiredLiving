@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getAllPosts } from '@/lib/supabase-db';
+import { getAllPosts, getSeriesMetadata } from '@/lib/supabase-db';
 import { formatDate } from '@/lib/utils';
 import { siteConfig } from '@/config/site';
 
@@ -20,6 +20,7 @@ export default async function SeriesDetailPage({ params }: { params: Promise<{ s
   const seriesName = decodeURIComponent(resolvedParams.series);
 
   const posts = await getAllPosts();
+  const metadata = await getSeriesMetadata(seriesName);
 
   // Filter posts for this series
   const seriesPosts = posts.filter(post => post.series === seriesName);
@@ -45,21 +46,40 @@ export default async function SeriesDetailPage({ params }: { params: Promise<{ s
     <main className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="container mx-auto px-4 py-8 md:py-12">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
+        <div className="text-center mb-12 relative">
+          {/* Cover Image */}
+          {metadata?.cover_image && (
+            <div className="absolute inset-0 top-0 left-1/2 -translate-x-1/2 w-full h-56 md:h-64 z-0">
+              <img
+                src={metadata.cover_image}
+                alt={metadata.name + ' cover'}
+                className="object-cover w-full h-full opacity-80"
+                style={{ borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem' }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            </div>
+          )}
+          <div className="flex items-center justify-center gap-3 mb-4 relative z-10">
             <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-50">
-              {seriesName}
+              {metadata?.name || seriesName}
             </h1>
           </div>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-4">
-            A curated series exploring {seriesName.toLowerCase()}.
-          </p>
-          <div className="flex items-center justify-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+          {/* Series Description from metadata */}
+          {metadata?.description ? (
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-4 relative z-10">
+              {metadata.description}
+            </p>
+          ) : (
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-4 relative z-10">
+              A curated series exploring {seriesName.toLowerCase()}.
+            </p>
+          )}
+          <div className="flex items-center justify-center gap-4 text-sm text-gray-500 dark:text-gray-400 relative z-10">
             <span>{seriesPosts.length} {seriesPosts.length === 1 ? 'post' : 'posts'} in this series</span>
             <span>•</span>
             <Link

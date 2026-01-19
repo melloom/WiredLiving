@@ -1,12 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export function ReadingProgress() {
   const [progress, setProgress] = useState(0);
+  const rafRef = useRef<number | null>(null);
+  const lastUpdateRef = useRef(0);
 
   useEffect(() => {
     const updateProgress = () => {
+      const now = Date.now();
+      // Throttle updates to max 60fps (16ms)
+      if (now - lastUpdateRef.current < 16) {
+        return;
+      }
+      lastUpdateRef.current = now;
+
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
       const scrollTop = window.scrollY;
@@ -14,10 +23,22 @@ export function ReadingProgress() {
       setProgress(Math.min(100, Math.max(0, progress)));
     };
 
-    window.addEventListener('scroll', updateProgress);
+    const handleScroll = () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      rafRef.current = requestAnimationFrame(updateProgress);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     updateProgress();
 
-    return () => window.removeEventListener('scroll', updateProgress);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, []);
 
   return (

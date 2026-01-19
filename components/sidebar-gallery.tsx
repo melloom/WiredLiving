@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface SidebarGalleryProps {
   images: string[];
@@ -33,11 +34,13 @@ export function SidebarGallery({ images, title }: SidebarGalleryProps) {
               onClick={() => setSelectedImage(image)}
               className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 transition-all group cursor-pointer"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={image}
                 alt={`Gallery image ${index + 1}`}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                fill
+                loading="lazy"
+                sizes="100px"
+                className="object-cover group-hover:scale-110 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
             </button>
@@ -57,10 +60,11 @@ export function SidebarGallery({ images, title }: SidebarGalleryProps) {
           onClick={() => setSelectedImage(null)}
         >
           <div className="relative max-w-4xl max-h-[90vh]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={selectedImage}
               alt="Gallery image"
+              width={1200}
+              height={800}
               className="max-w-full max-h-[90vh] object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
             />

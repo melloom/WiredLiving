@@ -6,7 +6,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { visit } from 'unist-util-visit';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useState, useRef, useMemo, memo } from 'react';
 import { transformAndValidateContent } from '@/lib/markdown-transformer';
 import { generateHeadingId } from '@/lib/utils';
 import { TableOfContents } from '@/components/table-of-contents';
@@ -135,21 +135,7 @@ function BlogIframe({ src, className, width, height, title, ...props }: any) {
 }
 
 
-// Counters for generating unique IDs for non-heading elements
-let tableCounter = 0;
-let codeCounter = 0;
-let imageCounter = 0;
-let calloutCounter = 0;
-let checklistCounter = 0;
-
-// Reset counters for each new content render
-function resetCounters() {
-  tableCounter = 0;
-  codeCounter = 0;
-  imageCounter = 0;
-  calloutCounter = 0;
-  checklistCounter = 0;
-}
+// Counters moved to component state to fix hydration issues
 
 // Code block component with copy button
 function CodeBlockWithCopy({ id, language, code, className, children }: { id: string; language: string; code: string; className?: string; children?: any }) {
@@ -208,6 +194,13 @@ function CodeBlockWithCopy({ id, language, code, className, children }: { id: st
 }
 
 export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
+  // Use ref counters to maintain consistent IDs across server/client renders
+  const tableCounterRef = useRef(0);
+  const codeCounterRef = useRef(0);
+  const imageCounterRef = useRef(0);
+  const calloutCounterRef = useRef(0);
+  const checklistCounterRef = useRef(0);
+  
   // Transform and validate content automatically
   // This AUTOMATICALLY fixes issues without user intervention!
   const validationResult = transformAndValidateContent(content);
@@ -216,7 +209,11 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
   // This allows [TOC] to stay exactly where the user placed it
 
   // Reset element counters for fresh ID generation
-  resetCounters();
+  tableCounterRef.current = 0;
+  codeCounterRef.current = 0;
+  imageCounterRef.current = 0;
+  calloutCounterRef.current = 0;
+  checklistCounterRef.current = 0;
 
   // Notify parent component of what was fixed
   if (onValidationComplete) {
@@ -424,9 +421,9 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
         ),
         // Custom table component with ID for quick-link navigation and enhanced styling with zebra striping
         table: ({ children, ...props }: { children: React.ReactNode; [key: string]: any }) => {
-          tableCounter++;
+          const tableId = ++tableCounterRef.current;
           return (
-            <div id={`tbl-table-${tableCounter}`} className="overflow-x-auto my-8 scroll-mt-20 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-900 overflow-hidden">
+            <div id={`tbl-table-${tableId}`} className="overflow-x-auto my-8 scroll-mt-20 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-900 overflow-hidden">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700" {...props}>
                 {children}
               </table>
@@ -451,8 +448,7 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
         },
         // Custom image component with lazy loading, optimization, size, and alignment support
         img: ({ src = '', alt = '', className = '', ...props }: any) => {
-          imageCounter++;
-          const imageId = `img-image-${imageCounter}`;
+          const imageId = `img-image-${++imageCounterRef.current}`;
 
           // Proxy external images to avoid CORS/OpaqueResponseBlocking issues
           let processedSrc = src;
@@ -573,8 +569,7 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
           }
 
           // Block code with language label, copy button, and ID for quick-link navigation
-          codeCounter++;
-          const codeId = `code-code-${codeCounter}`;
+          const codeId = `code-code-${++codeCounterRef.current}`;
           const language = match ? match[1] : 'code';
           const codeText = String(children).replace(/\n$/, '');
 
@@ -594,8 +589,7 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
           const emojiMatch = content.match(/^(ℹ️|⚠️|✅|❌|💡|📝|🔥|⭐|🎯|📌|💭|🚀|📚)/);
 
           if (emojiMatch) {
-            calloutCounter++;
-            const calloutId = `note-callout-${calloutCounter}`;
+            const calloutId = `note-callout-${++calloutCounterRef.current}`;
             const emoji = emojiMatch[1];
             const typeMap: Record<string, string> = {
               'ℹ️': 'info',
@@ -694,8 +688,7 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
           // Generate ID for checklist groups
           let checklistId = '';
           if (isTaskList) {
-            checklistCounter++;
-            checklistId = `chk-checklist-${checklistCounter}`;
+            checklistId = `chk-checklist-${++checklistCounterRef.current}`;
           }
 
           return (

@@ -86,12 +86,19 @@ export function Hero({ siteName, description }: HeroProps) {
               <span className="relative z-10">Explore Blog</span>
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
-            <Link
-              href="#latest-posts"
+            <button
+              onClick={() => {
+                const element = document.getElementById('latest-posts');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                  window.scrollTo({ top: 600, behavior: 'smooth' });
+                }
+              }}
               className="px-8 py-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-700 rounded-lg font-semibold hover:bg-white dark:hover:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-all transform hover:scale-105"
             >
               Latest Posts
-            </Link>
+            </button>
           </div>
         </div>
       </div>

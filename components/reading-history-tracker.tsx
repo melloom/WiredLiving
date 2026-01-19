@@ -10,6 +10,8 @@ export function ReadingHistoryTracker({ postSlug }: ReadingHistoryTrackerProps) 
   const trackingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(Date.now());
   const lastProgressRef = useRef<number>(0);
+  const rafRef = useRef<number | null>(null);
+  const lastScrollCheckRef = useRef(0);
 
   // Get user identifier
   const getUserIdentifier = (): string => {
@@ -73,13 +75,27 @@ export function ReadingHistoryTracker({ postSlug }: ReadingHistoryTrackerProps) 
   }, [postSlug]);
 
   useEffect(() => {
-    // Track scroll progress
-    const handleScroll = () => {
+    // Track scroll progress with throttling
+    const checkProgress = () => {
+      const now = Date.now();
+      // Only check every 1000ms to avoid excessive calculations
+      if (now - lastScrollCheckRef.current < 1000) {
+        return;
+      }
+      lastScrollCheckRef.current = now;
+      
       const progress = calculateProgress();
       if (progress > 0 && progress % 10 === 0) {
         // Save every 10% progress
         saveProgress(progress);
       }
+    };
+
+    const handleScroll = () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      rafRef.current = requestAnimationFrame(checkProgress);
     };
 
     // Track time spent
@@ -92,7 +108,7 @@ export function ReadingHistoryTracker({ postSlug }: ReadingHistoryTrackerProps) 
       }, 30000); // Save every 30 seconds
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     startTracking();
 
     // Save initial progress
@@ -103,6 +119,9 @@ export function ReadingHistoryTracker({ postSlug }: ReadingHistoryTrackerProps) 
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
       if (trackingIntervalRef.current) {
         clearInterval(trackingIntervalRef.current);
       }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { generateHeadingId } from '@/lib/utils';
 
 /**
@@ -315,6 +315,7 @@ export function ContentQuickLinks({ content, onLinkClick }: ContentQuickLinksPro
   const [activeId, setActiveId] = useState<string>('');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedTypes, setExpandedTypes] = useState<Set<QuickLinkItem['type']>>(new Set(['heading']));
+  const rafRef = useRef<number | null>(null);
   
   // Extract quick links from content
   const quickLinks = useMemo(() => extractQuickLinks(content), [content]);
@@ -344,9 +345,9 @@ export function ContentQuickLinks({ content, onLinkClick }: ContentQuickLinksPro
     return Object.entries(groupedLinks).filter(([, items]) => items.length > 0);
   }, [groupedLinks]);
 
-  // Handle scroll to track active section
+  // Handle scroll to track active section with throttling
   useEffect(() => {
-    const handleScroll = () => {
+    const updateActiveSection = () => {
       const headingItems = quickLinks.filter(item => item.type === 'heading');
       const scrollPosition = window.scrollY + 150;
 
@@ -359,10 +360,22 @@ export function ContentQuickLinks({ content, onLinkClick }: ContentQuickLinksPro
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
+    const handleScroll = () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      rafRef.current = requestAnimationFrame(updateActiveSection);
+    };
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    updateActiveSection();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, [quickLinks]);
 
   // Toggle group expansion

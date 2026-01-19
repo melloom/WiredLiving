@@ -18,6 +18,8 @@ import { useToast } from '@/components/toast';
 import { useConfirm } from '@/components/confirm-dialog';
 import { LiveMarkdownEditor } from '@/components/live-markdown-editor';
 import { generateSmartSEO, validateSEO } from '@/lib/seo-generator';
+import { SeriesMetadataModal } from '@/components/series-metadata-modal';
+import type { SeriesMetadata } from '@/types';
 
 const supabase = createClient();
 
@@ -41,6 +43,8 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [deletingPost, setDeletingPost] = useState<string | null>(null);
   const [updatingPost, setUpdatingPost] = useState<string | null>(null);
+  const [editingSeriesMetadata, setEditingSeriesMetadata] = useState<{name: string; data?: SeriesMetadata} | null>(null);
+  const [seriesMetadataMap, setSeriesMetadataMap] = useState<Map<string, SeriesMetadata>>(new Map());
 
   const handleLogout = async () => {
     setLoading(true);
@@ -186,6 +190,37 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
     }
   };
 
+  // Save series metadata
+  const handleSaveSeriesMetadata = async (metadata: Partial<SeriesMetadata> & { name: string }) => {
+    try {
+      const response = await fetch('/api/series', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(metadata),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save series metadata');
+      }
+
+      const savedMetadata = await response.json();
+      
+      // Update local state
+      setSeriesMetadataMap(prev => {
+        const newMap = new Map(prev);
+        newMap.set(savedMetadata.name, savedMetadata);
+        return newMap;
+      });
+
+      toast.success('Series settings saved');
+      setEditingSeriesMetadata(null);
+      router.refresh();
+    } catch (error) {
+      console.error('Error saving series metadata:', error);
+      toast.error('Failed to save series settings');
+    }
+  };
+
   // Move post to different series
   const handleMoveToSeries = async (postSlug: string, newSeries: string, newOrder: number = 1) => {
     setUpdatingPost(postSlug);
@@ -267,6 +302,24 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
           setAnalyticsLoading(false);
         });
     }
+  }, [activeTab, analyticsData, analyticsLoading]);
+
+  // Fetch series metadata when series tab is opened
+  useEffect(() => {
+    if (activeTab === 'series') {
+      fetch('/api/series')
+        .then(res => res.json())
+        .then((data: SeriesMetadata[]) => {
+          const map = new Map<string, SeriesMetadata>();
+          data.forEach(metadata => {
+            map.set(metadata.name, metadata);
+          });
+          setSeriesMetadataMap(map);
+        })
+        .catch(err => {
+          console.error('Error fetching series metadata:', err);
+        });
+    }
   }, [activeTab]);
 
   return (
@@ -304,6 +357,16 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
           </div>
         </div>
       </div>
+      {/* Series Metadata Modal */}
+      {editingSeriesMetadata && (
+        <SeriesMetadataModal
+          open={!!editingSeriesMetadata}
+          name={editingSeriesMetadata.name}
+          initialData={editingSeriesMetadata.data}
+          onClose={() => setEditingSeriesMetadata(null)}
+          onSave={handleSaveSeriesMetadata}
+        />
+      )}
 
       <div className="container mx-auto px-4 py-8">
         {/* Tabs */}
@@ -797,13 +860,21 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                                     </div>
                                   </div>
                                   
-                                  <Link
-                                    href={`/series/${encodeURIComponent(seriesName.toLowerCase().replace(/\s+/g, '-'))}`}
-                                    target="_blank"
-                                    className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-all font-medium border border-white/30 text-sm shrink-0"
-                                  >
-                                    👁️ View
-                                  </Link>
+                                  <div className="flex flex-col gap-2 items-end">
+                                    <Link
+                                      href={`/series/${encodeURIComponent(seriesName.toLowerCase().replace(/\s+/g, '-'))}`}
+                                      target="_blank"
+                                      className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-all font-medium border border-white/30 text-sm shrink-0"
+                                    >
+                                      👁️ View
+                                    </Link>
+                                    <button
+                                      className="px-4 py-2 bg-blue-500/80 hover:bg-blue-600 text-white rounded-lg transition-all font-medium border border-blue-700/30 text-sm shrink-0 mt-1"
+                                      onClick={() => setEditingSeriesMetadata({ name: seriesName, data: seriesMetadataMap.get(seriesName) })}
+                                    >
+                                      ✏️ Edit Series
+                                    </button>
+                                  </div>
                                 </div>
 
                                 {/* Progress Bar */}

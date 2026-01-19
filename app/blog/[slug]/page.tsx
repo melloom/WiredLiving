@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
+import dynamicImport from 'next/dynamic';
 import { getPostBySlug, getAllPosts } from '@/lib/supabase-db';
 import { formatDate } from '@/lib/utils';
 import { MDXContent } from '@/components/mdx-content';
@@ -13,16 +15,32 @@ function detectInlineTOC(content: string) {
   return typeof content === 'string' && /\[TOC\]/i.test(content);
 }
 import { ContentQuickLinks } from '@/components/content-quick-links';
-import { NewsFeed } from '@/components/news-feed';
 import { BackToTop } from '@/components/back-to-top';
-import { BlogPostMobileWidget } from '@/components/blog-post-mobile-widget';
-import { SidebarContact } from '@/components/sidebar-contact';
-import { SidebarWeather } from '@/components/sidebar-weather';
-import { SidebarGallery } from '@/components/sidebar-gallery';
 import { AnalyticsTracker } from '@/components/analytics-tracker';
 import { PostLikes } from '@/components/post-likes';
 import { ReadingHistoryTracker } from '@/components/reading-history-tracker';
 import { siteConfig } from '@/config/site';
+
+// Dynamic imports for heavy components (lazy loaded)
+const NewsFeed = dynamicImport(() => import('@/components/news-feed').then(mod => ({ default: mod.NewsFeed })), {
+  loading: () => <div className="animate-pulse h-32 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
+  ssr: false
+});
+const SidebarWeather = dynamicImport(() => import('@/components/sidebar-weather').then(mod => ({ default: mod.SidebarWeather })), {
+  loading: () => <div className="animate-pulse h-40 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
+  ssr: false
+});
+const SidebarContact = dynamicImport(() => import('@/components/sidebar-contact').then(mod => ({ default: mod.SidebarContact })), {
+  loading: () => <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
+  ssr: false
+});
+const SidebarGallery = dynamicImport(() => import('@/components/sidebar-gallery').then(mod => ({ default: mod.SidebarGallery })), {
+  loading: () => <div className="animate-pulse h-52 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
+  ssr: false
+});
+const BlogPostMobileWidget = dynamicImport(() => import('@/components/blog-post-mobile-widget').then(mod => ({ default: mod.BlogPostMobileWidget })), {
+  ssr: false
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -77,6 +95,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         canonical: canonicalUrl,
       },
     }),
+    other: {
+      ...(post.coverImage && {
+        'preload-image': post.coverImage,
+      }),
+    },
   };
 }
 
@@ -165,6 +188,17 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <AnalyticsTracker postSlug={post.slug} pageTitle={post.title} />
       <ReadingProgress />
       <ReadingHistoryTracker postSlug={post.slug} />
+      {post.coverImage && (
+        <>
+          <link
+            rel="preload"
+            as="image"
+            href={post.coverImage}
+            // @ts-ignore - fetchPriority is valid but TS doesn't recognize it
+            fetchPriority="high"
+          />
+        </>
+      )}
       <main className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
         <script
           type="application/ld+json"
@@ -204,115 +238,111 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </div>
 
         <div className="container mx-auto px-4 py-8 md:py-12 pb-24 lg:pb-12">
-          {/* Hero Section - Full Width */}
-          <header className="space-y-6 mb-8 max-w-5xl mx-auto">
-            <div className="space-y-4">
-              {/* Category, Featured, and Meta Info */}
-              <div className="flex flex-wrap items-center gap-3 text-xs md:text-sm">
-                {post.featured && (
-                  <span className="px-4 py-1 rounded-full bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-400 text-yellow-900 font-bold shadow-lg flex items-center gap-2 animate-pulse">
-                    <span className="text-lg">⭐</span>
-                    <span>Featured</span>
-                  </span>
-                )}
-                {post.category && (
-                  <Link
-                    href={`/blog/category/${encodeURIComponent(post.category)}`}
-                    className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                  >
-                    {post.category}
-                  </Link>
-                )}
-                {post.series && (
-                  <Link
-                    href={`/series/${encodeURIComponent(post.series)}`}
-                    className="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
-                  >
-                    Series: {post.series}
-                    {post.seriesOrder && ` #${post.seriesOrder}`}
-                  </Link>
-                )}
-                <span className="text-gray-500 dark:text-gray-400">
-                  {formatDate(post.date)}
-                </span>
-                {post.readingTime && (
-                  <>
-                    <span className="text-gray-300 dark:text-gray-600">•</span>
-                    <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* Hero Section */}
+          <header className="mb-8">
+            <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-blue-950/20 dark:to-purple-950/20 rounded-2xl p-6 md:p-8 border border-gray-200/50 dark:border-gray-800/50 shadow-lg relative overflow-hidden">
+              {/* Decorative background elements */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl -z-0" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-purple-400/10 to-blue-400/10 rounded-full blur-3xl -z-0" />
+              
+              <div className="relative z-10">
+                {/* Top Meta Bar */}
+                <div className="flex flex-wrap items-center gap-2 text-xs mb-4">
+                  {post.featured && (
+                    <span className="px-3 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-300 text-yellow-900 font-bold flex items-center gap-1.5 shadow-md">
+                      <span>⭐</span>
+                      <span>Featured</span>
+                    </span>
+                  )}
+                  {post.category && (
+                    <Link
+                      href={`/blog/category/${encodeURIComponent(post.category)}`}
+                      className="px-3 py-1 rounded-full bg-blue-500/10 dark:bg-blue-400/20 text-blue-700 dark:text-blue-300 font-medium hover:bg-blue-500/20 dark:hover:bg-blue-400/30 transition-all border border-blue-500/30 dark:border-blue-400/30"
+                    >
+                      {post.category}
+                    </Link>
+                  )}
+                  {post.series && (
+                    <Link
+                      href={`/series/${encodeURIComponent(post.series)}`}
+                      className="px-3 py-1 rounded-full bg-purple-500/10 dark:bg-purple-400/20 text-purple-700 dark:text-purple-300 font-medium hover:bg-purple-500/20 dark:hover:bg-purple-400/30 transition-all border border-purple-500/30 dark:border-purple-400/30"
+                    >
+                      Series: {post.series}{post.seriesOrder && ` #${post.seriesOrder}`}
+                    </Link>
+                  )}
+                  <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 bg-gray-100/50 dark:bg-gray-800/50 px-2.5 py-1 rounded-full">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>{formatDate(post.date)}</span>
+                  </div>
+                  {post.readingTime && (
+                    <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 bg-gray-100/50 dark:bg-gray-800/50 px-2.5 py-1 rounded-full">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      {post.readingTime} min read
-                    </span>
-                  </>
-                )}
-                {post.wordCount && (
-                  <>
-                    <span className="text-gray-300 dark:text-gray-600">•</span>
-                    <span className="text-gray-500 dark:text-gray-400">
-                      {post.wordCount.toLocaleString()} words
-                    </span>
-                  </>
-                )}
-              </div>
-
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-gray-50 leading-tight">
-                {post.title}
-              </h1>
-
-              {post.description && (
-                <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl leading-relaxed italic border-l-4 border-blue-400 pl-4 mt-2">
-                  {post.description}
-                </p>
-              )}
-
-              {/* Author & Meta */}
-              <div className="flex flex-wrap items-center gap-4 pt-2">
-                <div className="flex items-center gap-3">
-                  {post.authorAvatar ? (
-                    <img
-                      src={post.authorAvatar}
-                      alt={post.author}
-                      className="w-12 h-12 rounded-full border border-gray-300 dark:border-gray-700 shadow-sm object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center font-semibold text-gray-700 dark:text-gray-300 shadow-sm">
-                      {post.author?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'MP'}
+                      <span>{post.readingTime} min read</span>
                     </div>
                   )}
-                  <div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {post.author}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      Published {formatDate(post.date)}
+                </div>
+
+                {/* Title with gradient */}
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4 bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 dark:from-gray-50 dark:via-blue-100 dark:to-purple-100 bg-clip-text text-transparent">
+                  {post.title}
+                </h1>
+
+                {/* Description with styling */}
+                {post.description && (
+                  <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300 leading-relaxed mb-5 pl-4 border-l-2 border-gradient-to-b from-blue-500 to-purple-500">
+                    {post.description}
+                  </p>
+                )}
+
+                {/* Author & Actions Row */}
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-300/50 dark:border-gray-700/50">
+                  <div className="flex items-center gap-2.5">
+                    {post.authorAvatar ? (
+                      <img
+                        src={post.authorAvatar}
+                        alt={post.author}
+                        className="w-10 h-10 rounded-full border-2 border-blue-400/50 dark:border-blue-500/50 object-cover ring-2 ring-blue-100 dark:ring-blue-900/30"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-semibold text-white text-sm shadow-md">
+                        {post.author?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'MP'}
+                      </div>
+                    )}
+                    <div>
+                      <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                        {post.author}
+                      </div>
                     </div>
                   </div>
+                  {articleUrl && (
+                    <div className="flex items-center gap-3">
+                      <ShareButtons url={articleUrl} title={post.title} description={post.description} />
+                      <PostLikes postSlug={post.slug} />
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {/* Share Buttons, Likes, and Print Export */}
-              {articleUrl && (
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-800 space-y-4">
-                  <div className="flex items-center justify-center gap-4 flex-wrap">
-                    <ShareButtons url={articleUrl} title={post.title} description={post.description} />
-                  </div>
-                  <div className="flex items-center justify-center gap-4 flex-wrap">
-                    <PostLikes postSlug={post.slug} />
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Cover Image */}
             {post.coverImage && (
               <div className="mt-6 -mx-4 md:mx-0">
-                <div className="w-full md:max-w-2xl rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900 shadow-lg">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900 shadow-lg relative aspect-[21/9] sm:aspect-video lg:aspect-[21/9]">
+                  <Image
                     src={post.coverImage}
                     alt={post.title}
-                    className="w-full h-48 sm:h-56 md:h-64 lg:h-72 object-cover object-center"
+                    fill
+                    priority
+                    fetchPriority="high"
+                    quality={90}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px"
+                    className="object-cover object-center"
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
                   />
                 </div>
               </div>
@@ -431,11 +461,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                         key={url + idx}
                         className="relative aspect-video overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900 group cursor-pointer"
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={url}
                           alt={`Gallery image ${idx + 1}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          fill
+                          loading="lazy"
+                          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 300px"
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
                     ))}

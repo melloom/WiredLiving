@@ -1261,3 +1261,60 @@ export async function initDatabase(): Promise<void> {
   }
 }
 
+/**
+ * Get all series metadata
+ */
+export async function getAllSeriesMetadata(): Promise<import('@/types').SeriesMetadata[]> {
+  if (!isSupabaseConfigured()) {
+    return [];
+  }
+
+  try {
+    const { data, error } = await supabase!
+      .from('series_metadata')
+      .select('*')
+      .order('display_order', { ascending: true })
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching series metadata:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching series metadata:', error);
+    return [];
+  }
+}
+
+/**
+ * Get series metadata by name
+ */
+export async function getSeriesMetadata(seriesName: string): Promise<import('@/types').SeriesMetadata | null> {
+  if (!isSupabaseConfigured()) {
+    return null;
+  }
+
+  try {
+    const { data, error } = await supabase!
+      .from('series_metadata')
+      .select('*')
+      .eq('name', seriesName)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned, not an error
+        return null;
+      }
+      console.error('Error fetching series metadata:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching series metadata:', error);
+    return null;
+  }
+}
