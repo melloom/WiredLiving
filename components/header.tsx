@@ -67,6 +67,7 @@ export function Header() {
     { href: '/contact', label: 'Contact' },
     { href: '/search', label: 'Search' },
     { href: '/categories', label: 'Categories' },
+    { href: '/series', label: 'Series' },
   ];
 
   return (

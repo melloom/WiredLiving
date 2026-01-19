@@ -192,10 +192,13 @@ export default async function BlogPostPreviewPage({
                 </span>
               )}
               {post.series && (
-                <span className="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">
+                <Link
+                  href={`/series/${encodeURIComponent(post.series)}`}
+                  className="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
+                >
                   Series: {post.series}
                   {post.seriesOrder && ` #${post.seriesOrder}`}
-                </span>
+                </Link>
               )}
               <span className="text-gray-500 dark:text-gray-400">
                 {formatDate(post.date)}
