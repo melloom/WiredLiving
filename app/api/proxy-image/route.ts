@@ -20,12 +20,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Optional: Whitelist domains for security
+
     const allowedDomains = [
       'blueprint.ng',
       'unsplash.com',
       'images.unsplash.com',
       'cdn.pixabay.com',
       'picsum.photos',
+      'media.giphy.com',
+      'i.giphy.com',
+      'giphy.com',
+      'media.tenor.com',
+      'tenor.com',
       // Add other trusted image sources
     ];
 

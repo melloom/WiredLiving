@@ -464,12 +464,43 @@ function validateContentLength(content: string): { issues: ValidationIssue[]; wa
  * 
  * Supports [TOC] marker for inline table of contents
  */
+
+// Convert Giphy and Tenor page URLs in markdown image links to direct GIF URLs
+function autoConvertGiphyAndTenor(content: string): { content: string; modified: boolean } {
+  let modified = false;
+  // Regex for markdown images: ![alt](url)
+  const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  let result = content;
+  result = result.replace(imageRegex, (match, alt, url) => {
+    let newUrl = url;
+    // Giphy page URL: https://giphy.com/gifs/slug-or-title-GIPHYID
+    const giphyMatch = url.match(/giphy\.com\/gifs\/(?:[^-]*-)?([a-zA-Z0-9]+)$/);
+    if (giphyMatch) {
+      newUrl = `https://media.giphy.com/media/${giphyMatch[1]}/giphy.gif`;
+      modified = true;
+    }
+    // Tenor page URL: https://tenor.com/view/slug-TENORID
+    const tenorMatch = url.match(/tenor\.com\/view\/[^-]+-(\d+)/);
+    if (tenorMatch) {
+      newUrl = `https://media.tenor.com/images/${tenorMatch[1]}/tenor.gif`;
+      modified = true;
+    }
+    return `![${alt}](${newUrl})`;
+  });
+  return { content: result, modified };
+}
+
 export function transformAndValidateContent(content: string): ContentValidationResult {
   let transformedContent = content;
   let wasModified = false;
   const allIssues: ValidationIssue[] = [];
   const allWarnings: ValidationWarning[] = [];
   
+  // AUTO-FIX: Convert Giphy and Tenor page URLs to direct GIF URLs
+  const { content: giphyFixed, modified: giphyMod } = autoConvertGiphyAndTenor(transformedContent);
+  transformedContent = giphyFixed;
+  wasModified = wasModified || giphyMod;
+
   // Check if content has [TOC] marker - preserve it throughout transformations
   let hasTOC = /^\[TOC\]$/m.test(transformedContent);
 
