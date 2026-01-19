@@ -1,0 +1,12 @@
+Add real analytics system with Chart.js visualizations
+
+- Create AnalyticsDashboard component with interactive charts
+- Install chart.js and react-chartjs-2 for data visualization
+- Update admin dashboard to use new analytics component
+- Add AnalyticsTracker to root layout for automatic page tracking
+- Create comprehensive analytics setup documentation
+- Connect to Supabase analytics API endpoints
+- Features: Traffic trends, device breakdown, top posts, referrers
+- Support for 7-day, 30-day, and 90-day time ranges
+- Privacy-focused tracking with anonymous visitor IDs
+- Real-time data with beautiful gradient cards and charts

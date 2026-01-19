@@ -1,0 +1,2 @@
+// This file is used as the new default OG image for WiredLiving.
+// Place your main logo or hero image here for best SEO and sharing results.
