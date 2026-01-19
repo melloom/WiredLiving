@@ -30,11 +30,13 @@ export default async function SeriesPage() {
     name: seriesName,
     posts: seriesPosts.sort((a, b) => {
       // First sort by seriesOrder if available
-      if (a.seriesOrder !== null && b.seriesOrder !== null) {
-        return a.seriesOrder - b.seriesOrder;
+      const aOrder = a.seriesOrder ?? null;
+      const bOrder = b.seriesOrder ?? null;
+      if (aOrder !== null && bOrder !== null) {
+        return aOrder - bOrder;
       }
-      if (a.seriesOrder !== null) return -1;
-      if (b.seriesOrder !== null) return 1;
+      if (aOrder !== null) return -1;
+      if (bOrder !== null) return 1;
       // Then sort by date (newest first)
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     }),
