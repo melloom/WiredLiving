@@ -9,6 +9,12 @@ const nextConfig = {
   images: {
     remotePatterns: [],
   },
+  // ESLint configuration for Next.js
+  eslint: {
+    // Use the flat config format (eslint.config.mjs)
+    // This prevents Next.js from using deprecated options
+    dirs: ['app', 'components', 'lib', 'types'],
+  },
   // Ensure production builds use proper optimization
   swcMinify: true,
   compiler: {

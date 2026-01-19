@@ -131,16 +131,41 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
       if (!confirm) return;
     }
 
+    // Convert Giphy/Tenor URLs to direct media URLs
+    let finalUrl = trimmedUrl;
+    
+    // Giphy: Extract media URL from various formats
+    if (isGiphy) {
+      // If it's already a media.giphy.com URL, use as-is
+      if (trimmedUrl.includes('media.giphy.com') || trimmedUrl.includes('i.giphy.com')) {
+        finalUrl = trimmedUrl;
+      } else {
+        // Try to extract GIF ID from giphy.com/gifs/... URL
+        const giphyIdMatch = trimmedUrl.match(/gifs\/(?:[^-]*-)?([a-zA-Z0-9]+)$/);
+        if (giphyIdMatch) {
+          const gifId = giphyIdMatch[1];
+          finalUrl = `https://media.giphy.com/media/${gifId}/giphy.gif`;
+        } else {
+          toast.warning('Could not convert Giphy URL. Please use the embed URL from Giphy (right-click > Copy Image Address)');
+        }
+      }
+    }
+    
+    // Tenor: Convert to direct media URL
+    if (isTenor && !trimmedUrl.includes('media.tenor.com')) {
+      toast.warning('Please use the direct GIF URL from Tenor (right-click on GIF > Copy Image Address)');
+    }
+
     // Generate appropriate markdown based on type
     let markdown = '';
     const altText = type === 'gif' ? 'GIF' : type === 'video' ? 'Video' : 'Image';
     
     if (type === 'video' || trimmedUrl.match(/\.(mp4|webm|mov)$/i)) {
-      markdown = `<video controls src="${trimmedUrl}" class="w-full rounded-lg"></video>`;
+      markdown = `<video controls src="${finalUrl}" class="w-full rounded-lg"></video>`;
     } else if (type === 'gif' || isGiphy || isTenor || trimmedUrl.match(/\.gif$/i)) {
-      markdown = `![${altText}](${trimmedUrl})`;
+      markdown = `![${altText}](${finalUrl})`;
     } else {
-      markdown = `![${altText}](${trimmedUrl})`;
+      markdown = `![${altText}](${finalUrl})`;
     }
 
     onInsert(markdown);

@@ -171,80 +171,128 @@ export default async function BlogPostPreviewPage({
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-10 md:py-16">
-        <div className="max-w-5xl mx-auto grid lg:grid-cols-[minmax(0,2.3fr)_minmax(260px,1fr)] gap-10 lg:gap-12">
-          <article className="space-y-8">
-            <header className="space-y-6">
-              <div className="space-y-3">
-                <p className="text-xs font-mono uppercase tracking-[0.18em] text-blue-600 dark:text-blue-400">
-                  {siteConfig.name} • {formatDate(post.date)} • Preview
-                </p>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
-                  {post.title}
-                </h1>
-                {post.description && (
-                  <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl">
-                    {post.description}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3 text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                <span className="inline-flex items-center gap-2">
-                  <span className="font-medium text-gray-800 dark:text-gray-200">
-                    {post.author}
-                  </span>
-                  <span>•</span>
-                  <span>{formatDate(post.date)}</span>
+      <div className="container mx-auto px-4 py-8 md:py-12">
+        {/* Hero Section - Full Width */}
+        <header className="space-y-6 mb-8 max-w-5xl mx-auto">
+          <div className="space-y-4">
+            {/* Category, Featured, and Meta Info */}
+            <div className="flex flex-wrap items-center gap-3 text-xs md:text-sm">
+              <span className="px-4 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-semibold border border-amber-300 dark:border-amber-700">
+                🔍 PREVIEW MODE
+              </span>
+              {post.featured && (
+                <span className="px-4 py-1 rounded-full bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-400 text-yellow-900 font-bold shadow-lg flex items-center gap-2 animate-pulse">
+                  <span className="text-lg">⭐</span>
+                  <span>Featured</span>
                 </span>
-                {post.readingTime && (
-                  <>
-                    <span>•</span>
-                    <span>{post.readingTime} min read</span>
-                  </>
-                )}
-                {(post.tags || []).length > 0 && (
-                  <>
-                    <span>•</span>
-                    <div className="flex flex-wrap gap-1">
-                      {(post.tags || []).slice(0, 3).map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-[11px] text-gray-700 dark:text-gray-200"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {post.coverImage && (
-                <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900 shadow-md">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={post.coverImage}
-                    alt={post.title}
-                    className="w-full h-[260px] md:h-[360px] object-cover"
-                  />
-                </div>
               )}
-            </header>
+              {post.category && (
+                <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">
+                  {post.category}
+                </span>
+              )}
+              {post.series && (
+                <span className="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">
+                  Series: {post.series}
+                  {post.seriesOrder && ` #${post.seriesOrder}`}
+                </span>
+              )}
+              <span className="text-gray-500 dark:text-gray-400">
+                {formatDate(post.date)}
+              </span>
+              {post.readingTime && (
+                <>
+                  <span className="text-gray-300 dark:text-gray-600">•</span>
+                  <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {post.readingTime} min read
+                  </span>
+                </>
+              )}
+              {post.wordCount && (
+                <>
+                  <span className="text-gray-300 dark:text-gray-600">•</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {post.wordCount.toLocaleString()} words
+                  </span>
+                </>
+              )}
+            </div>
 
-            <div className="bg-white/90 dark:bg-gray-900/90 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm px-5 md:px-8 py-8 md:py-10 mb-8">
-              <div className="prose prose-base md:prose-lg dark:prose-invert max-w-none prose-headings:scroll-mt-24">
-                {post.content && <MDXContent content={post.content} />}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-gray-50 leading-tight">
+              {post.title}
+            </h1>
+
+            {post.description && (
+              <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl leading-relaxed italic border-l-4 border-blue-400 pl-4 mt-2">
+                {post.description}
+              </p>
+            )}
+
+            {/* Author & Meta */}
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center font-semibold text-gray-700 dark:text-gray-300 shadow-sm">
+                  {post.author?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'MP'}
+                </div>
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">
+                    {post.author}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Published {formatDate(post.date)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Cover Image */}
+          {post.coverImage && (
+            <div className="mt-6 -mx-4 md:mx-0">
+              <div className="w-full md:max-w-2xl rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900 shadow-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={post.coverImage}
+                  alt={post.title}
+                  className="w-full h-48 sm:h-56 md:h-64 lg:h-72 object-cover object-center"
+                />
+              </div>
+            </div>
+          )}
+        </header>
+
+        {/* Content Grid with Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 lg:gap-12">
+          {/* Main article content */}
+          <article className="min-w-0">
+            <div className="bg-gradient-to-b from-white via-gray-50/30 to-white dark:from-gray-900 dark:via-gray-900/50 dark:to-gray-900 rounded-3xl p-8 md:p-12 lg:p-16 shadow-2xl border border-gray-200/50 dark:border-gray-800/50 backdrop-blur-sm">
+              <div className="max-w-4xl mx-auto">
+                <div className="prose prose-lg md:prose-xl lg:prose-2xl dark:prose-invert max-w-none font-serif
+                  prose-headings:font-serif prose-headings:font-bold prose-headings:tracking-tight prose-headings:scroll-mt-24
+                  prose-h1:text-4xl prose-h1:md:text-5xl prose-h1:lg:text-6xl prose-h1:mt-12 prose-h1:mb-8
+                  prose-h2:text-3xl prose-h2:md:text-4xl prose-h2:lg:text-5xl prose-h2:mt-12 prose-h2:mb-7
+                  prose-h3:text-2xl prose-h3:md:text-3xl prose-h3:mt-10 prose-h3:mb-6
+                  prose-p:text-lg prose-p:md:text-xl prose-p:leading-relaxed prose-p:md:leading-[1.75] prose-p:my-6 prose-p:md:my-7
+                  prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+                  prose-blockquote:border-l-4 prose-blockquote:border-blue-500 dark:prose-blockquote:border-blue-400
+                  prose-blockquote:bg-blue-50/50 dark:prose-blockquote:bg-blue-900/10 prose-blockquote:pl-8 prose-blockquote:py-4
+                  prose-img:rounded-2xl prose-img:shadow-2xl prose-img:my-10
+                  prose-code:text-pink-600 dark:prose-code:text-pink-400">
+                  {post.content && <MDXContent content={post.content} />}
+                </div>
               </div>
             </div>
 
             {/* Gallery section */}
             {post.galleryImages && post.galleryImages.length > 0 && (
-              <section className="space-y-3">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">
-                  Visual extras
+              <section className="mt-12 space-y-4">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50">
+                  Gallery
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {post.galleryImages.map((url, idx) => (
                     <div
                       key={url + idx}
@@ -259,8 +307,8 @@ export default async function BlogPostPreviewPage({
             )}
           </article>
 
-          {/* Preview Info Sidebar */}
-          <aside className="space-y-6 lg:sticky lg:top-24 h-fit">
+          {/* Preview Info Sidebar - NO STICKY */}
+          <aside className="space-y-6 h-fit">
             {/* Visibility & Status Panel */}
             <div className="bg-white/90 dark:bg-gray-900/90 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-5 space-y-4">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-50">
