@@ -1883,7 +1883,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                   <button
                     type="button"
                     onClick={() => {
-                                            // Use advanced smart SEO generator
+                      // Use smart SEO generator
                       const seoResult = generateSmartSEO(
                         formData.title || '',
                         formData.description || '',
@@ -1891,27 +1891,10 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                         formData.category
                       );
 
-                      // Display SEO quality score and suggestions
-                      if (seoResult.seoScore !== undefined) {
-                        console.log(`🎯 SEO Score: ${seoResult.seoScore}/100`);
-                      }
-                      if (seoResult.readabilityScore !== undefined) {
-                        console.log(`📖 Readability: ${Math.round(seoResult.readabilityScore)}/100`);
-                      }
-                      if (seoResult.focusKeyword) {
-                        console.log(`🎯 Focus Keyword: "${seoResult.focusKeyword}"`);
-                      }
-                      if (seoResult.alternativeTitles && seoResult.alternativeTitles.length > 0) {
-                        console.log('💡 Alternative Titles:', seoResult.alternativeTitles);
-                      }
-                      if (seoResult.suggestions && seoResult.suggestions.length > 0) {
-                        console.log('💡 SEO Tips:', seoResult.suggestions);
-                      }
-
-                      // Validate and show warnings
+                      // Validate and show warnings if any
                       const validation = validateSEO(seoResult);
                       if (!validation.valid && validation.warnings.length > 0) {
-                        console.log('⚠️  Warnings:', validation.warnings);
+                        console.log('SEO Suggestions:', validation.warnings);
                       }
 
                       setFormData({
@@ -1922,9 +1905,8 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                         twitterDescription: seoResult.twitterDescription,
                       });
 
-                      // Show enhanced success message with score
-                      const scoreEmoji = (seoResult.seoScore || 0) >= 80 ? '🔥' : (seoResult.seoScore || 0) >= 60 ? '✨' : '💡';
-                      toast.success(`${scoreEmoji} Smart SEO generated! Score: ${seoResult.seoScore || 0}/100`);
+                      // Show success message
+                      toast.success( '✨ Smart SEO generated successfully!');
                     }}
                     className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all shadow-sm hover:shadow flex items-center gap-1.5"
                   >
@@ -3015,7 +2997,7 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                   <button
                     type="button"
                     onClick={() => {
-                                            // Use advanced smart SEO generator
+                      // Use smart SEO generator
                       const seoResult = generateSmartSEO(
                         formData.title || '',
                         formData.description || '',
@@ -3023,27 +3005,10 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                         formData.category
                       );
 
-                      // Display SEO quality score and suggestions
-                      if (seoResult.seoScore !== undefined) {
-                        console.log(`🎯 SEO Score: ${seoResult.seoScore}/100`);
-                      }
-                      if (seoResult.readabilityScore !== undefined) {
-                        console.log(`📖 Readability: ${Math.round(seoResult.readabilityScore)}/100`);
-                      }
-                      if (seoResult.focusKeyword) {
-                        console.log(`🎯 Focus Keyword: "${seoResult.focusKeyword}"`);
-                      }
-                      if (seoResult.alternativeTitles && seoResult.alternativeTitles.length > 0) {
-                        console.log('💡 Alternative Titles:', seoResult.alternativeTitles);
-                      }
-                      if (seoResult.suggestions && seoResult.suggestions.length > 0) {
-                        console.log('💡 SEO Tips:', seoResult.suggestions);
-                      }
-
-                      // Validate and show warnings
+                      // Validate and show warnings if any
                       const validation = validateSEO(seoResult);
                       if (!validation.valid && validation.warnings.length > 0) {
-                        console.log('⚠️  Warnings:', validation.warnings);
+                        console.log('SEO Suggestions:', validation.warnings);
                       }
 
                       setFormData({
@@ -3054,9 +3019,8 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                         twitterDescription: seoResult.twitterDescription,
                       });
 
-                      // Show enhanced success message with score
-                      const scoreEmoji = (seoResult.seoScore || 0) >= 80 ? '🔥' : (seoResult.seoScore || 0) >= 60 ? '✨' : '💡';
-                      toast.success(`${scoreEmoji} Smart SEO generated! Score: ${seoResult.seoScore || 0}/100`);
+                      // Show success message
+                      toast.success( '✨ Smart SEO generated successfully!');
                     }}
                     className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all shadow-sm hover:shadow flex items-center gap-1.5"
                   >
