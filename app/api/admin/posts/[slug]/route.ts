@@ -146,6 +146,20 @@ export async function PUT(
       );
     }
 
+    // Get the current post to check if slug will change
+    const { data: currentPost, error: fetchError } = await supabase!
+      .from('posts')
+      .select('slug')
+      .eq('slug', slug)
+      .single();
+
+    if (fetchError || !currentPost) {
+      return NextResponse.json(
+        { success: false, error: 'Post not found' },
+        { status: 404 }
+      );
+    }
+
     // Calculate reading stats
     const readingStats = readingTime(content || '');
     const readingTimeMinutes = Math.ceil(readingStats.minutes);
@@ -215,6 +229,76 @@ export async function PUT(
     }
 
     console.log('Post updated successfully, cover_image in DB:', updatedPost.cover_image);
+
+    // Auto-migrate analytics if slug changed
+    const oldSlug = currentPost.slug;
+    const newSlug = updatedPost.slug;
+    
+    if (oldSlug !== newSlug) {
+      console.log(`Slug changed from ${oldSlug} to ${newSlug}, migrating analytics...`);
+      
+      try {
+        // Update page_views table
+        await supabase!
+          .from('page_views')
+          .update({ post_slug: newSlug })
+          .eq('post_slug', oldSlug);
+
+        // Get old analytics
+        const { data: oldAnalytics } = await supabase!
+          .from('post_analytics')
+          .select('*')
+          .eq('post_slug', oldSlug)
+          .single();
+
+        // Get new slug analytics if exists
+        const { data: newAnalytics } = await supabase!
+          .from('post_analytics')
+          .select('*')
+          .eq('post_slug', newSlug)
+          .single();
+
+        if (oldAnalytics) {
+          if (newAnalytics) {
+            // Merge analytics
+            await supabase!
+              .from('post_analytics')
+              .update({
+                total_views: newAnalytics.total_views + oldAnalytics.total_views,
+                unique_visitors: newAnalytics.unique_visitors + oldAnalytics.unique_visitors,
+                last_viewed: new Date(
+                  Math.max(
+                    new Date(newAnalytics.last_viewed || 0).getTime(),
+                    new Date(oldAnalytics.last_viewed || 0).getTime()
+                  )
+                ).toISOString(),
+                updated_at: new Date().toISOString(),
+              })
+              .eq('post_slug', newSlug);
+
+            // Delete old analytics
+            await supabase!
+              .from('post_analytics')
+              .delete()
+              .eq('post_slug', oldSlug);
+          } else {
+            // Just update slug
+            await supabase!
+              .from('post_analytics')
+              .update({ 
+                post_slug: newSlug,
+                updated_at: new Date().toISOString() 
+              })
+              .eq('post_slug', oldSlug);
+          }
+          
+          console.log(`Analytics migrated from ${oldSlug} to ${newSlug}`);
+        }
+      } catch (analyticsError) {
+        console.error('Error migrating analytics:', analyticsError);
+        // Don't fail the whole update if analytics migration fails
+      }
+    }
 
     // Sync tags
     if (tags && Array.isArray(tags) && tags.length > 0) {

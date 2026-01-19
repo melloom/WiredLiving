@@ -28,7 +28,82 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { field, value } = body;
+    const { field, value, updates } = body;
+
+    // Handle multiple updates at once
+    if (updates && Array.isArray(updates)) {
+      if (!isSupabaseConfigured()) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Supabase not configured',
+          },
+          { status: 500 }
+        );
+      }
+
+      const { data: post, error: fetchError } = await supabase!
+        .from('posts')
+        .select('id, title')
+        .eq('slug', slug)
+        .single();
+
+      if (fetchError || !post) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Post not found',
+          },
+          { status: 404 }
+        );
+      }
+
+      const updateData: any = { updated_at: new Date().toISOString() };
+      
+      // Process each update
+      for (const update of updates) {
+        const { field: updateField, value: updateValue } = update;
+        switch (updateField) {
+          case 'series':
+            updateData.series = updateValue || null;
+            break;
+          case 'seriesOrder':
+            updateData.series_order = updateValue !== null && updateValue !== undefined ? updateValue : null;
+            break;
+        }
+      }
+
+      const { data: updatedPost, error: updateError } = await supabase!
+        .from('posts')
+        .update(updateData)
+        .eq('slug', slug)
+        .select()
+        .single();
+
+      if (updateError || !updatedPost) {
+        console.error('Error updating post:', updateError);
+        return NextResponse.json(
+          {
+            success: false,
+            error: updateError?.message || 'Failed to update post',
+          },
+          { status: 500 }
+        );
+      }
+
+      await logAdminAction({
+        userEmail: session.user?.email || 'unknown',
+        action: 'update_post',
+        targetType: 'post',
+        targetId: updatedPost.id,
+        meta: { slug, updates, title: post.title },
+      });
+
+      return NextResponse.json({
+        success: true,
+        post: updatedPost,
+      });
+    }
 
     if (!field) {
       return NextResponse.json(
@@ -87,6 +162,12 @@ export async function PATCH(
         break;
       case 'requiresLogin':
         updateData.requires_login = value !== undefined ? value : !post.requires_login;
+        break;
+      case 'series':
+        updateData.series = value || null;
+        break;
+      case 'seriesOrder':
+        updateData.series_order = value !== null && value !== undefined ? value : null;
         break;
       default:
         return NextResponse.json(

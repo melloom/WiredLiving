@@ -58,7 +58,7 @@ export default async function SeriesPage() {
           </p>
         </div>
 
-        {true ? (
+        {sortedSeries.length === 0 ? (
           <div className="text-center py-16">
             <div className="mx-auto max-w-xl">
               <div className="text-7xl mb-6">🚧</div>

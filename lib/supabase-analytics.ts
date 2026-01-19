@@ -255,3 +255,77 @@ export async function getTopReferrers(limit: number = 10): Promise<Array<{ refer
   }
 }
 
+/**
+ * Get recent page view activity
+ */
+export async function getRecentActivity(limit: number = 15): Promise<Array<{
+  page_path: string;
+  page_title: string | null;
+  visitor_id: string;
+  session_id: string;
+  device_type: string;
+  referrer: string | null;
+  time_on_page: number;
+  created_at: string;
+}>> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('page_views')
+      .select('page_path, page_title, session_id, device_type, referrer, created_at')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    // Transform data to match expected format
+    return (data || []).map((view: any) => ({
+      page_path: view.page_path,
+      page_title: view.page_title || view.page_path,
+      visitor_id: view.session_id, // Use session_id as visitor_id
+      session_id: view.session_id,
+      device_type: view.device_type || 'unknown',
+      referrer: view.referrer,
+      time_on_page: 0, // Would need session tracking for accurate time
+      created_at: view.created_at,
+    }));
+  } catch (error) {
+    console.error('Error fetching recent activity:', error);
+    return [];
+  }
+}
+
+/**
+ * Get top search terms (if search_terms table exists)
+ */
+export async function getTopSearchTerms(limit: number = 10): Promise<Array<{
+  search_term: string;
+  count: number;
+  results_clicked: number;
+}>> {
+  if (!supabase) return [];
+
+  try {
+    // Check if search_terms table exists, otherwise return empty array
+    const { data, error } = await supabase
+      .from('search_terms')
+      .select('search_term, count, results_clicked')
+      .order('count', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      // Table might not exist, return empty array
+      if (error.code === '42P01') {
+        return [];
+      }
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching search terms:', error);
+    return [];
+  }
+}
+

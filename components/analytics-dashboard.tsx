@@ -82,6 +82,13 @@ export function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
+  
+  // Slug migration state
+  const [showSlugMigration, setShowSlugMigration] = useState(false);
+  const [oldSlug, setOldSlug] = useState('');
+  const [newSlug, setNewSlug] = useState('');
+  const [migrationLoading, setMigrationLoading] = useState(false);
+  const [migrationMessage, setMigrationMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     fetchAnalytics();
@@ -106,6 +113,88 @@ export function AnalyticsDashboard() {
       setError(err instanceof Error ? err.message : 'Failed to load analytics');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMigrateSlug = async () => {
+    if (!oldSlug || !newSlug) {
+      setMigrationMessage({ type: 'error', text: 'Both old and new slugs are required' });
+      return;
+    }
+
+    setMigrationLoading(true);
+    setMigrationMessage(null);
+
+    try {
+      const response = await fetch('/api/admin/analytics/migrate-slug', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ oldSlug, newSlug }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setMigrationMessage({ 
+          type: 'success', 
+          text: `Successfully migrated! ${result.details.pageViewsUpdated} page views updated.` 
+        });
+        setOldSlug('');
+        setNewSlug('');
+        // Refresh analytics data
+        fetchAnalytics();
+      } else {
+        setMigrationMessage({ type: 'error', text: result.error || 'Migration failed' });
+      }
+    } catch (err) {
+      setMigrationMessage({ 
+        type: 'error', 
+        text: err instanceof Error ? err.message : 'Migration failed' 
+      });
+    } finally {
+      setMigrationLoading(false);
+    }
+  };
+
+  const handleDeleteSlug = async (slug: string) => {
+    if (!slug) {
+      setMigrationMessage({ type: 'error', text: 'Slug is required' });
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete all analytics data for "${slug}"? This cannot be undone.`)) {
+      return;
+    }
+
+    setMigrationLoading(true);
+    setMigrationMessage(null);
+
+    try {
+      const response = await fetch(`/api/admin/analytics/migrate-slug?slug=${encodeURIComponent(slug)}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setMigrationMessage({ 
+          type: 'success', 
+          text: `Successfully deleted analytics for "${slug}"` 
+        });
+        // Refresh analytics data
+        fetchAnalytics();
+      } else {
+        setMigrationMessage({ type: 'error', text: result.error || 'Deletion failed' });
+      }
+    } catch (err) {
+      setMigrationMessage({ 
+        type: 'error', 
+        text: err instanceof Error ? err.message : 'Deletion failed' 
+      });
+    } finally {
+      setMigrationLoading(false);
     }
   };
 
@@ -167,8 +256,14 @@ export function AnalyticsDashboard() {
   const deviceChartData = {
     labels: Object.keys(data.deviceStats).length > 0 
       ? Object.keys(data.deviceStats).map(key => {
-          // Capitalize device names
-          return key.charAt(0).toUpperCase() + key.slice(1);
+          // Map device types to friendly names
+          const deviceMap: Record<string, string> = {
+            'desktop': '🖥️ Desktop',
+            'mobile': '📱 Mobile',
+            'tablet': '📱 Tablet',
+            'unknown': '❓ Unknown'
+          };
+          return deviceMap[key.toLowerCase()] || key.charAt(0).toUpperCase() + key.slice(1);
         })
       : ['No Data'],
     datasets: [
@@ -176,18 +271,22 @@ export function AnalyticsDashboard() {
         data: Object.keys(data.deviceStats).length > 0 
           ? Object.values(data.deviceStats)
           : [1],
-        backgroundColor: [
-          'rgba(59, 130, 246, 0.8)',
-          'rgba(168, 85, 247, 0.8)',
-          'rgba(34, 197, 94, 0.8)',
-          'rgba(251, 146, 60, 0.8)',
-        ],
-        borderColor: [
-          'rgb(59, 130, 246)',
-          'rgb(168, 85, 247)',
-          'rgb(34, 197, 94)',
-          'rgb(251, 146, 60)',
-        ],
+        backgroundColor: Object.keys(data.deviceStats).length > 0
+          ? [
+              'rgba(59, 130, 246, 0.8)',   // Desktop - Blue
+              'rgba(168, 85, 247, 0.8)',   // Mobile - Purple
+              'rgba(34, 197, 94, 0.8)',    // Tablet - Green
+              'rgba(251, 146, 60, 0.8)',   // Unknown - Orange
+            ]
+          : ['rgba(156, 163, 175, 0.3)'], // Gray for no data
+        borderColor: Object.keys(data.deviceStats).length > 0
+          ? [
+              'rgb(59, 130, 246)',
+              'rgb(168, 85, 247)',
+              'rgb(34, 197, 94)',
+              'rgb(251, 146, 60)',
+            ]
+          : ['rgb(156, 163, 175)'],
         borderWidth: 2,
       },
     ],
@@ -248,8 +347,23 @@ export function AnalyticsDashboard() {
         position: 'right' as const,
         labels: {
           color: 'rgb(156, 163, 175)',
+          padding: 15,
+          font: {
+            size: 12,
+          },
         },
       },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const label = context.label || '';
+            const value = context.parsed || 0;
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
+            return `${label}: ${value} (${percentage}%)`;
+          }
+        }
+      }
     },
   };
 
@@ -297,6 +411,105 @@ export function AnalyticsDashboard() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Slug Migration Tool */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-lg overflow-hidden">
+        <button
+          onClick={() => setShowSlugMigration(!showSlugMigration)}
+          className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🔧</span>
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-gray-100">
+                Slug Migration Tool
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Update or delete analytics data when you change a post's slug
+              </p>
+            </div>
+          </div>
+          <span className="text-gray-400 dark:text-gray-600">
+            {showSlugMigration ? '▼' : '▶'}
+          </span>
+        </button>
+        
+        {showSlugMigration && (
+          <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-800">
+            {migrationMessage && (
+              <div className={`mt-4 p-4 rounded-lg ${
+                migrationMessage.type === 'success' 
+                  ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+                  : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+              }`}>
+                {migrationMessage.text}
+              </div>
+            )}
+            
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Old Slug (to migrate from)
+                </label>
+                <input
+                  type="text"
+                  value={oldSlug}
+                  onChange={(e) => setOldSlug(e.target.value)}
+                  placeholder="e.g., old-post-slug"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={migrationLoading}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  New Slug (to migrate to)
+                </label>
+                <input
+                  type="text"
+                  value={newSlug}
+                  onChange={(e) => setNewSlug(e.target.value)}
+                  placeholder="e.g., new-post-slug"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={migrationLoading}
+                />
+              </div>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={handleMigrateSlug}
+                  disabled={migrationLoading || !oldSlug || !newSlug}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  {migrationLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                      Migrating...
+                    </span>
+                  ) : (
+                    'Migrate Analytics Data'
+                  )}
+                </button>
+                
+                <button
+                  onClick={() => oldSlug && handleDeleteSlug(oldSlug)}
+                  disabled={migrationLoading || !oldSlug}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  Delete Old Slug Data
+                </button>
+              </div>
+              
+              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <strong>💡 Tip:</strong> If you changed a post's slug, use this tool to migrate the analytics data from the old slug to the new one. 
+                  This preserves view counts and visitor statistics.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Key Metrics */}
@@ -377,9 +590,15 @@ export function AnalyticsDashboard() {
           <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">
             📱 Device Breakdown
           </h3>
-          <div className="h-64">
-            <Doughnut data={deviceChartData} options={doughnutOptions} />
-          </div>
+          {Object.keys(data.deviceStats).length === 0 ? (
+            <div className="h-64 flex items-center justify-center">
+              <p className="text-gray-500 dark:text-gray-400">No device data yet</p>
+            </div>
+          ) : (
+            <div className="h-64">
+              <Doughnut data={deviceChartData} options={doughnutOptions} />
+            </div>
+          )}
         </div>
 
         {/* Top Referrers */}
@@ -533,6 +752,9 @@ export function AnalyticsDashboard() {
                   <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
                     Last Viewed
                   </th>
+                  <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -566,6 +788,26 @@ export function AnalyticsDashboard() {
                         ? new Date(post.last_viewed).toLocaleDateString()
                         : 'Never'
                       }
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <button
+                        onClick={() => {
+                          setOldSlug(post.post_slug);
+                          setShowSlugMigration(true);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium mr-3"
+                        title="Set as old slug for migration"
+                      >
+                        Migrate
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSlug(post.post_slug)}
+                        className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
+                        title="Delete analytics for this slug"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}

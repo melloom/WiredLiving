@@ -8,6 +8,8 @@ import {
   getTopPostsByViews,
   getPageViewsByDevice,
   getTopReferrers,
+  getRecentActivity,
+  getTopSearchTerms,
 } from '@/lib/supabase-analytics';
 
 export const dynamic = 'force-dynamic';
@@ -36,6 +38,8 @@ export async function GET(request: Request) {
       topPosts,
       deviceStats,
       referrers,
+      recentActivity,
+      searchTerms,
     ] = await Promise.all([
       getAllPostAnalytics(),
       getDailyAnalytics(days), // Use dynamic days parameter
@@ -44,6 +48,8 @@ export async function GET(request: Request) {
       getTopPostsByViews(10),
       getPageViewsByDevice(),
       getTopReferrers(10),
+      getRecentActivity(15),
+      getTopSearchTerms(10),
     ]);
 
     const response = NextResponse.json({
@@ -56,6 +62,8 @@ export async function GET(request: Request) {
         topPosts,
         deviceStats,
         referrers,
+        recentActivity,
+        searchTerms,
       },
     });
     
