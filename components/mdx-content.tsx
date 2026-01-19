@@ -448,7 +448,8 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
         },
         // Custom image component with lazy loading, optimization, size, and alignment support
         img: ({ src = '', alt = '', className = '', ...props }: any) => {
-          const imageId = `img-image-${++imageCounterRef.current}`;
+          // Use a stable ID based on src to avoid hydration mismatches
+          const imageId = `img-${src ? src.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20) : ++imageCounterRef.current}`;
 
           // Proxy external images to avoid CORS/OpaqueResponseBlocking issues
           let processedSrc = src;

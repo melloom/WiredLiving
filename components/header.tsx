@@ -5,6 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { siteConfig } from '@/config/site';
 import { useState, useEffect } from 'react';
 import { ThemeToggleButton } from './theme-toggle-button';
+import { BookmarksLink } from './bookmarks-link';
 import { usePathname } from 'next/navigation';
 import { useToast } from '@/components/toast';
 
@@ -92,6 +93,7 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
+              <BookmarksLink />
               {!loading && session && (
                 <Link
                   href="/admin"

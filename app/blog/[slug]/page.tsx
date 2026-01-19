@@ -9,6 +9,7 @@ import { MDXContent } from '@/components/mdx-content';
 import { ReadingProgress } from '@/components/reading-progress';
 import { ShareButtons } from '@/components/share-buttons';
 import { TableOfContents } from '@/components/table-of-contents';
+import { PostActionButtons } from '@/components/post-action-buttons';
 
 // Utility: Detect inline [TOC] marker (case-insensitive)
 function detectInlineTOC(content: string) {
@@ -237,17 +238,17 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </div>
         </div>
 
-        <div className="container mx-auto px-4 py-8 md:py-12 pb-24 lg:pb-12">
+        <div className="container mx-auto px-4 py-6 md:py-8 pb-24 lg:pb-12">
           {/* Hero Section */}
-          <header className="mb-8">
-            <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-blue-950/20 dark:to-purple-950/20 rounded-2xl p-6 md:p-8 border border-gray-200/50 dark:border-gray-800/50 shadow-lg relative overflow-hidden">
+          <header className="mb-6">
+            <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-blue-950/20 dark:to-purple-950/20 rounded-2xl p-5 md:p-6 border border-gray-200/50 dark:border-gray-800/50 shadow-lg relative overflow-hidden">
               {/* Decorative background elements */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl -z-0" />
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-purple-400/10 to-blue-400/10 rounded-full blur-3xl -z-0" />
               
               <div className="relative z-10">
                 {/* Top Meta Bar */}
-                <div className="flex flex-wrap items-center gap-2 text-xs mb-4">
+                <div className="flex flex-wrap items-center gap-2 text-xs mb-3">
                   {post.featured && (
                     <span className="px-3 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-300 text-yellow-900 font-bold flex items-center gap-1.5 shadow-md">
                       <span>⭐</span>
@@ -270,45 +271,65 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                       Series: {post.series}{post.seriesOrder && ` #${post.seriesOrder}`}
                     </Link>
                   )}
-                  <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 bg-gray-100/50 dark:bg-gray-800/50 px-2.5 py-1 rounded-full">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span>{formatDate(post.date)}</span>
-                  </div>
-                  {post.readingTime && (
-                    <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 bg-gray-100/50 dark:bg-gray-800/50 px-2.5 py-1 rounded-full">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>{post.readingTime} min read</span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Title with gradient */}
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4 bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 dark:from-gray-50 dark:via-blue-100 dark:to-purple-100 bg-clip-text text-transparent">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-3 bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 dark:from-gray-50 dark:via-blue-100 dark:to-purple-100 bg-clip-text text-transparent">
                   {post.title}
                 </h1>
 
                 {/* Description with styling */}
                 {post.description && (
-                  <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300 leading-relaxed mb-5 pl-4 border-l-2 border-gradient-to-b from-blue-500 to-purple-500">
+                  <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4 pl-4 border-l-2 border-blue-500">
                     {post.description}
                   </p>
                 )}
 
+                {/* Stats Bar - New compact info section */}
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 bg-gray-100/80 dark:bg-gray-800/80 px-3 py-1.5 rounded-lg">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="font-medium">{formatDate(post.date)}</span>
+                  </div>
+                  {post.readingTime && (
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 bg-gray-100/80 dark:bg-gray-800/80 px-3 py-1.5 rounded-lg">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="font-medium">{post.readingTime} min read</span>
+                    </div>
+                  )}
+                  {post.wordCount && (
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 bg-gray-100/80 dark:bg-gray-800/80 px-3 py-1.5 rounded-lg">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="font-medium">{post.wordCount.toLocaleString()} words</span>
+                    </div>
+                  )}
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 bg-gray-100/80 dark:bg-gray-800/80 px-3 py-1.5 rounded-lg">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                      <span className="font-medium">{post.tags.length} {post.tags.length === 1 ? 'tag' : 'tags'}</span>
+                    </div>
+                  )}
+                </div>
+
                 {/* Author & Actions Row */}
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-300/50 dark:border-gray-700/50">
+                <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-gray-300/50 dark:border-gray-700/50">
                   <div className="flex items-center gap-2.5">
                     {post.authorAvatar ? (
                       <img
                         src={post.authorAvatar}
                         alt={post.author}
-                        className="w-10 h-10 rounded-full border-2 border-blue-400/50 dark:border-blue-500/50 object-cover ring-2 ring-blue-100 dark:ring-blue-900/30"
+                        className="w-9 h-9 rounded-full border-2 border-blue-400/50 dark:border-blue-500/50 object-cover ring-2 ring-blue-100 dark:ring-blue-900/30"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-semibold text-white text-sm shadow-md">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-semibold text-white text-sm shadow-md">
                         {post.author?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'MP'}
                       </div>
                     )}
@@ -316,13 +337,20 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                       <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">
                         {post.author}
                       </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        Author
+                      </div>
                     </div>
                   </div>
                   {articleUrl && (
-                    <div className="flex items-center gap-3">
-                      <ShareButtons url={articleUrl} title={post.title} description={post.description} />
-                      <PostLikes postSlug={post.slug} />
-                    </div>
+                    <>
+                      <div className="h-8 w-px bg-gray-300 dark:bg-gray-600 hidden sm:block" />
+                      <div className="flex items-center gap-2">
+                        <ShareButtons url={articleUrl} title={post.title} description={post.description} />
+                        <PostLikes postSlug={post.slug} />
+                      </div>
+                      <PostActionButtons postSlug={post.slug} />
+                    </>
                   )}
                 </div>
               </div>
@@ -330,7 +358,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
             {/* Cover Image */}
             {post.coverImage && (
-              <div className="mt-6 -mx-4 md:mx-0">
+              <div className="mt-4 -mx-4 md:mx-0">
                 <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900 shadow-lg relative aspect-[21/9] sm:aspect-video lg:aspect-[21/9]">
                   <Image
                     src={post.coverImage}
