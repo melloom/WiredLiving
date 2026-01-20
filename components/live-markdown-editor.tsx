@@ -4,6 +4,11 @@ import { useState, useRef, KeyboardEvent, ClipboardEvent, useMemo, useCallback, 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import remarkFootnotes from 'remark-footnotes';
+import remarkMath from 'remark-math';
+import remarkSmartypants from 'remark-smartypants';
+import rehypeKatex from 'rehype-katex';
+import rehypeHighlight from 'rehype-highlight';
 import { MarkdownToolbar } from './markdown-toolbar';
 import { TableOfContents } from './table-of-contents';
 
@@ -215,8 +220,11 @@ const MarkdownPreview = memo(({ content, inline = false }: { content: string; in
   return (
     <div className="prose prose-base dark:prose-invert max-w-2xl mx-auto">
       <ReactMarkdown
-        remarkPlugins={[
+        remarkPlugins=[
           remarkGfm,
+          remarkFootnotes,
+          remarkMath,
+          remarkSmartypants,
           // Handle custom syntax for preview
           function remarkCustomSyntax() {
             return (tree: any) => {
@@ -257,11 +265,26 @@ const MarkdownPreview = memo(({ content, inline = false }: { content: string; in
             };
           }
         ]}
-        rehypePlugins={[rehypeRaw]}
+        rehypePlugins={[rehypeRaw, rehypeKatex, rehypeHighlight]}
         components={{
-          h1: ({ node, ...props }) => <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white" {...props} />,
-          h2: ({ node, ...props }) => <h2 className="text-2xl font-bold mb-3 mt-6 text-gray-900 dark:text-white" {...props} />,
-          h3: ({ node, ...props }) => <h3 className="text-xl font-bold mb-2 mt-4 text-gray-900 dark:text-white" {...props} />,
+          h1: ({ node, id, children, ...props }: any) => (
+            <h1 id={id} className="text-3xl font-bold mb-4 text-gray-900 dark:text-white group relative" {...props}>
+              <a href={`#${id}`} className="absolute -left-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 dark:text-blue-400">#</a>
+              {children}
+            </h1>
+          ),
+          h2: ({ node, id, children, ...props }: any) => (
+            <h2 id={id} className="text-2xl font-bold mb-3 mt-6 text-gray-900 dark:text-white group relative pl-6" {...props}>
+              <a href={`#${id}`} className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 dark:text-blue-400">#</a>
+              {children}
+            </h2>
+          ),
+          h3: ({ node, id, children, ...props }: any) => (
+            <h3 id={id} className="text-xl font-bold mb-2 mt-4 text-gray-900 dark:text-white group relative pl-6" {...props}>
+              <a href={`#${id}`} className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 dark:text-blue-400">#</a>
+              {children}
+            </h3>
+          ),
           p: ({ node, children, ...props }: any) => {
             const childrenText = String(children || '');
             if (childrenText.trim() === '[TOC]') {

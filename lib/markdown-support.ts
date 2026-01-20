@@ -7,6 +7,9 @@
  * - MDXContent component
  * - react-markdown
  * - remark-gfm (GitHub Flavored Markdown)
+ * - remark-footnotes (Footnotes)
+ * - remark-math + rehype-katex (Math/KaTeX)
+ * - remark-smartypants (Smart typography)
  *
  * Link behavior:
  * - Internal links like `/blog/slug` render as Next.js <Link>
@@ -24,6 +27,8 @@ export const WIREDLIVING_MARKDOWN_SUPPORT = {
     renderer: ["react-markdown", "remark-gfm"],
     notes: [
       "Standard Markdown + GitHub Flavored Markdown (GFM) are supported.",
+      "Footnotes, inline/block math (KaTeX), and smart quotes/dashes are enabled.",
+      "Syntax highlighting is enabled for fenced code blocks (via rehype-highlight).",
       "Internal links render as Next.js Link; external links open in a new tab.",
       "MarkdownToolbar can insert/auto-format common blocks (headings, code, images, tables, checklists, callouts).",
     ],
@@ -33,7 +38,7 @@ export const WIREDLIVING_MARKDOWN_SUPPORT = {
     supports: [
       "Headings (H1, H2, H3)",
       "Bold, italic",
-      "Inline code, code blocks",
+      "Inline code, code blocks (highlighted)",
       "Links, images, GIFs",
       "Videos (HTML5 video tag)",
       "YouTube/Vimeo embeds (iframe)",
@@ -182,11 +187,12 @@ export const WIREDLIVING_MARKDOWN_SUPPORT = {
     "Use either a checklist OR a table when it adds real value.",
   ],
 
-  // Optional / plugin-dependent features: include for reference, but they may not render unless you add plugins.
+  // Optional / plugin-dependent features
   optionalPlugins: {
+    // Now supported: footnotes
     footnotes: {
       description:
-        "Footnotes may require an additional remark plugin (not included in remark-gfm by default in some setups). Test first.",
+        "Footnotes are supported. Use [^id] and define at the end.",
       example: "A sentence with a footnote.[^1]\n\n[^1]: Footnote text.",
     },
     definitionLists: {
@@ -205,9 +211,10 @@ export const WIREDLIVING_MARKDOWN_SUPPORT = {
         "Mermaid diagrams require a renderer/plugin. Not supported by default.",
       example: "```mermaid\ngraph TD;\n  A-->B;\n```",
     },
+    // Now supported: math
     math: {
       description:
-        "Math (KaTeX/LaTeX) requires plugins (remark-math + rehype-katex).",
+        "Math (KaTeX/LaTeX) is supported. Inline: $a+b$, Block: $$E=mc^2$$.",
       example: "$$E=mc^2$$",
     },
   },

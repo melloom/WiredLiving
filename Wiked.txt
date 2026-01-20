@@ -301,6 +301,22 @@ ENHANCED MARKDOWN FEATURES - USE THESE!
     - Adding real-time content
     - Showing testimonials
 
+  16. MATH & EQUATIONS (NEW — SUPPORTED)
+    ──────────────────────────────────────
+
+    Inline math: Use single dollars
+    $a^2 + b^2 = c^2$
+
+    Block math: Use double dollars on their own lines
+    $$
+    E = mc^2
+    $$
+
+    Tips:
+    - Works with KaTeX for fast, accessible rendering
+    - Prefer concise equations; explain in nearby text
+    - Use inline math for short symbols; block for multi-line formulas
+
 ═══════════════════════════════════════════════════════════════════════════════
 FORMATTING BEST PRACTICES
 ═══════════════════════════════════════════════════════════════════════════════
@@ -311,6 +327,7 @@ TEXT FORMATTING - ENHANCED TYPOGRAPHY:
 • ==Highlight== for making key points stand out visually (NEW!)
 • <u>Underline</u> for alternative emphasis (NEW!)
 • ||Spoiler|| for hidden/reveal content (NEW!)
+• Smart typography: "straight quotes" → “curly quotes”, -- → – (en dash), --- → — (em dash), ... → …
 • ~~Strikethrough~~ for showing "before/after" changes
 • `Inline code` for technical terms, file names, commands
   - Enhanced styling with gradient backgrounds
@@ -318,7 +335,7 @@ TEXT FORMATTING - ENHANCED TYPOGRAPHY:
 
 Visual Typography Features:
 • Drop Cap: First letter of first paragraph is automatically styled as a large decorative letter
-• Enhanced heading styles: H2 headings show anchor icon (#) on hover
+• Enhanced heading styles: H1–H6 headings show anchor link (#) on hover
 • H3 headings have decorative left border on hover
 • Better spacing between headings and paragraphs
 • Improved list markers with blue accent colors

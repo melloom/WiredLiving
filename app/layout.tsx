@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import 'katex/dist/katex.min.css';
 import { siteConfig } from '@/config/site';
 import { KeyboardShortcut } from '@/components/keyboard-shortcut';
 import { LayoutWrapper } from '@/components/layout-wrapper';
