@@ -31,6 +31,39 @@ const nextConfig = {
     // This prevents Next.js from using deprecated options
     dirs: ['app', 'components', 'lib', 'types'],
   },
+  // Redirects for HTTP to HTTPS and www handling
+  async redirects() {
+    return [
+      {
+        source: '/reading-list',
+        destination: '/bookmarks',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'header',
+            key: 'x-forwarded-proto',
+            value: 'http',
+          },
+        ],
+        destination: 'https://wiredliving.blog/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.wiredliving.blog',
+          },
+        ],
+        destination: 'https://wiredliving.blog/:path*',
+        permanent: true,
+      },
+    ];
+  },
   // Headers for security
   async headers() {
     return [
