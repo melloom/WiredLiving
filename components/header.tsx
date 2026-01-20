@@ -197,6 +197,10 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
+              <BookmarksLink
+                onClick={closeMobileMenu}
+                className="text-base py-2 border-b border-gray-100 dark:border-gray-800"
+              />
               {!loading && session && (
                 <Link
                   href="/admin"

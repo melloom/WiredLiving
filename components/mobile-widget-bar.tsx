@@ -137,12 +137,12 @@ export function MobileWidgetBar({
       {/* Mobile Widget Bar - Sticky bottom bar - hidden when menu is open */}
       {!mobileMenuOpen && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-2xl safe-bottom">
-          <div className="flex items-center justify-around px-2 py-3 max-w-7xl mx-auto">
+          <div className="flex items-stretch gap-2 px-2 py-3 max-w-7xl mx-auto">
             {widgets.map((widget) => (
               <button
                 key={widget.id}
                 onClick={() => setOpenWidget(openWidget === widget.id ? null : widget.id)}
-                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${
+                className={`flex-1 min-w-0 flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all text-center ${
                   openWidget === widget.id
                     ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'

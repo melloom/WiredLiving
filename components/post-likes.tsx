@@ -78,7 +78,7 @@ export function PostLikes({ postSlug, initialLikesCount = 0 }: PostLikesProps) {
     <button
       onClick={handleLike}
       disabled={isLoading}
-      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+      className={`inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium transition-all ${
         isLiked
           ? 'bg-blue-600 text-white hover:bg-blue-700'
           : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
