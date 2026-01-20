@@ -14,6 +14,15 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     type: 'website',
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  ...(siteConfig.url && {
+    alternates: {
+      canonical: `${siteConfig.url}/newsletter`,
+    },
+  }),
 };
 
 export default function NewsletterPage() {

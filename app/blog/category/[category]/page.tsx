@@ -45,6 +45,10 @@ export async function generateMetadata({ params }: { params: Promise<{ category:
       images: [siteConfig.ogImage || '/og-image.jpg'],
       ...(siteConfig.author.twitter && { creator: `@${siteConfig.author.twitter}` }),
     },
+    robots: {
+      index: true,
+      follow: true,
+    },
     ...(siteConfig.url && {
       alternates: {
         canonical: `${siteConfig.url}/blog/category/${resolvedParams.category}`,
