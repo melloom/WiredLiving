@@ -4,7 +4,6 @@ import { useState, useRef, KeyboardEvent, ClipboardEvent, useMemo, useCallback, 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import remarkFootnotes from 'remark-footnotes';
 import remarkMath from 'remark-math';
 import remarkSmartypants from 'remark-smartypants';
 import rehypeKatex from 'rehype-katex';
@@ -220,9 +219,8 @@ const MarkdownPreview = memo(({ content, inline = false }: { content: string; in
   return (
     <div className="prose prose-base dark:prose-invert max-w-2xl mx-auto">
       <ReactMarkdown
-        remarkPlugins=[
+        remarkPlugins={[
           remarkGfm,
-          remarkFootnotes,
           remarkMath,
           remarkSmartypants,
           // Handle custom syntax for preview
