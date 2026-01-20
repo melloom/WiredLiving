@@ -60,10 +60,10 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
   };
 
   const handleClearCache = async () => {
-    const confirmed = await confirm(
-      'Clear All Cache?',
-      'This will force refresh all blog pages. Use this if updated posts aren\'t showing the new content. Continue?'
-    );
+    const confirmed = await confirm({
+      title: 'Clear All Cache?',
+      message: 'This will force refresh all blog pages. Use this if updated posts aren\'t showing the new content. Continue?'
+    });
     
     if (!confirmed) return;
 
