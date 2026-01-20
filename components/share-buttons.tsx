@@ -6,9 +6,10 @@ interface ShareButtonsProps {
   url: string;
   title: string;
   description?: string;
+  imageUrl?: string;
 }
 
-export function ShareButtons({ url, title, description }: ShareButtonsProps) {
+export function ShareButtons({ url, title, description, imageUrl }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
 
   const shareLinks = {
@@ -16,7 +17,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
     reddit: `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
-    email: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`,
+    email: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(description || title)}\n\n${encodeURIComponent(url)}`,
   };
 
   const copyToClipboard = async () => {
@@ -32,11 +33,31 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
   const systemShare = async () => {
     try {
       if (navigator.share) {
-        await navigator.share({ title, text: description || title, url });
+        const shareData: ShareData = {
+          title,
+          text: description || title,
+          url,
+        };
+        
+        // Try to include image if available
+        if (imageUrl) {
+          try {
+            const response = await fetch(imageUrl);
+            const blob = await response.blob();
+            const file = new File([blob], 'share-image.png', { type: blob.type });
+            shareData.files = [file];
+          } catch (err) {
+            // Image fetch failed, continue without image
+            console.debug('Could not fetch image for sharing:', err);
+          }
+        }
+        
+        await navigator.share(shareData);
         return;
       }
     } catch (err) {
-      // Fallback to copy if share fails or is canceled
+      // Share API not available or user cancelled - fallback to copy
+      console.debug('Share API error:', err);
     }
     await copyToClipboard();
   };
@@ -54,15 +75,15 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
       >
         {copied ? (
           <>
-            <svg className="w-4 h-4 sm:mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-1" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
             </svg>
             <span className="hidden sm:inline">Copied</span>
           </>
         ) : (
           <>
-            <svg className="w-4 h-4 sm:mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 8a3 3 0 11-2.83 4h-2.34a3 3 0 110-2h2.34A3 3 0 0115 8z" />
+            <svg className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-1" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.15c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" />
             </svg>
             <span className="hidden sm:inline">Share</span>
           </>
@@ -79,7 +100,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
           aria-label="Share on X"
           title="Share on X"
         >
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
           </svg>
           <span className="hidden sm:block">X</span>

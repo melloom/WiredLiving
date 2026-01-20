@@ -346,7 +346,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     <>
                       <div className="h-8 w-px bg-gray-300 dark:bg-gray-600 hidden sm:block" />
                       <div className="flex items-center gap-2">
-                        <ShareButtons url={articleUrl} title={post.title} description={post.description} />
+                        <ShareButtons url={articleUrl} title={post.title} description={post.description} imageUrl={post.ogImageOverride || post.coverImage} />
                         <PostLikes postSlug={post.slug} />
                       </div>
                       <PostActionButtons postSlug={post.slug} />
