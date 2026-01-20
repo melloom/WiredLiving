@@ -5,6 +5,14 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { logAdminAction } from '@/lib/supabase-db';
 import readingTime from 'reading-time';
 
+// Simple slugifier to keep URL-safe slugs consistent with create flow
+const slugify = (text: string) =>
+  text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -150,7 +158,7 @@ export async function PUT(
     // Get the current post to check if slug will change
     const { data: currentPost, error: fetchError } = await supabase!
       .from('posts')
-      .select('slug')
+      .select('id, slug')
       .eq('slug', slug)
       .single();
 
@@ -203,11 +211,38 @@ export async function PUT(
     };
 
     // Only update slug-related fields if provided
+    const sanitizedSlugOverride = slugOverride ? slugify(slugOverride) : null;
     if (slugOverride !== undefined) {
-      updateData.slug_override = slugOverride || null;
+      updateData.slug_override = sanitizedSlugOverride || null;
     }
     if (slugLocked !== undefined) {
       updateData.slug_locked = slugLocked;
+    }
+
+    // Decide whether the primary slug should change
+    const desiredSlug = (() => {
+      if (sanitizedSlugOverride) return sanitizedSlugOverride;
+      if (slugLocked === false && title) return slugify(title);
+      return currentPost.slug;
+    })();
+
+    // If slug changes, ensure uniqueness and include in update payload
+    if (desiredSlug !== currentPost.slug) {
+      const { data: conflict } = await supabase!
+        .from('posts')
+        .select('id')
+        .eq('slug', desiredSlug)
+        .neq('id', currentPost.id)
+        .maybeSingle();
+
+      if (conflict) {
+        return NextResponse.json(
+          { success: false, error: 'Slug already exists. Please choose another.' },
+          { status: 400 }
+        );
+      }
+
+      updateData.slug = desiredSlug;
     }
 
     // Update the post
