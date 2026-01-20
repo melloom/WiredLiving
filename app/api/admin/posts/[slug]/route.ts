@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { logAdminAction } from '@/lib/supabase-db';
@@ -369,6 +370,29 @@ export async function PUT(
       meta: { slug, title },
     });
 
+    // CRITICAL: Revalidate cache for blog pages
+    // Revalidate the specific post page
+    revalidatePath(`/blog/${oldSlug}`);
+    if (oldSlug !== newSlug) {
+      revalidatePath(`/blog/${newSlug}`);
+    }
+    
+    // Revalidate all blog listing pages
+    revalidatePath('/blog');
+    revalidatePath('/');
+    
+    // Revalidate category and tag pages if applicable
+    if (updateData.category) {
+      revalidatePath(`/blog/category/${updateData.category}`);
+    }
+    if (tags && Array.isArray(tags)) {
+      tags.forEach(tag => {
+        revalidatePath(`/blog/tag/${tag}`);
+      });
+    }
+
+    console.log(`✅ Cache revalidated for post: ${oldSlug} → ${newSlug}`);
+
     return NextResponse.json({
       success: true,
       post: {
@@ -469,6 +493,13 @@ export async function DELETE(
       targetId: post.id,
       meta: { slug, title: post.title },
     });
+
+    // Revalidate cache after deletion
+    revalidatePath(`/blog/${slug}`);
+    revalidatePath('/blog');
+    revalidatePath('/');
+    
+    console.log(`✅ Cache revalidated after deleting post: ${slug}`);
 
     return NextResponse.json({
       success: true,

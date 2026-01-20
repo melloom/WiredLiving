@@ -185,7 +185,7 @@ function extractQuickLinks(content: string): QuickLinkItem[] {
     const rows = match[0].split('\n').filter(line => line.trim().startsWith('|')).length - 1; // -1 for header separator
     
     items.push({
-      id: getUniqueId(`table-${tableIndex}`, 'tbl'),
+      id: `tbl-table-${tableIndex}`, // Match MDXContent ID format
       type: 'table',
       text: `${tableContext} (${rows} rows)`,
       count: rows,
@@ -217,7 +217,7 @@ function extractQuickLinks(content: string): QuickLinkItem[] {
     }
 
     items.push({
-      id: getUniqueId(`checklist-${checklistIndex}`, 'chk'),
+      id: `chk-checklist-${checklistIndex}`, // Match MDXContent ID format
       type: 'checklist',
       text: `${context} (${completedItems}/${totalItems})`,
       count: totalItems,
@@ -240,7 +240,7 @@ function extractQuickLinks(content: string): QuickLinkItem[] {
     }
     
     items.push({
-      id: getUniqueId(`code-${codeIndex}`, 'code'),
+      id: `code-code-${codeIndex}`, // Match MDXContent ID format
       type: 'code',
       text: cleanMarkdown(context || `Code block ${codeIndex}`),
       language,
@@ -253,23 +253,28 @@ function extractQuickLinks(content: string): QuickLinkItem[] {
   while ((match = imageRegex.exec(content)) !== null) {
     imageIndex++;
     const altText = match[1].trim();
+    const imageSrc = match[2].trim();
+    
+    // Generate ID matching MDXContent format: img-{sanitized-src}
+    // Take first 20 chars of src, remove non-alphanumeric
+    const imageId = `img-${imageSrc.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20)}`;
     
     items.push({
-      id: getUniqueId(`image-${imageIndex}`, 'img'),
+      id: imageId, // Match MDXContent ID format
       type: 'image',
       text: cleanMarkdown(altText || `Image ${imageIndex}`),
     });
   }
 
   // 6. Extract callouts/blockquotes with emoji markers
-  const calloutRegex = />\s*(ℹ️|⚠️|✅|❌|💡|📝|🔥|⭐)\s*\*\*([^*]+)\*\*/g;
+  const calloutRegex = />\s*(ℹ️|⚠️|✅|❌|💡|📝|🔥|⭐|🎯|📌|💭|🚀|📚)\s*\*\*([^*]+)\*\*/g;
   let calloutIndex = 0;
   while ((match = calloutRegex.exec(content)) !== null) {
     calloutIndex++;
     const calloutType = cleanMarkdown(match[2].trim());
     
     items.push({
-      id: getUniqueId(`callout-${calloutIndex}`, 'note'),
+      id: `note-callout-${calloutIndex}`, // Match MDXContent ID format
       type: 'callout',
       text: calloutType,
     });
@@ -300,7 +305,7 @@ function extractQuickLinks(content: string): QuickLinkItem[] {
     // Only add if it looks like a meaningful list (more than 3 items)
     if (totalItems >= 3) {
       items.push({
-        id: getUniqueId(`list-${listIndex}`, 'steps'),
+        id: `steps-list-${listIndex}`, // Match MDXContent ID format
         type: 'link-list',
         text: `${context} (${totalItems} steps)`,
         count: totalItems,

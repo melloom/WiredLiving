@@ -59,6 +59,37 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
     }
   };
 
+  const handleClearCache = async () => {
+    const confirmed = await confirm(
+      'Clear All Cache?',
+      'This will force refresh all blog pages. Use this if updated posts aren\'t showing the new content. Continue?'
+    );
+    
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/admin/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success('✅ Cache cleared! All blog pages will show fresh content.');
+      } else {
+        toast.error('Failed to clear cache: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Cache clear error:', error);
+      toast.error('Failed to clear cache. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const stats = {
     totalPosts: posts.length,
     publishedPosts: posts.filter(p => p.published).length,
@@ -346,6 +377,17 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                 </svg>
                 Back to Site
               </Link>
+              <button
+                onClick={handleClearCache}
+                disabled={loading}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                title="Clear cache if posts aren't showing updated content"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Clear Cache
+              </button>
               <button
                 onClick={handleLogout}
                 disabled={loading}

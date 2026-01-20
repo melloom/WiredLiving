@@ -45,26 +45,10 @@ export function MarkdownToolbar({ onInsert, onInsertImage, galleryImages, conten
       return '| ' + cells.join(' | ') + ' |';
     };
 
-    // Extended heading detection patterns
-    const headingPatterns = [
-      /^(What|Why|How|When|Where|Who|Which|Can|Should|Will|Does|Is|Are)\s.{3,}/i,
-      /^(Introduction|Conclusion|Overview|Summary|Background|Context|Abstract|Preface|Recap|Wrap-up)/i,
-      /^(Getting Started|Quick Start|Setup|Installation|Prerequisites|Requirements|Dependencies)/i,
-      /^(Key Points?|Main Points?|Takeaways?|Highlights?|Benefits?|Features?|Advantages?|Disadvantages?)/i,
-      /^(Tips?|Tricks?|Best Practices?|Guidelines?|Recommendations?|Advice|Insights?|Lessons?)/i,
-      /^(Step \d+|Part \d+|Chapter \d+|Section \d+|Phase \d+|Stage \d+|Day \d+|Week \d+|Month \d+)/i,
-      /^(Examples?|Use Cases?|Scenarios?|Applications?|Demonstrations?|Demo|Walkthrough)/i,
-      /^(Methods?|Solutions?|Approaches?|Strategies?|Techniques?|Tools?|Resources?)/i,
-      /^(Results?|Outcomes?|Findings?|Analysis|Conclusion|Verdict|Judgment)/i,
-      /^(Final Thoughts?|Wrapping Up|Next Steps?|Resources?|References?|Further Reading|See Also)/i,
-      /^(The Problem|The Solution|Understanding|Implementing|Testing|Deploying|Troubleshooting)/i,
-      /^(Before (We|You) (Begin|Start)|Let's (Get Started|Begin|Start))/i,
-      /^(Common (Mistakes|Errors|Issues|Problems)|Pitfalls|Gotchas)/i,
-      /^(Pros (and|&) Cons|Advantages (and|&) Disadvantages|Comparison)/i,
-      /^(FAQs?|Q&A|Questions?|Answers?)/i,
-      /^(Why (This|You Should|I|We))/i,
-      /^(The (Ultimate|Complete|Full|Definitive))/i,
-    ];
+    // DISABLED: Aggressive heading auto-detection was causing false positives
+    // The autoFormatter should NOT convert regular text into headings automatically.
+    // Users should decide what becomes a heading - not the formatter.
+    const headingPatterns: RegExp[] = [];
 
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i];
@@ -89,6 +73,22 @@ export function MarkdownToolbar({ onInsert, onInsertImage, galleryImages, conten
         if (inCodeBlock) {
           // Extract language if specified
           codeBlockLanguage = trimmed.substring(3).trim();
+          
+          // Smart language detection if not specified
+          if (!codeBlockLanguage && nextLine) {
+            // Look at first line of code to guess language
+            const firstCodeLine = nextLine.trim();
+            if (firstCodeLine.startsWith('import ') || firstCodeLine.startsWith('require(')) codeBlockLanguage = 'javascript';
+            else if (firstCodeLine.startsWith('from ') || firstCodeLine.startsWith('import ') || firstCodeLine.startsWith('def ')) codeBlockLanguage = 'python';
+            else if (firstCodeLine.startsWith('function ') || firstCodeLine.match(/^(const|let|var)\s+/)) codeBlockLanguage = 'javascript';
+            else if (firstCodeLine.match(/^(package|class|interface|enum)\s+/)) codeBlockLanguage = 'java';
+            else if (firstCodeLine.match(/^(struct|func|var|let)\s+/)) codeBlockLanguage = 'swift';
+            else if (firstCodeLine.startsWith('<?php')) codeBlockLanguage = 'php';
+            else if (firstCodeLine.startsWith('#!/')) codeBlockLanguage = 'bash';
+            else if (firstCodeLine.match(/^(curl|npm|yarn|npx)\s+/)) codeBlockLanguage = 'bash';
+            else if (firstCodeLine.startsWith('SELECT ') || firstCodeLine.startsWith('INSERT ')) codeBlockLanguage = 'sql';
+          }
+          
           formatted.push(codeBlockLanguage ? `\`\`\`${codeBlockLanguage}` : '```');
         } else {
           formatted.push('```');
@@ -173,32 +173,30 @@ export function MarkdownToolbar({ onInsert, onInsertImage, galleryImages, conten
       // Fix footnote references - ensure proper formatting
       processedLine = processedLine.replace(/\[\^\s*([\w\d]+)\s*\]/g, '[^$1]');
 
-      // Detect and format keyboard shortcuts more comprehensively
-      const keyboardKeys = ['Cmd', 'Ctrl', 'Alt', 'Shift', 'Enter', 'Return', 'Tab', 'Esc', 'Escape', 'Delete', 'Backspace', 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+      // Remove extra spaces (normalize multiple spaces to single)
+      processedLine = processedLine.replace(/  +/g, ' ');
+
+      // Fix common URL wrapping - detect bare URLs not in links
+      // http(s)://... that's not already in a markdown link
+      if (processedLine.match(/https?:\/\//) && !processedLine.match(/\]\(https?:\/\//)) {
+        // Only wrap if not already part of a link
+        processedLine = processedLine.replace(/(?<!\]\()https?:\/\/[^\s<]+/g, (url) => {
+          if (processedLine.includes(`](${url})`)) return url;
+          return `<${url}>`;
+        });
+      }
+
+      // Fix keyboard shortcuts: Detect common keys and wrap in backticks
+      const keyboardKeys = ['Cmd', 'Ctrl', 'Alt', 'Shift', 'Enter', 'Tab', 'Esc', 'Delete', 'Backspace', 'Space'];
       for (const key of keyboardKeys) {
-        const regex = new RegExp('\\b' + key + '\\b(?![`\\]\\)])', 'g');
-        processedLine = processedLine.replace(regex, '`' + key + '`');
-      }
-
-      // Fix common keyboard shortcuts (e.g., Ctrl+C, Cmd+V)
-      processedLine = processedLine.replace(/\b(Cmd|Ctrl|Alt|Shift)\s*\+\s*([A-Za-z0-9])\b/g, '`$1` + `$2`');
-
-      // Detect bare URLs and wrap them properly
-      processedLine = processedLine.replace(/(?<!\()\b(https?:\/\/[^\s)]+)(?!\))/g, (match) => {
-        // Don't wrap if already in a link
-        if (processedLine.includes(`](${match})`)) return match;
-        return `<${match}>`;
-      });
-
-      // Detect quoted text and convert to blockquotes
-      if (processedLine.match(/^[""].*[""]$/) && processedLine.length > 20) {
-        const quote = processedLine.replace(/^[""]|[""]$/g, '');
-        formatted.push(`> ${quote}`);
-        if (!nextLineEmpty) {
-          formatted.push('');
+        const regex = new RegExp(`\\b${key}\\b(?![` + '`' + `\\]\\)])`, 'g');
+        if (processedLine.match(regex) && !processedLine.includes('`' + key + '`')) {
+          processedLine = processedLine.replace(regex, '`' + key + '`');
         }
-        continue;
       }
+
+      // Fix common keyboard shortcuts: Cmd+K, Ctrl+C, Alt+Tab, etc.
+      processedLine = processedLine.replace(/([Cc]md|[Cc]trl|[Aa]lt|[Ss]hift)\s*\+\s*([A-Za-z0-9])/g, '`$1` + `$2`');
 
       // Preserve nested blockquotes
       if (processedLine.match(/^>\s*>/)) {
@@ -217,10 +215,16 @@ export function MarkdownToolbar({ onInsert, onInsertImage, galleryImages, conten
         continue;
       }
 
-      // Preserve existing markdown (H2-H6, blockquotes)
+      // Preserve existing markdown (H2-H6, blockquotes) with smart spacing
       if (processedLine.match(/^#{2,6}\s/) || (processedLine.match(/^>\s/) && !processedLine.match(/^>\s*>/))) {
+        // Add space before heading/blockquote if previous line wasn't blank
+        if (formatted.length > 0 && formatted[formatted.length - 1] !== '' && 
+            !formatted[formatted.length - 1].match(/^#{1,6}\s/) && 
+            !formatted[formatted.length - 1].match(/^>\s/)) {
+          formatted.push('');
+        }
         formatted.push(processedLine);
-        if (!nextLineEmpty) {
+        if (!nextLineEmpty && !nextLine.match(/^#{2,6}\s/) && !nextLine.match(/^>\s/)) {
           formatted.push('');
         }
         inList = false;
@@ -294,89 +298,42 @@ export function MarkdownToolbar({ onInsert, onInsertImage, galleryImages, conten
       }
 
       // Enhanced heading detection
-      const matchesHeadingPattern = headingPatterns.some(pattern => pattern.test(processedLine));
+      // NOTE: Heading pattern detection is DISABLED
+      // The auto-formatter should NOT convert regular text into headings automatically
 
-      // Detect headings: short lines that look like titles
-      const hasMarkdownSyntax = processedLine.match(/\*\*|\*(?!\*)|`|\[.*\]\(.*\)|!\[/) !== null;
-      const wordCount = processedLine.split(/\s+/).length;
-      const hasProperCapitalization = /^[A-Z0-9]/.test(processedLine);
-      const endsWithSentencePunctuation = /[.!]$/.test(processedLine);
-      const endsWithQuestionOrColon = /[:?]$/.test(processedLine);
-      const looksLikeNumber = /^\d+/.test(processedLine);
-      const looksLikeEmail = /@/.test(processedLine) && processedLine.includes('.');
-
-      // More sophisticated heading detection
-      const isLikelyHeading = (
-        processedLine.length >= 3 &&
-        processedLine.length < 120 &&
-        wordCount >= 2 &&
-        wordCount <= 18 &&
-        hasProperCapitalization &&
-        !looksLikeNumber &&
-        !looksLikeEmail &&
-        (
-          (!endsWithSentencePunctuation) ||
-          endsWithQuestionOrColon ||
-          matchesHeadingPattern
-        ) &&
-        !processedLine.match(/^[-•*○◦▪▫]\s/) &&
-        !processedLine.match(/^\d+[\.\)]/) &&
-        !hasMarkdownSyntax &&
-        (nextLineEmpty ||
-         (nextLine && !nextLine.startsWith('#') && nextLine.length > 30) ||
-         matchesHeadingPattern)
-      );
+      // More sophisticated heading detection - DISABLED
+      // The auto-formatter should NOT try to convert regular text into headings.
+      // Only respect explicitly marked headings (that already start with #).
+      // Trying to guess what should be a heading causes more harm than good.
+      const isLikelyHeading = false; // DISABLED: aggressive auto-detection was harmful
 
       if (isLikelyHeading) {
-        // Add spacing before heading if needed
-        if (formatted.length > 0 && formatted[formatted.length - 1] !== '') {
-          formatted.push('');
-        }
-
-        // Remove trailing punctuation for headings (except ?)
-        let headingText = processedLine.replace(/[:!]$/, '');
-
-        // First heading becomes H1 if we don't have title
-        if (!hasH1 && !title && formatted.length <= 1) {
-          formatted.push(`# ${headingText}`);
-          hasH1 = true;
-        } else {
-          // Check if it's a subsection based on keywords, length, or position
-          const subSectionKeywords = [
-            'understanding', 'example', 'how to', 'what is', 'why', 'when', 'where',
-            'step', 'tip', 'note', 'bonus', 'key', 'quick', 'additional', 'extra',
-            'pro tip', 'important', 'caveat', 'limitation', 'alternative', 'gotcha',
-            'related', 'common', 'best', 'advanced', 'basic'
-          ];
-          const isSubSection = subSectionKeywords.some(kw => headingText.toLowerCase().includes(kw)) || wordCount <= 4;
-          const isMainSection = matchesHeadingPattern || wordCount >= 5;
-
-          if (isSubSection && !isMainSection) {
-            formatted.push(`### ${headingText}`);
-          } else {
-            formatted.push(`## ${headingText}`);
-          }
-        }
-        if (!nextLineEmpty) {
-          formatted.push('');
-        }
-        inList = false;
+        // This block will never execute now, kept for safety
+        // but the logic is intentionally disabled
+        continue;
       }
       // Detect and format callouts/important notes with better patterns
-      else if (processedLine.match(/^(Important|Note|Warning|Tip|Remember|Pro Tip|Quick Tip|TL;DR|TLDR|Update|Breaking|Caution|Attention|Info|FYI|Bonus|Key Point|Essential):/i)) {
+      else if (processedLine.match(/^(Important|Note|Warning|Tip|Remember|Pro Tip|Quick Tip|TL;DR|TLDR|Update|Breaking|Caution|Attention|Info|FYI|Bonus|Key Point|Essential|Error|Success|Fun Fact|Did You Know|Pro Tip|Gotcha|Watch Out|Key Takeaway):/i)) {
         const match = processedLine.match(/^([^:]+):\s*(.+)$/);
         if (match) {
           if (formatted.length > 0 && formatted[formatted.length - 1] !== '') {
             formatted.push('');
           }
-          // Convert to emoji callout if possible
+          // Convert to emoji callout with better emoji selection
           const calloutType = match[1].toLowerCase();
           let emoji = 'ℹ️';
-          if (calloutType.includes('warning')) emoji = '⚠️';
-          else if (calloutType.includes('tip') || calloutType.includes('key')) emoji = '✅';
-          else if (calloutType.includes('important') || calloutType.includes('essential')) emoji = '⚠️';
+          
+          if (calloutType.includes('warning') || calloutType.includes('watch') || calloutType.includes('caution')) emoji = '⚠️';
+          else if (calloutType.includes('tip') || calloutType.includes('pro tip') || calloutType.includes('key takeaway')) emoji = '💡';
+          else if (calloutType.includes('success') || calloutType.includes('done')) emoji = '✅';
+          else if (calloutType.includes('important') || calloutType.includes('essential') || calloutType.includes('critical')) emoji = '🔥';
+          else if (calloutType.includes('error') || calloutType.includes('gotcha')) emoji = '❌';
+          else if (calloutType.includes('fun fact') || calloutType.includes('did you know')) emoji = '🎉';
+          else if (calloutType.includes('remember')) emoji = '📝';
+          else if (calloutType.includes('update') || calloutType.includes('breaking')) emoji = '📢';
+          else if (calloutType.includes('bonus') || calloutType.includes('extra')) emoji = '🌟';
 
-          formatted.push(`> ${emoji} **${match[1]}**: ${match[2]}`);
+          formatted.push(`> ${emoji} **${match[1]}**\n> ${match[2]}`);
           if (!nextLineEmpty) {
             formatted.push('');
           }

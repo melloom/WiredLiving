@@ -353,8 +353,7 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
         h2: ({ children }: { children: React.ReactNode }) => {
           const { id, cleanText } = generateHeadingId(String(children));
           return (
-            <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold mt-12 mb-7 text-gray-900 dark:text-gray-50 leading-tight scroll-mt-24 tracking-tight group relative pl-6" id={id}>
-              <a href={`#${id}`} className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 dark:text-blue-400" aria-label="Link to heading">#</a>
+            <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold mt-12 mb-7 text-gray-900 dark:text-gray-50 leading-tight scroll-mt-24 tracking-tight" id={id}>
               {cleanText}
             </h2>
           );
@@ -362,8 +361,7 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
         h3: ({ children }: { children: React.ReactNode }) => {
           const { id, cleanText } = generateHeadingId(String(children));
           return (
-            <h3 className="font-serif text-2xl md:text-3xl font-semibold mt-10 mb-6 text-gray-800 dark:text-gray-100 leading-snug scroll-mt-24 tracking-tight relative group pl-6 border-l-2 border-transparent hover:border-blue-300 dark:hover:border-blue-700 transition-colors" id={id}>
-              <a href={`#${id}`} className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 dark:text-blue-400" aria-label="Link to heading">#</a>
+            <h3 className="font-serif text-2xl md:text-3xl font-semibold mt-10 mb-6 text-gray-800 dark:text-gray-100 leading-snug scroll-mt-24 tracking-tight border-l-2 border-transparent hover:border-blue-300 dark:hover:border-blue-700 transition-colors pl-3" id={id}>
               {cleanText}
             </h3>
           );
@@ -371,8 +369,7 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
         h4: ({ children }: { children: React.ReactNode }) => {
           const { id, cleanText } = generateHeadingId(String(children));
           return (
-            <h4 className="font-serif text-xl md:text-2xl font-semibold mt-6 mb-3 text-gray-900 dark:text-gray-50 leading-snug scroll-mt-24 tracking-tight group relative pl-6" id={id}>
-              <a href={`#${id}`} className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 dark:text-blue-400" aria-label="Link to heading">#</a>
+            <h4 className="font-serif text-xl md:text-2xl font-semibold mt-6 mb-3 text-gray-900 dark:text-gray-50 leading-snug scroll-mt-24 tracking-tight" id={id}>
               {cleanText}
             </h4>
           );
@@ -380,8 +377,7 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
         h5: ({ children }: { children: React.ReactNode }) => {
           const { id, cleanText } = generateHeadingId(String(children));
           return (
-            <h5 className="font-serif text-lg md:text-xl font-semibold mt-5 mb-2 text-gray-900 dark:text-gray-50 scroll-mt-24 tracking-tight group relative pl-6" id={id}>
-              <a href={`#${id}`} className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 dark:text-blue-400" aria-label="Link to heading">#</a>
+            <h5 className="font-serif text-lg md:text-xl font-semibold mt-5 mb-2 text-gray-900 dark:text-gray-50 scroll-mt-24 tracking-tight" id={id}>
               {cleanText}
             </h5>
           );
@@ -389,8 +385,7 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
         h6: ({ children }: { children: React.ReactNode }) => {
           const { id, cleanText } = generateHeadingId(String(children));
           return (
-            <h6 className="font-serif text-base md:text-lg font-semibold mt-4 mb-2 text-gray-900 dark:text-gray-50 scroll-mt-24 tracking-tight group relative pl-6" id={id}>
-              <a href={`#${id}`} className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 dark:text-blue-400" aria-label="Link to heading">#</a>
+            <h6 className="font-serif text-base md:text-lg font-semibold mt-4 mb-2 text-gray-900 dark:text-gray-50 scroll-mt-24 tracking-tight" id={id}>
               {cleanText}
             </h6>
           );

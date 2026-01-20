@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 import { createPost, logAdminAction, getAllPostsAdmin } from '@/lib/supabase-db';
 import { BlogPost } from '@/types';
@@ -199,6 +200,21 @@ export async function POST(request: Request) {
     // Track successful API call
     await trackApiCall('/api/admin/posts', 'POST', 200, Date.now() - startTime, session.user.email);
     loggers.logResponse('POST', '/api/admin/posts', 200, Date.now() - startTime);
+
+    // Revalidate cache for blog pages when a new post is created
+    revalidatePath('/blog');
+    revalidatePath('/');
+    
+    if (createdPost.category) {
+      revalidatePath(`/blog/category/${createdPost.category}`);
+    }
+    if (createdPost.tags && Array.isArray(createdPost.tags)) {
+      createdPost.tags.forEach((tag: string) => {
+        revalidatePath(`/blog/tag/${tag}`);
+      });
+    }
+    
+    console.log(`✅ Cache revalidated after creating post: ${createdPost.slug}`);
 
     return NextResponse.json({
       success: true,
