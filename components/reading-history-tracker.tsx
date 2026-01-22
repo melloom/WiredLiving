@@ -21,6 +21,13 @@ export function ReadingHistoryTracker({ postSlug }: ReadingHistoryTrackerProps) 
     if (!identifier) {
       identifier = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       localStorage.setItem('user_identifier', identifier);
+      // Also set as cookie for server-side access
+      document.cookie = `user_identifier=${identifier}; path=/; max-age=31536000; SameSite=Lax`;
+    } else {
+      // Ensure cookie is set even if localStorage already has it
+      if (!document.cookie.includes('user_identifier=')) {
+        document.cookie = `user_identifier=${identifier}; path=/; max-age=31536000; SameSite=Lax`;
+      }
     }
     return identifier;
   };

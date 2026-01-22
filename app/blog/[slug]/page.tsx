@@ -42,6 +42,14 @@ const SidebarGallery = dynamicImport(() => import('@/components/sidebar-gallery'
 const BlogPostMobileWidget = dynamicImport(() => import('@/components/blog-post-mobile-widget').then(mod => ({ default: mod.BlogPostMobileWidget })), {
   ssr: false
 });
+const RecommendedPosts = dynamicImport(() => import('@/components/recommended-posts').then(mod => ({ default: mod.RecommendedPosts })), {
+  loading: () => <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
+  ssr: false
+});
+const LatestPostsWidget = dynamicImport(() => import('@/components/latest-posts-widget').then(mod => ({ default: mod.LatestPostsWidget })), {
+  loading: () => <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
+  ssr: false
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -575,6 +583,17 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
             {/* Sidebar */}
             <aside className="hidden lg:block space-y-6">
+              {/* Recommended Posts - Smart recommendations based on reading history */}
+              <RecommendedPosts 
+                currentSlug={post.slug}
+                currentTags={post.tags}
+                currentCategory={post.category}
+                currentSeries={post.series}
+              />
+
+              {/* Latest Posts */}
+              <LatestPostsWidget currentSlug={post.slug} limit={5} />
+
               {/* Quick Links - Auto-detected content elements */}
               {post.content && <ContentQuickLinks content={post.content} />}
 

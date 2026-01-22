@@ -106,40 +106,46 @@ ALTER TABLE video_processing_queue ENABLE ROW LEVEL SECURITY;
 
 -- Media Files Policies
 -- Public can read all media
+DROP POLICY IF EXISTS "Public can read media files" ON media_files;
 CREATE POLICY "Public can read media files"
   ON media_files FOR SELECT
   USING (true);
 
 -- Authenticated users can insert media
+DROP POLICY IF EXISTS "Authenticated users can upload media" ON media_files;
 CREATE POLICY "Authenticated users can upload media"
   ON media_files FOR INSERT
   TO authenticated
-  WITH CHECK (true);
+  WITH CHECK (filename IS NOT NULL AND bucket IN ('blog-images', 'blog-videos'));
 
 -- Users can update their own media
+DROP POLICY IF EXISTS "Users can update own media" ON media_files;
 CREATE POLICY "Users can update own media"
   ON media_files FOR UPDATE
   TO authenticated
-  USING (uploaded_by = auth.uid());
+  USING (uploaded_by = (SELECT auth.uid()));
 
 -- Users can delete their own media
+DROP POLICY IF EXISTS "Users can delete own media" ON media_files;
 CREATE POLICY "Users can delete own media"
   ON media_files FOR DELETE
   TO authenticated
-  USING (uploaded_by = auth.uid());
+  USING (uploaded_by = (SELECT auth.uid()));
 
 -- Video Processing Queue Policies
 -- Authenticated users can read queue
+DROP POLICY IF EXISTS "Authenticated can read video queue" ON video_processing_queue;
 CREATE POLICY "Authenticated can read video queue"
   ON video_processing_queue FOR SELECT
   TO authenticated
   USING (true);
 
 -- Authenticated users can insert to queue
+DROP POLICY IF EXISTS "Authenticated can add to video queue" ON video_processing_queue;
 CREATE POLICY "Authenticated can add to video queue"
   ON video_processing_queue FOR INSERT
   TO authenticated
-  WITH CHECK (true);
+  WITH CHECK (media_file_id IS NOT NULL AND original_path IS NOT NULL);
 
 -- ============================================================================
 -- CREATE HELPER FUNCTIONS
@@ -147,7 +153,9 @@ CREATE POLICY "Authenticated can add to video queue"
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
@@ -163,7 +171,9 @@ CREATE TRIGGER update_media_files_updated_at
 
 -- Function to calculate compression ratio
 CREATE OR REPLACE FUNCTION calculate_compression_ratio(original_size INTEGER, compressed_size INTEGER)
-RETURNS DECIMAL(5,2) AS $$
+RETURNS DECIMAL(5,2)
+SET search_path = public
+AS $$
 BEGIN
   IF original_size IS NULL OR original_size = 0 THEN
     RETURN 0;

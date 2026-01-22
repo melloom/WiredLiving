@@ -78,26 +78,29 @@ ALTER TABLE reading_history ENABLE ROW LEVEL SECURITY;
 -- ============================================================================
 
 -- Admins can read all revisions
+DROP POLICY IF EXISTS "Admins can read all revisions" ON post_revisions;
 CREATE POLICY "Admins can read all revisions"
   ON post_revisions FOR SELECT
   USING (
-    auth.jwt() ->> 'role' = 'admin'
-    OR EXISTS (SELECT 1 FROM users WHERE email = auth.jwt() ->> 'email' AND role IN ('admin', 'editor'))
+    (SELECT auth.jwt() ->> 'role') = 'admin'
+    OR EXISTS (SELECT 1 FROM users WHERE email = (SELECT auth.jwt() ->> 'email') AND role IN ('admin', 'editor'))
   );
 
 -- Only admins can create revisions
+DROP POLICY IF EXISTS "Only admins can create revisions" ON post_revisions;
 CREATE POLICY "Only admins can create revisions"
   ON post_revisions FOR INSERT
   WITH CHECK (
-    auth.jwt() ->> 'role' = 'admin'
-    OR EXISTS (SELECT 1 FROM users WHERE email = auth.jwt() ->> 'email' AND role IN ('admin', 'editor'))
+    (SELECT auth.jwt() ->> 'role') = 'admin'
+    OR EXISTS (SELECT 1 FROM users WHERE email = (SELECT auth.jwt() ->> 'email') AND role IN ('admin', 'editor'))
   );
 
 -- Only admins can delete revisions
+DROP POLICY IF EXISTS "Only admins can delete revisions" ON post_revisions;
 CREATE POLICY "Only admins can delete revisions"
   ON post_revisions FOR DELETE
   USING (
-    auth.jwt() ->> 'role' = 'admin'
+    (SELECT auth.jwt() ->> 'role') = 'admin'
   );
 
 -- ============================================================================
@@ -105,44 +108,51 @@ CREATE POLICY "Only admins can delete revisions"
 -- ============================================================================
 
 -- Public can read likes (aggregated counts)
+DROP POLICY IF EXISTS "Public can read likes" ON post_likes;
 CREATE POLICY "Public can read likes"
   ON post_likes FOR SELECT
   USING (true);
 
 -- Anyone can create likes (using user_identifier)
+DROP POLICY IF EXISTS "Anyone can create likes" ON post_likes;
 CREATE POLICY "Anyone can create likes"
   ON post_likes FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (post_id IS NOT NULL AND user_identifier IS NOT NULL);
 
 -- Users can delete their own likes (matching user_identifier)
+DROP POLICY IF EXISTS "Users can delete own likes" ON post_likes;
 CREATE POLICY "Users can delete own likes"
   ON post_likes FOR DELETE
-  USING (true); -- We'll validate user_identifier in application code
+  USING (user_identifier IS NOT NULL); -- We'll validate user_identifier in application code
 
 -- ============================================================================
 -- READING_HISTORY POLICIES
 -- ============================================================================
 
 -- Users can only read their own reading history
+DROP POLICY IF EXISTS "Users can read own reading history" ON reading_history;
 CREATE POLICY "Users can read own reading history"
   ON reading_history FOR SELECT
-  USING (true); -- We'll validate user_identifier in application code
+  USING (user_identifier IS NOT NULL); -- We'll validate user_identifier in application code
 
 -- Anyone can create reading history
+DROP POLICY IF EXISTS "Anyone can create reading history" ON reading_history;
 CREATE POLICY "Anyone can create reading history"
   ON reading_history FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (post_id IS NOT NULL AND user_identifier IS NOT NULL);
 
 -- Users can update their own reading history
+DROP POLICY IF EXISTS "Users can update own reading history" ON reading_history;
 CREATE POLICY "Users can update own reading history"
   ON reading_history FOR UPDATE
-  USING (true) -- We'll validate user_identifier in application code
-  WITH CHECK (true);
+  USING (user_identifier IS NOT NULL) -- We'll validate user_identifier in application code
+  WITH CHECK (user_identifier IS NOT NULL);
 
 -- Users can delete their own reading history
+DROP POLICY IF EXISTS "Users can delete own reading history" ON reading_history;
 CREATE POLICY "Users can delete own reading history"
   ON reading_history FOR DELETE
-  USING (true); -- We'll validate user_identifier in application code
+  USING (user_identifier IS NOT NULL); -- We'll validate user_identifier in application code
 
 -- ============================================================================
 -- FUNCTIONS
@@ -150,7 +160,9 @@ CREATE POLICY "Users can delete own reading history"
 
 -- Function to automatically create revision when post is updated
 CREATE OR REPLACE FUNCTION create_post_revision()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SET search_path = public
+AS $$
 DECLARE
   next_revision INTEGER;
 BEGIN

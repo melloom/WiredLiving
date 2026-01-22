@@ -42,28 +42,32 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE monitoring_events ENABLE ROW LEVEL SECURITY;
 
 -- Only authenticated users can read their own audit logs
+DROP POLICY IF EXISTS "Users can view their own audit logs" ON audit_logs;
 CREATE POLICY "Users can view their own audit logs"
   ON audit_logs
   FOR SELECT
-  USING (auth.uid()::text = user_id);
+  USING ((SELECT auth.uid())::text = user_id);
 
 -- Only service role can insert audit logs (handled by API)
+DROP POLICY IF EXISTS "Service role can insert audit logs" ON audit_logs;
 CREATE POLICY "Service role can insert audit logs"
   ON audit_logs
   FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (current_user_id() IS NOT NULL OR (SELECT auth.role()) = 'service_role');
 
 -- Only authenticated users can read monitoring events (admins can see all)
+DROP POLICY IF EXISTS "Users can view monitoring events" ON monitoring_events;
 CREATE POLICY "Users can view monitoring events"
   ON monitoring_events
   FOR SELECT
   USING (true);
 
 -- Only service role can insert monitoring events
+DROP POLICY IF EXISTS "Service role can insert monitoring events" ON monitoring_events;
 CREATE POLICY "Service role can insert monitoring events"
   ON monitoring_events
   FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK ((SELECT auth.role()) = 'service_role');
 
 -- Failed login attempts tracking table
 CREATE TABLE IF NOT EXISTS failed_login_attempts (
@@ -80,11 +84,27 @@ CREATE INDEX IF NOT EXISTS idx_failed_login_attempted_at ON failed_login_attempt
 
 ALTER TABLE failed_login_attempts ENABLE ROW LEVEL SECURITY;
 
--- Only service role can manage failed login attempts
+-- Admins can read failed login attempts
+DROP POLICY IF EXISTS "Admins can read failed login attempts" ON failed_login_attempts;
+CREATE POLICY "Admins can read failed login attempts"
+  ON failed_login_attempts FOR SELECT
+  USING ((SELECT auth.jwt() ->> 'role') = 'admin');
+
+-- Service role can insert/update/delete failed login attempts
+DROP POLICY IF EXISTS "Service role can manage failed login attempts" ON failed_login_attempts;
 CREATE POLICY "Service role can manage failed login attempts"
-  ON failed_login_attempts
-  FOR ALL
-  USING (true);
+  ON failed_login_attempts FOR INSERT
+  WITH CHECK ((SELECT auth.role()) = 'service_role');
+
+DROP POLICY IF EXISTS "Service role can update failed login attempts" ON failed_login_attempts;
+CREATE POLICY "Service role can update failed login attempts"
+  ON failed_login_attempts FOR UPDATE
+  USING ((SELECT auth.role()) = 'service_role');
+
+DROP POLICY IF EXISTS "Service role can delete failed login attempts" ON failed_login_attempts;
+CREATE POLICY "Service role can delete failed login attempts"
+  ON failed_login_attempts FOR DELETE
+  USING ((SELECT auth.role()) = 'service_role');
 
 -- Rate limiting table (optional, if not using Upstash)
 CREATE TABLE IF NOT EXISTS rate_limits (
@@ -101,15 +121,19 @@ CREATE INDEX IF NOT EXISTS idx_rate_limits_window ON rate_limits(window_start);
 
 ALTER TABLE rate_limits ENABLE ROW LEVEL SECURITY;
 
--- Only service role can manage rate limits
+-- Admins and service role can manage rate limits
+DROP POLICY IF EXISTS "Admins can manage rate limits" ON rate_limits;
+DROP POLICY IF EXISTS "Service role can manage rate limits" ON rate_limits;
+DROP POLICY IF EXISTS "Anyone can manage rate limits" ON rate_limits;
 CREATE POLICY "Service role can manage rate limits"
-  ON rate_limits
-  FOR ALL
-  USING (true);
+  ON rate_limits FOR ALL
+  USING ((SELECT auth.role()) = 'service_role');
 
 -- Function to clean up old monitoring data (run periodically)
 CREATE OR REPLACE FUNCTION cleanup_old_monitoring_data()
-RETURNS void AS $$
+RETURNS void
+SET search_path = public
+AS $$
 BEGIN
   -- Keep audit logs for 1 year
   DELETE FROM audit_logs WHERE created_at < NOW() - INTERVAL '1 year';

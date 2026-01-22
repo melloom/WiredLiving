@@ -93,6 +93,7 @@ CREATE INDEX IF NOT EXISTS idx_daily_analytics_date ON daily_analytics(date DESC
 CREATE OR REPLACE FUNCTION get_or_create_visitor(visitor_id_param TEXT)
 RETURNS TEXT
 LANGUAGE plpgsql
+SET search_path = public
 AS $$
 BEGIN
   INSERT INTO unique_visitors (visitor_id, last_seen, total_views)
@@ -110,6 +111,7 @@ $$;
 CREATE OR REPLACE FUNCTION update_post_analytics(post_slug_param TEXT)
 RETURNS VOID
 LANGUAGE plpgsql
+SET search_path = public
 AS $$
 DECLARE
   view_count INTEGER;
@@ -141,6 +143,7 @@ $$;
 CREATE OR REPLACE FUNCTION update_daily_analytics()
 RETURNS VOID
 LANGUAGE plpgsql
+SET search_path = public
 AS $$
 DECLARE
   today DATE := CURRENT_DATE;
@@ -182,6 +185,7 @@ $$;
 CREATE OR REPLACE FUNCTION trigger_update_post_analytics()
 RETURNS TRIGGER
 LANGUAGE plpgsql
+SET search_path = public
 AS $$
 BEGIN
   IF NEW.post_slug IS NOT NULL THEN
@@ -191,6 +195,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS update_post_analytics_trigger ON page_views;
 CREATE TRIGGER update_post_analytics_trigger
 AFTER INSERT ON page_views
 FOR EACH ROW
@@ -201,6 +206,7 @@ EXECUTE FUNCTION trigger_update_post_analytics();
 CREATE OR REPLACE FUNCTION trigger_update_daily_analytics()
 RETURNS TRIGGER
 LANGUAGE plpgsql
+SET search_path = public
 AS $$
 BEGIN
   PERFORM update_daily_analytics();
@@ -208,6 +214,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS update_daily_analytics_trigger ON page_views;
 CREATE TRIGGER update_daily_analytics_trigger
 AFTER INSERT ON page_views
 FOR EACH ROW
@@ -224,33 +231,40 @@ ALTER TABLE post_analytics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_analytics ENABLE ROW LEVEL SECURITY;
 
 -- RLS for page_views - only admins can read, anyone can insert
+DROP POLICY IF EXISTS "Anyone can insert page views" ON page_views;
 CREATE POLICY "Anyone can insert page views"
   ON page_views FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (session_id IS NOT NULL OR page_path IS NOT NULL);
 
+DROP POLICY IF EXISTS "Admins can read page views" ON page_views;
 CREATE POLICY "Admins can read page views"
   ON page_views FOR SELECT
-  USING (is_admin());
+  USING ((SELECT is_admin()));
 
 -- RLS for unique_visitors - only admins can read
+DROP POLICY IF EXISTS "Admins can read unique visitors" ON unique_visitors;
 CREATE POLICY "Admins can read unique visitors"
   ON unique_visitors FOR SELECT
-  USING (is_admin());
+  USING ((SELECT is_admin()));
 
 -- RLS for post_analytics - public can read (for public stats), admins can manage
-CREATE POLICY "Public can read post analytics"
+DROP POLICY IF EXISTS "Public can read post analytics" ON post_analytics;
+DROP POLICY IF EXISTS "Admins can manage post analytics" ON post_analytics;
+DROP POLICY IF EXISTS "Anyone can read post analytics" ON post_analytics;
+CREATE POLICY "Anyone can read post analytics"
   ON post_analytics FOR SELECT
   USING (true);
 
 CREATE POLICY "Admins can manage post analytics"
   ON post_analytics FOR ALL
-  USING (is_admin())
-  WITH CHECK (is_admin());
+  USING ((SELECT is_admin()))
+  WITH CHECK ((SELECT is_admin()));
 
 -- RLS for daily_analytics - only admins can read
+DROP POLICY IF EXISTS "Admins can read daily analytics" ON daily_analytics;
 CREATE POLICY "Admins can read daily analytics"
   ON daily_analytics FOR SELECT
-  USING (is_admin());
+  USING ((SELECT is_admin()));
 
 -- Success message
 SELECT '✅ Analytics schema created successfully!' as message;

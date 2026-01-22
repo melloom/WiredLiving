@@ -269,59 +269,58 @@ ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
 -- USERS TABLE POLICIES
 -- ============================================================================
 
--- Users can only see their own record
+-- Users can view their own profile or admins can view all
 DROP POLICY IF EXISTS "Users can view own profile" ON users;
-CREATE POLICY "Users can view own profile"
+DROP POLICY IF EXISTS "Only admins can manage users" ON users;
+DROP POLICY IF EXISTS "Users can view own or admins manage" ON users;
+CREATE POLICY "Users can view own or admins manage"
   ON users FOR SELECT
-  USING (auth.uid()::text = id::text OR auth.jwt() ->> 'role' = 'admin');
+  USING (
+    (SELECT auth.uid())::text = id::text 
+    OR (SELECT auth.jwt() ->> 'role') = 'admin'
+  );
 
--- Only admins can insert/update/delete users
 DROP POLICY IF EXISTS "Only admins can manage users" ON users;
 CREATE POLICY "Only admins can manage users"
   ON users FOR ALL
-  USING (auth.jwt() ->> 'role' = 'admin')
-  WITH CHECK (auth.jwt() ->> 'role' = 'admin');
+  USING ((SELECT auth.jwt() ->> 'role') = 'admin')
+  WITH CHECK ((SELECT auth.jwt() ->> 'role') = 'admin');
 
 -- ============================================================================
 -- POSTS TABLE POLICIES
 -- ============================================================================
 
--- Public read access: Anyone can read published, public posts
+-- Public and authenticated users can read published posts
 DROP POLICY IF EXISTS "Public can read published posts" ON posts;
-CREATE POLICY "Public can read published posts"
-  ON posts FOR SELECT
-  USING (
-    published = true 
-    AND status = 'published'
-    AND visibility = 'public'
-    AND (scheduled_at IS NULL OR scheduled_at <= NOW())
-  );
-
--- Authenticated users can read published posts (including unlisted)
 DROP POLICY IF EXISTS "Authenticated users can read published posts" ON posts;
-CREATE POLICY "Authenticated users can read published posts"
-  ON posts FOR SELECT
-  USING (
-    auth.role() = 'authenticated'
-    AND published = true
-    AND status = 'published'
-    AND visibility IN ('public', 'unlisted')
-    AND (scheduled_at IS NULL OR scheduled_at <= NOW())
-    AND (requires_login = false OR requires_login = true)
-  );
-
--- Admins can read all posts (including drafts and private)
 DROP POLICY IF EXISTS "Admins can read all posts" ON posts;
-CREATE POLICY "Admins can read all posts"
+DROP POLICY IF EXISTS "Public and authenticated can read posts" ON posts;
+CREATE POLICY "Public and authenticated can read posts"
   ON posts FOR SELECT
   USING (
-    auth.jwt() ->> 'role' = 'admin'
+    -- Admins can read all posts (including drafts and private)
+    (SELECT auth.jwt() ->> 'role') = 'admin'
     OR (
       EXISTS (
         SELECT 1 FROM information_schema.columns 
         WHERE table_name = 'posts' AND column_name = 'created_by'
       )
-      AND auth.jwt() ->> 'email' = (SELECT email FROM users WHERE id = posts.created_by LIMIT 1)
+      AND (SELECT auth.jwt() ->> 'email') = (SELECT email FROM users WHERE id = posts.created_by LIMIT 1)
+    )
+    -- Authenticated users can read published posts (including unlisted)
+    OR (
+      (SELECT auth.role()) = 'authenticated'
+      AND published = true
+      AND status = 'published'
+      AND visibility IN ('public', 'unlisted')
+      AND (scheduled_at IS NULL OR scheduled_at <= NOW())
+    )
+    -- Public can read published, public posts
+    OR (
+      published = true 
+      AND status = 'published'
+      AND visibility = 'public'
+      AND (scheduled_at IS NULL OR scheduled_at <= NOW())
     )
   );
 
@@ -330,8 +329,8 @@ DROP POLICY IF EXISTS "Only admins can create posts" ON posts;
 CREATE POLICY "Only admins can create posts"
   ON posts FOR INSERT
   WITH CHECK (
-    auth.jwt() ->> 'role' = 'admin'
-    OR EXISTS (SELECT 1 FROM users WHERE email = auth.jwt() ->> 'email' AND role IN ('admin', 'editor'))
+    (SELECT auth.jwt() ->> 'role') = 'admin'
+    OR EXISTS (SELECT 1 FROM users WHERE email = (SELECT auth.jwt() ->> 'email') AND role IN ('admin', 'editor'))
   );
 
 -- Only admins can update posts
@@ -339,12 +338,12 @@ DROP POLICY IF EXISTS "Only admins can update posts" ON posts;
 CREATE POLICY "Only admins can update posts"
   ON posts FOR UPDATE
   USING (
-    auth.jwt() ->> 'role' = 'admin'
-    OR EXISTS (SELECT 1 FROM users WHERE email = auth.jwt() ->> 'email' AND role IN ('admin', 'editor'))
+    (SELECT auth.jwt() ->> 'role') = 'admin'
+    OR EXISTS (SELECT 1 FROM users WHERE email = (SELECT auth.jwt() ->> 'email') AND role IN ('admin', 'editor'))
   )
   WITH CHECK (
-    auth.jwt() ->> 'role' = 'admin'
-    OR EXISTS (SELECT 1 FROM users WHERE email = auth.jwt() ->> 'email' AND role IN ('admin', 'editor'))
+    (SELECT auth.jwt() ->> 'role') = 'admin'
+    OR EXISTS (SELECT 1 FROM users WHERE email = (SELECT auth.jwt() ->> 'email') AND role IN ('admin', 'editor'))
   );
 
 -- Only admins can delete posts
@@ -352,38 +351,38 @@ DROP POLICY IF EXISTS "Only admins can delete posts" ON posts;
 CREATE POLICY "Only admins can delete posts"
   ON posts FOR DELETE
   USING (
-    auth.jwt() ->> 'role' = 'admin'
+    (SELECT auth.jwt() ->> 'role') = 'admin'
   );
 
 -- ============================================================================
 -- TAGS TABLE POLICIES
 -- ============================================================================
 
--- Public read access to tags
+-- Public can read tags, only admins can manage
 DROP POLICY IF EXISTS "Public can read tags" ON tags;
+DROP POLICY IF EXISTS "Only admins can manage tags" ON tags;
 CREATE POLICY "Public can read tags"
   ON tags FOR SELECT
   USING (true);
 
--- Only admins can manage tags
-DROP POLICY IF EXISTS "Only admins can manage tags" ON tags;
 CREATE POLICY "Only admins can manage tags"
   ON tags FOR ALL
   USING (
-    auth.jwt() ->> 'role' = 'admin'
-    OR EXISTS (SELECT 1 FROM users WHERE email = auth.jwt() ->> 'email' AND role IN ('admin', 'editor'))
+    (SELECT auth.jwt() ->> 'role') = 'admin'
+    OR EXISTS (SELECT 1 FROM users WHERE email = (SELECT auth.jwt() ->> 'email') AND role IN ('admin', 'editor'))
   )
   WITH CHECK (
-    auth.jwt() ->> 'role' = 'admin'
-    OR EXISTS (SELECT 1 FROM users WHERE email = auth.jwt() ->> 'email' AND role IN ('admin', 'editor'))
+    (SELECT auth.jwt() ->> 'role') = 'admin'
+    OR EXISTS (SELECT 1 FROM users WHERE email = (SELECT auth.jwt() ->> 'email') AND role IN ('admin', 'editor'))
   );
 
 -- ============================================================================
 -- POST_TAGS TABLE POLICIES
 -- ============================================================================
 
--- Public read access to post_tags
+-- Public and admin read/manage post_tags
 DROP POLICY IF EXISTS "Public can read post_tags" ON post_tags;
+DROP POLICY IF EXISTS "Only admins can manage post_tags" ON post_tags;
 CREATE POLICY "Public can read post_tags"
   ON post_tags FOR SELECT
   USING (
@@ -396,17 +395,15 @@ CREATE POLICY "Public can read post_tags"
     )
   );
 
--- Only admins can manage post_tags
-DROP POLICY IF EXISTS "Only admins can manage post_tags" ON post_tags;
 CREATE POLICY "Only admins can manage post_tags"
   ON post_tags FOR ALL
   USING (
-    auth.jwt() ->> 'role' = 'admin'
-    OR EXISTS (SELECT 1 FROM users WHERE email = auth.jwt() ->> 'email' AND role IN ('admin', 'editor'))
+    (SELECT auth.jwt() ->> 'role') = 'admin'
+    OR EXISTS (SELECT 1 FROM users WHERE email = (SELECT auth.jwt() ->> 'email') AND role IN ('admin', 'editor'))
   )
   WITH CHECK (
-    auth.jwt() ->> 'role' = 'admin'
-    OR EXISTS (SELECT 1 FROM users WHERE email = auth.jwt() ->> 'email' AND role IN ('admin', 'editor'))
+    (SELECT auth.jwt() ->> 'role') = 'admin'
+    OR EXISTS (SELECT 1 FROM users WHERE email = (SELECT auth.jwt() ->> 'email') AND role IN ('admin', 'editor'))
   );
 
 -- ============================================================================
@@ -418,7 +415,7 @@ DROP POLICY IF EXISTS "Only admins can read admin logs" ON admin_logs;
 CREATE POLICY "Only admins can read admin logs"
   ON admin_logs FOR SELECT
   USING (
-    auth.jwt() ->> 'role' = 'admin'
+    (SELECT auth.jwt() ->> 'role') = 'admin'
   );
 
 -- System can insert admin logs (for audit trail)
@@ -428,8 +425,8 @@ DROP POLICY IF EXISTS "Admins can insert admin logs" ON admin_logs;
 CREATE POLICY "Admins can insert admin logs"
   ON admin_logs FOR INSERT
   WITH CHECK (
-    auth.jwt() ->> 'role' = 'admin'
-    OR auth.role() = 'authenticated'
+    (SELECT auth.jwt() ->> 'role') = 'admin'
+    OR (SELECT auth.role()) = 'authenticated'
   );
 
 -- Only admins can delete admin logs (for cleanup)
@@ -437,7 +434,7 @@ DROP POLICY IF EXISTS "Only admins can delete admin logs" ON admin_logs;
 CREATE POLICY "Only admins can delete admin logs"
   ON admin_logs FOR DELETE
   USING (
-    auth.jwt() ->> 'role' = 'admin'
+    (SELECT auth.jwt() ->> 'role') = 'admin'
   );
 
 -- ============================================================================
@@ -448,19 +445,19 @@ CREATE POLICY "Only admins can delete admin logs"
 DROP POLICY IF EXISTS "Users can view own sessions" ON user_sessions;
 CREATE POLICY "Users can view own sessions"
   ON user_sessions FOR SELECT
-  USING (auth.uid()::text = user_id::text);
+  USING ((SELECT auth.uid())::text = user_id::text);
 
 -- System can insert sessions
 DROP POLICY IF EXISTS "System can insert sessions" ON user_sessions;
 CREATE POLICY "System can insert sessions"
   ON user_sessions FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (session_token IS NOT NULL AND expires_at IS NOT NULL);
 
 -- Users can delete their own sessions
 DROP POLICY IF EXISTS "Users can delete own sessions" ON user_sessions;
 CREATE POLICY "Users can delete own sessions"
   ON user_sessions FOR DELETE
-  USING (auth.uid()::text = user_id::text);
+  USING ((SELECT auth.uid())::text = user_id::text);
 
 -- ============================================================================
 -- FUNCTIONS FOR SECURITY
@@ -468,7 +465,9 @@ CREATE POLICY "Users can delete own sessions"
 
 -- Function to check if user is admin (helper function)
 CREATE OR REPLACE FUNCTION is_admin()
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN
+SET search_path = public
+AS $$
 BEGIN
   RETURN (
     auth.jwt() ->> 'role' = 'admin'
@@ -484,7 +483,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;

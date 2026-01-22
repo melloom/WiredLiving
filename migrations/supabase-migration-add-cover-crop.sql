@@ -60,7 +60,7 @@ DROP POLICY IF EXISTS "Authenticated users can read published posts" ON posts;
 CREATE POLICY "Authenticated users can read published posts"
   ON posts FOR SELECT
   USING (
-    auth.role() = 'authenticated'
+    (SELECT auth.role()) = 'authenticated'
     AND published = true
     AND status = 'published'
     AND visibility IN ('public', 'unlisted')
@@ -73,12 +73,12 @@ DROP POLICY IF EXISTS "Admins can read all posts" ON posts;
 CREATE POLICY "Admins can read all posts"
   ON posts FOR SELECT
   USING (
-    auth.jwt() ->> 'role' = 'admin'
+    (SELECT auth.jwt() ->> 'role') = 'admin'
     OR (
       EXISTS (
         SELECT 1 FROM information_schema.columns 
         WHERE table_name = 'posts' AND column_name = 'created_by'
       )
-      AND auth.jwt() ->> 'email' = (SELECT email FROM users WHERE id = posts.created_by LIMIT 1)
+      AND (SELECT auth.jwt() ->> 'email') = (SELECT email FROM users WHERE id = posts.created_by LIMIT 1)
     )
   );
