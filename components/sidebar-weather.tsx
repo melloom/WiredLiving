@@ -22,54 +22,73 @@ export function SidebarWeather() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get user's location or use a default
+    // Check if user already denied geolocation permission permanently
+    const permissionDenied = localStorage.getItem('weather-permission-denied');
+    
+    // If user already denied permission permanently, don't ask again
+    if (permissionDenied === 'true') {
+      console.log('📍 User previously denied location permission, using IP-based geolocation');
+      fetchLocationFromIP();
+      return;
+    }
+
+    // Get user's location or use IP-based fallback
     if ('geolocation' in navigator) {
-      console.log('🌍 Requesting geolocation...');
+      console.log('🌍 Requesting geolocation to track user location...');
       
       const geoOptions = {
-        enableHighAccuracy: true, // Try to get the most accurate location
-        timeout: 10000, // Wait up to 10 seconds for location
-        maximumAge: 60000, // Accept cached location if less than 1 minute old
+        enableHighAccuracy: false, // Use faster, less accurate location
+        timeout: 5000, // 5 second timeout
+        maximumAge: 60000, // Accept cached location if less than 1 minute old (updates frequently)
       };
 
-      navigator.geolocation.getCurrentPosition(
+      // Watch position instead of just getting it once - follows user as they move
+      const watchId = navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          console.log('✅ Geolocation success:', { latitude, longitude });
+          console.log('✅ Location updated:', { latitude, longitude });
+          
+          // Save the current location
+          localStorage.setItem('weather-location', `${latitude},${longitude}`);
+          localStorage.setItem('weather-location-time', Date.now().toString());
+          localStorage.removeItem('weather-permission-denied');
+          
           fetchWeather(latitude, longitude);
         },
         (error) => {
-          // Handle different geolocation errors
+          // Handle geolocation errors
           console.warn('⚠️ Geolocation error:', error);
           
-          let errorMessage = 'Unable to get location';
           switch (error.code) {
             case error.PERMISSION_DENIED:
-              errorMessage = 'Location permission denied';
-              console.log('📍 User denied location permission, using fallback');
+              console.log('📍 User denied location permission, trying IP-based geolocation');
+              // Remember that user denied permission
+              localStorage.setItem('weather-permission-denied', 'true');
               break;
             case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Location unavailable';
-              console.log('📍 Location unavailable, using fallback');
+              console.log('📍 Location unavailable, trying IP-based geolocation');
               break;
             case error.TIMEOUT:
-              errorMessage = 'Location request timeout';
-              console.log('📍 Location request timed out, using fallback');
+              console.log('📍 Location request timed out, trying IP-based geolocation');
               break;
             default:
-              errorMessage = 'Unknown geolocation error';
-              console.log('📍 Unknown geolocation error, using fallback');
+              console.log('📍 Geolocation error, trying IP-based geolocation');
               break;
           }
           
-          // Always fallback to default city if geolocation fails
-          fetchWeatherByCity('New York');
+          // Try IP-based geolocation as fallback on error
+          fetchLocationFromIP();
         },
         geoOptions
       );
+
+      // Cleanup watch position on unmount
+      return () => {
+        navigator.geolocation.clearWatch(watchId);
+      };
     } else {
-      console.log('📍 Geolocation not supported, using fallback');
-      fetchWeatherByCity('New York');
+      console.log('📍 Geolocation not supported, using IP-based geolocation');
+      fetchLocationFromIP();
     }
   }, []);
 
@@ -163,6 +182,80 @@ export function SidebarWeather() {
       });
       setError(null);
       setLoading(false);
+    }
+  };
+
+  const fetchLocationFromIP = async () => {
+    try {
+      console.log('🌐 Attempting IP-based geolocation...');
+      
+      // Try multiple IP geolocation services in order of preference
+      const ipGeoServices = [
+        {
+          name: 'ip-api.com',
+          url: 'https://ip-api.com/json/?fields=lat,lon,city,status',
+          parse: (data: any) => {
+            if (data.status === 'success') {
+              return { lat: data.lat, lon: data.lon, city: data.city };
+            }
+            throw new Error('IP API failed');
+          }
+        },
+        {
+          name: 'ipapi.co',
+          url: 'https://ipapi.co/json/',
+          parse: (data: any) => {
+            if (data.latitude && data.longitude) {
+              return { lat: data.latitude, lon: data.longitude, city: data.city || data.region_code };
+            }
+            throw new Error('IPAPI.CO failed');
+          }
+        },
+        {
+          name: 'geojs.io',
+          url: 'https://get.geojs.io/geolocation/geojs/latest/api.json',
+          parse: (data: any) => {
+            if (data.latitude && data.longitude) {
+              return { lat: parseFloat(data.latitude), lon: parseFloat(data.longitude), city: data.city };
+            }
+            throw new Error('GeoJS failed');
+          }
+        }
+      ];
+
+      for (const service of ipGeoServices) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 3000); // 3s timeout per service
+          
+          const response = await fetch(service.url, { signal: controller.signal });
+          clearTimeout(timeout);
+          
+          if (response.ok) {
+            const data = await response.json();
+            const location = service.parse(data);
+            
+            console.log(`✅ IP geolocation success from ${service.name}:`, location);
+            
+            // Save the location
+            localStorage.setItem('weather-location', `${location.lat},${location.lon}`);
+            localStorage.setItem('weather-location-time', Date.now().toString());
+            
+            fetchWeather(location.lat, location.lon);
+            return;
+          }
+        } catch (err) {
+          console.warn(`⚠️ ${service.name} failed:`, err);
+          continue; // Try next service
+        }
+      }
+      
+      // All IP services failed, fall back to city name
+      console.log('📍 IP geolocation services failed, using city fallback');
+      fetchWeatherByCity('New York');
+    } catch (err) {
+      console.error('❌ IP geolocation error:', err);
+      fetchWeatherByCity('New York');
     }
   };
 

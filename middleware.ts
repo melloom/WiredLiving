@@ -41,8 +41,7 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   );
 
   // Strict Content Security Policy tuned for this app
-  // Allow 'unsafe-eval' for React Fast Refresh and dynamic imports
-  const scriptSrc = "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:";
+  const scriptSrc = "script-src 'self' 'unsafe-inline' https:";
 
   const csp = [
     "default-src 'self'",

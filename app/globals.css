@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Performance Optimizations */
+html {
+  scroll-behavior: auto; /* Use auto, not smooth, to avoid layout thrashing */
+}
+
+/* Optimize repaints and reflows during scroll */
+body {
+  overflow-anchor: auto;
+}
+
+/* Optimize images for better scrolling performance */
+img {
+  contain: paint; /* Isolate paint operations */
+}
+
+/* Disable expensive will-change by default - use sparingly */
+.scroll-mt-20 {
+  will-change: auto;
+}
+
 /* PWA Safe Area Support for Notches and Device Features */
 :root {
   --sat: env(safe-area-inset-top);
@@ -102,7 +122,7 @@ body {
   }
 }
 
-/* Gradient animation */
+/* Gradient animation - DISABLED for performance */
 @keyframes gradient {
   0%, 100% {
     background-position: 0% 50%;
@@ -114,7 +134,7 @@ body {
 
 .animate-gradient {
   background-size: 200% 200%;
-  animation: gradient 3s ease infinite;
+  /* animation: gradient 3s ease infinite; */ /* DISABLED: Causes continuous repaints */
 }
 
 /* Grid pattern background */
@@ -330,7 +350,7 @@ kbd {
 }
 
 .prose input[type="checkbox"] {
-  @apply appearance-none w-5 h-5 border-2 border-blue-500 dark:border-blue-400 rounded cursor-pointer transition-all duration-200;
+  @apply appearance-none w-5 h-5 border-2 border-blue-500 dark:border-blue-400 rounded cursor-pointer transition-colors duration-150;
   @apply hover:border-blue-600 dark:hover:border-blue-300 hover:shadow-md;
   @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900;
   @apply bg-white dark:bg-gray-800;
@@ -353,7 +373,7 @@ kbd {
 
 /* Task list item styling */
 .prose li.task-list-item {
-  @apply flex items-start gap-3 py-2 px-3 rounded-lg transition-all duration-200;
+  @apply flex items-start gap-3 py-2 px-3 rounded-lg transition-colors duration-150;
   @apply hover:bg-gray-50 dark:hover:bg-gray-800/50;
 }
 

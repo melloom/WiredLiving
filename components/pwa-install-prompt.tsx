@@ -29,12 +29,15 @@ export function PWAInstallPrompt() {
     // Check if user has temporarily dismissed
     const dismissedAt = localStorage.getItem('pwa-install-dismissed');
     if (dismissedAt) {
-      const monthInMs = 30 * 24 * 60 * 60 * 1000; // 30 days
-      const timeSinceDismissed = Date.now() - parseInt(dismissedAt);
-      
-      if (timeSinceDismissed < monthInMs) {
-        // Still in cooldown period
-        return;
+      const parsedDismissed = parseInt(dismissedAt, 10);
+      if (!isNaN(parsedDismissed)) {
+        const monthInMs = 30 * 24 * 60 * 60 * 1000; // 30 days
+        const timeSinceDismissed = Date.now() - parsedDismissed;
+        
+        if (timeSinceDismissed < monthInMs) {
+          // Still in cooldown period
+          return;
+        }
       }
     }
 

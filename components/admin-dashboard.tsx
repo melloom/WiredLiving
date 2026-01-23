@@ -59,37 +59,6 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
     }
   };
 
-  const handleClearCache = async () => {
-    const confirmed = await confirm({
-      title: 'Clear All Cache?',
-      message: 'This will force refresh all blog pages. Use this if updated posts aren\'t showing the new content. Continue?'
-    });
-    
-    if (!confirmed) return;
-
-    setLoading(true);
-    try {
-      const response = await fetch('/api/admin/revalidate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        toast.success('✅ Cache cleared! All blog pages will show fresh content.');
-      } else {
-        toast.error('Failed to clear cache: ' + data.error);
-      }
-    } catch (error) {
-      console.error('Cache clear error:', error);
-      toast.error('Failed to clear cache. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const stats = {
     totalPosts: posts.length,
     publishedPosts: posts.filter(p => p.published).length,
@@ -185,17 +154,17 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
   const handleMovePostInSeries = async (post: BlogPost, direction: 'up' | 'down', seriesPosts: BlogPost[]) => {
     const currentIndex = seriesPosts.findIndex(p => p.slug === post.slug);
     if (currentIndex === -1) return;
-    
+
     if (direction === 'up' && currentIndex === 0) return;
     if (direction === 'down' && currentIndex === seriesPosts.length - 1) return;
-    
+
     const swapIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
     const currentPost = seriesPosts[currentIndex];
     const swapPost = seriesPosts[swapIndex];
-    
+
     const currentOrder = currentPost.seriesOrder ?? currentIndex + 1;
     const swapOrder = swapPost.seriesOrder ?? swapIndex + 1;
-    
+
     setUpdatingPost(post.slug);
     try {
       // Update both posts
@@ -211,7 +180,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
           body: JSON.stringify({ field: 'seriesOrder', value: currentOrder }),
         }),
       ]);
-      
+
       toast.success('Posts reordered successfully');
       router.refresh();
     } catch (error) {
@@ -235,7 +204,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
       }
 
       const savedMetadata = await response.json();
-      
+
       // Update local state
       setSeriesMetadataMap(prev => {
         const newMap = new Map(prev);
@@ -259,7 +228,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
       const response = await fetch(`/api/admin/posts/${postSlug}/quick-update`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           updates: [
             { field: 'series', value: newSeries },
             { field: 'seriesOrder', value: newOrder }
@@ -377,17 +346,6 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                 </svg>
                 Back to Site
               </Link>
-              <button
-                onClick={handleClearCache}
-                disabled={loading}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm font-medium"
-                title="Clear cache if posts aren't showing updated content"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Clear Cache
-              </button>
               <button
                 onClick={handleLogout}
                 disabled={loading}
@@ -739,7 +697,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
               // Group posts by series
               const seriesMap = new Map<string, BlogPost[]>();
               const postsWithoutSeries: BlogPost[] = [];
-              
+
               posts.forEach(post => {
                 if (post.series) {
                   if (!seriesMap.has(post.series)) {
@@ -750,7 +708,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                   postsWithoutSeries.push(post);
                 }
               });
-              
+
               // Sort posts within each series by seriesOrder
               seriesMap.forEach(seriesPosts => {
                 seriesPosts.sort((a, b) => {
@@ -759,8 +717,8 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                   return orderA - orderB;
                 });
               });
-              
-              const seriesArray = Array.from(seriesMap.entries()).sort((a, b) => 
+
+              const seriesArray = Array.from(seriesMap.entries()).sort((a, b) =>
                 a[0].localeCompare(b[0])
               );
 
@@ -768,7 +726,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
               const totalSeries = seriesArray.length;
               const totalSeriesPosts = posts.filter(p => p.series).length;
               const completeSeries = seriesArray.filter(([_, posts]) => posts.every(p => p.published)).length;
-              
+
               return (
                 <>
                   {/* Header Section */}
@@ -789,7 +747,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                         👁️ View Series Page
                       </Link>
                     </div>
-                    
+
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
@@ -834,7 +792,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                         const avgReadingTime = seriesPosts.length > 0 ? Math.round(totalReadingTime / seriesPosts.length) : 0;
                         const isComplete = publishedCount === seriesPosts.length;
                         const hasOrderIssues = seriesPosts.some(p => p.seriesOrder === null || p.seriesOrder === undefined);
-                        
+
                         // Define gradient colors for each series
                         const gradients = [
                           'from-blue-500 to-cyan-500',
@@ -845,7 +803,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                           'from-teal-500 to-green-500',
                         ];
                         const gradient = gradients[idx % gradients.length];
-                        
+
                         return (
                           <div key={seriesName} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                             {/* Series Header with Gradient */}
@@ -869,7 +827,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                                         </span>
                                       )}
                                     </div>
-                                    
+
                                     {/* Mini Stats */}
                                     <div className="flex flex-wrap gap-4 text-sm text-white/90">
                                       <div className="flex items-center gap-2">
@@ -901,7 +859,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                                       </div>
                                     </div>
                                   </div>
-                                  
+
                                   <div className="flex flex-col gap-2 items-end">
                                     <Link
                                       href={`/series/${encodeURIComponent(seriesName.toLowerCase().replace(/\s+/g, '-'))}`}
@@ -921,7 +879,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
 
                                 {/* Progress Bar */}
                                 <div className="bg-white/20 rounded-full h-2 overflow-hidden backdrop-blur-sm">
-                                  <div 
+                                  <div
                                     className="bg-white h-full rounded-full transition-all duration-500"
                                     style={{ width: `${(publishedCount / seriesPosts.length) * 100}%` }}
                                   ></div>
@@ -931,12 +889,12 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                                 </div>
                               </div>
                             </div>
-                            
+
                             {/* Posts List */}
                             <div className="p-6 space-y-2">
                               {seriesPosts.map((post, postIdx) => (
-                                <div 
-                                  key={post.slug} 
+                                <div
+                                  key={post.slug}
                                   className="group bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 rounded-xl p-4 transition-all border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md"
                                 >
                                   <div className="flex items-start gap-4">
@@ -946,7 +904,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                                         {post.seriesOrder ?? '?'}
                                       </div>
                                     </div>
-                                    
+
                                     {/* Post Info */}
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-start justify-between gap-3 mb-2">
@@ -957,17 +915,17 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                                         >
                                           {post.title}
                                         </Link>
-                                        
+
                                         {/* Status Badge */}
                                         <span className={`shrink-0 px-2 py-1 rounded-md text-xs font-medium ${
-                                          post.published 
-                                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' 
+                                          post.published
+                                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                                             : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
                                         }`}>
                                           {post.published ? '✓ Published' : '○ Draft'}
                                         </span>
                                       </div>
-                                      
+
                                       {/* Meta Info */}
                                       <div className="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
                                         <span className="flex items-center gap-1">
@@ -997,7 +955,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                                           {post.description}
                                         </p>
                                       )}
-                                      
+
                                       {/* Actions */}
                                       <div className="flex flex-wrap gap-2">
                                         {/* Reorder buttons */}
@@ -1036,7 +994,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                                         >
                                           👁️ {post.published ? 'View' : 'Preview'}
                                         </Link>
-                                        
+
                                         {/* Remove from series button */}
                                         <button
                                           onClick={async () => {
@@ -1084,7 +1042,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="p-6">
                         <div className="grid gap-3">
                           {postsWithoutSeries.slice(0, 10).map(post => (
@@ -1282,14 +1240,14 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
           .select('series')
           .not('series', 'is', null)
           .order('series');
-        
+
         if (error) throw error;
-        
+
         // Get unique series names
         const uniqueSeries = Array.from(new Set(
           data?.map(p => p.series).filter(Boolean) || []
         )) as string[];
-        
+
         setExistingSeries(uniqueSeries);
       } catch (error) {
         console.error('Error fetching series:', error);
@@ -2712,14 +2670,14 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
           .select('series')
           .not('series', 'is', null)
           .order('series');
-        
+
         if (error) throw error;
-        
+
         // Get unique series names
         const uniqueSeries = Array.from(new Set(
           data?.map(p => p.series).filter(Boolean) || []
         )) as string[];
-        
+
         setExistingSeries(uniqueSeries);
       } catch (error) {
         console.error('Error fetching series:', error);

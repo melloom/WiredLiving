@@ -460,6 +460,9 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
           // Use a stable ID based on src to avoid hydration mismatches
           const imageId = `img-${src ? src.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20) : ++imageCounterRef.current}`;
 
+          // Detect GIF files (including animated GIFs from Giphy/Tenor)
+          const isGif = /\.gif$/i.test(src) || src.includes('giphy.com') || src.includes('tenor.com');
+
           // Proxy external images to avoid CORS/OpaqueResponseBlocking issues
           let processedSrc = src;
           if (src && /^https?:\/\//.test(src)) {
@@ -469,7 +472,8 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
                               !src.startsWith('/');
 
             if (isExternal) {
-              processedSrc = `/api/proxy-image?url=${encodeURIComponent(src)}`;
+              // For GIFs, still proxy them but with optimization hint
+              processedSrc = `/api/proxy-image?url=${encodeURIComponent(src)}&format=${isGif ? 'gif' : 'auto'}`;
             }
           }
 
@@ -515,6 +519,8 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
             alignmentClasses = `block mx-auto my-8 ${sizeClasses}`;
           }
 
+          // Use contentVisibility to optimize rendering performance
+          // This prevents layout shift and improves scroll responsiveness
           return (
             <img
               id={imageId}
@@ -522,7 +528,9 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
               alt={alt || 'Blog image'}
               loading="lazy"
               decoding="async"
-              className={`rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl scroll-mt-20 ${alignmentClasses}`}
+              fetchPriority="low"
+              style={{ contentVisibility: 'auto' } as any}
+              className={`rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl scroll-mt-20 will-change-auto ${alignmentClasses}`}
               {...props}
             />
           );

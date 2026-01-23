@@ -42,14 +42,6 @@ const SidebarGallery = dynamicImport(() => import('@/components/sidebar-gallery'
 const BlogPostMobileWidget = dynamicImport(() => import('@/components/blog-post-mobile-widget').then(mod => ({ default: mod.BlogPostMobileWidget })), {
   ssr: false
 });
-const RecommendedPosts = dynamicImport(() => import('@/components/recommended-posts').then(mod => ({ default: mod.RecommendedPosts })), {
-  loading: () => <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
-  ssr: false
-});
-const LatestPostsWidget = dynamicImport(() => import('@/components/latest-posts-widget').then(mod => ({ default: mod.LatestPostsWidget })), {
-  loading: () => <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
-  ssr: false
-});
 
 export const dynamic = 'force-dynamic';
 
@@ -127,8 +119,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   const allPosts = await getAllPosts();
   const currentIndex = allPosts.findIndex(p => p.slug === post.slug);
-  const nextPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
+  // Previous post = older post (higher index, posted before current)
   const prevPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null;
+  // Next post = newer post (lower index, posted after current)
+  const nextPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
 
   const relatedPosts = allPosts
     .filter((p) => p.slug !== post.slug && (p.tags || []).some((tag) => (post.tags || []).includes(tag)))
@@ -253,7 +247,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               {/* Decorative background elements */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl -z-0" />
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-purple-400/10 to-blue-400/10 rounded-full blur-3xl -z-0" />
-              
+
               <div className="relative z-10">
                 {/* Top Meta Bar */}
                 <div className="flex flex-wrap items-center gap-2 text-xs mb-3">
@@ -354,7 +348,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     <>
                       <div className="h-8 w-px bg-gray-300 dark:bg-gray-600 hidden sm:block" />
                       <div className="flex items-center gap-2">
-                        <ShareButtons url={articleUrl} title={post.title} description={post.description} imageUrl={post.ogImageOverride || post.coverImage} />
+                        <ShareButtons url={articleUrl} title={post.title} description={post.description} />
                         <PostLikes postSlug={post.slug} />
                       </div>
                       <PostActionButtons postSlug={post.slug} />
@@ -465,8 +459,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                       href={`/blog/${prevPost.slug}`}
                       className="group p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg transition-all bg-white dark:bg-gray-900"
                     >
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Previous Post</div>
-                      <div className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">← Previous Post</div>
+                      <div className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
                         {prevPost.title}
                       </div>
                     </Link>
@@ -474,10 +468,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   {nextPost && (
                     <Link
                       href={`/blog/${nextPost.slug}`}
-                      className="group p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg transition-all bg-white dark:bg-gray-900 text-right"
+                      className="group p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg transition-all bg-white dark:bg-gray-900 md:text-right"
                     >
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Next Post</div>
-                      <div className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Next Post →</div>
+                      <div className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
                         {nextPost.title}
                       </div>
                     </Link>
@@ -503,7 +497,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                           fill
                           loading="lazy"
                           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 300px"
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="object-cover"
                         />
                       </div>
                     ))}
@@ -583,17 +577,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
             {/* Sidebar */}
             <aside className="hidden lg:block space-y-6">
-              {/* Recommended Posts - Smart recommendations based on reading history */}
-              <RecommendedPosts 
-                currentSlug={post.slug}
-                currentTags={post.tags}
-                currentCategory={post.category}
-                currentSeries={post.series}
-              />
-
-              {/* Latest Posts */}
-              <LatestPostsWidget currentSlug={post.slug} limit={5} />
-
               {/* Quick Links - Auto-detected content elements */}
               {post.content && <ContentQuickLinks content={post.content} />}
 
