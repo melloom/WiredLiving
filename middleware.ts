@@ -49,7 +49,7 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' https://newsapi.org https://eventregistry.org https://eventregistry.org/api/v1/article https://eventregistry.org/api/v1/article/getArticles https://*.supabase.co https://api.openweathermap.org https://wttr.in",
+    "connect-src 'self' https://newsapi.org https://eventregistry.org https://eventregistry.org/api/v1/article https://eventregistry.org/api/v1/article/getArticles https://*.supabase.co https://api.openweathermap.org https://wttr.in https://ip-api.com https://ipapi.co https://get.geojs.io",
     "frame-src 'self' https://vercel.live",
     "frame-ancestors 'none'",
     "base-uri 'self'",
