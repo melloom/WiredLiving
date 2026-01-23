@@ -187,71 +187,29 @@ export function SidebarWeather() {
 
   const fetchLocationFromIP = async () => {
     try {
-      console.log('🌐 Attempting IP-based geolocation...');
+      console.log('🌐 Attempting IP-based geolocation via backend proxy...');
       
-      // Try multiple IP geolocation services in order of preference
-      const ipGeoServices = [
-        {
-          name: 'ip-api.com',
-          url: 'https://ip-api.com/json/?fields=lat,lon,city,status',
-          parse: (data: any) => {
-            if (data.status === 'success') {
-              return { lat: data.lat, lon: data.lon, city: data.city };
-            }
-            throw new Error('IP API failed');
-          }
-        },
-        {
-          name: 'ipapi.co',
-          url: 'https://ipapi.co/json/',
-          parse: (data: any) => {
-            if (data.latitude && data.longitude) {
-              return { lat: data.latitude, lon: data.longitude, city: data.city || data.region_code };
-            }
-            throw new Error('IPAPI.CO failed');
-          }
-        },
-        {
-          name: 'geojs.io',
-          url: 'https://get.geojs.io/geolocation/geojs/latest/api.json',
-          parse: (data: any) => {
-            if (data.latitude && data.longitude) {
-              return { lat: parseFloat(data.latitude), lon: parseFloat(data.longitude), city: data.city };
-            }
-            throw new Error('GeoJS failed');
-          }
-        }
-      ];
-
-      for (const service of ipGeoServices) {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 3000); // 3s timeout per service
-          
-          const response = await fetch(service.url, { signal: controller.signal });
-          clearTimeout(timeout);
-          
-          if (response.ok) {
-            const data = await response.json();
-            const location = service.parse(data);
-            
-            console.log(`✅ IP geolocation success from ${service.name}:`, location);
-            
-            // Save the location
-            localStorage.setItem('weather-location', `${location.lat},${location.lon}`);
-            localStorage.setItem('weather-location-time', Date.now().toString());
-            
-            fetchWeather(location.lat, location.lon);
-            return;
-          }
-        } catch (err) {
-          console.warn(`⚠️ ${service.name} failed:`, err);
-          continue; // Try next service
-        }
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout for backend proxy
+      
+      const response = await fetch('/api/geolocation', { signal: controller.signal });
+      clearTimeout(timeout);
+      
+      if (response.ok) {
+        const location = await response.json();
+        
+        console.log('✅ IP geolocation success:', location);
+        
+        // Save the location
+        localStorage.setItem('weather-location', `${location.lat},${location.lon}`);
+        localStorage.setItem('weather-location-time', Date.now().toString());
+        
+        fetchWeather(location.lat, location.lon);
+        return;
       }
       
-      // All IP services failed, fall back to city name
-      console.log('📍 IP geolocation services failed, using city fallback');
+      // Backend proxy failed, fall back to city name
+      console.log('📍 Geolocation service unavailable, using city fallback');
       fetchWeatherByCity('New York');
     } catch (err) {
       console.error('❌ IP geolocation error:', err);

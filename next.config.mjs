@@ -72,7 +72,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://platform.twitter.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://wttr.in https://*.supabase.co https://ip-api.com https://ipapi.co https://get.geojs.io; manifest-src 'self' https://github.dev https://*.github.dev; frame-src 'self' https://platform.twitter.com;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://platform.twitter.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://wttr.in https://*.supabase.co; manifest-src 'self' https://github.dev https://*.github.dev; frame-src 'self' https://platform.twitter.com;",
           },
         ],
       },
