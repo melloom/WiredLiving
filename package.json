@@ -5,7 +5,7 @@
   "scripts": {
     "kill:3000": "fuser -k 3000/tcp 2>/dev/null || true; sleep 2",
     "dev": "npm run kill:3000 && next dev",
-    "build": "next build --webpack",
+    "build": "next build",
     "build:production": "rm -rf .next && NODE_ENV=production next build",
     "start": "next start",
     "lint": "next lint",
