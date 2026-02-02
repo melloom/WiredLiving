@@ -25,12 +25,8 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-  // ESLint configuration for Next.js
-  eslint: {
-    // Use the flat config format (eslint.config.mjs)
-    // This prevents Next.js from using deprecated options
-    dirs: ['app', 'components', 'lib', 'types'],
-  },
+  // Next.js 16: Turbopack is default; empty config acknowledges webpack customizations
+  turbopack: {},
   // Redirects for HTTP to HTTPS and www handling
   async redirects() {
     return [
@@ -78,8 +74,6 @@ const nextConfig = {
       },
     ];
   },
-  // Ensure production builds use proper optimization
-  swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },

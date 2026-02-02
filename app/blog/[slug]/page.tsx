@@ -22,26 +22,20 @@ import { PostLikes } from '@/components/post-likes';
 import { ReadingHistoryTracker } from '@/components/reading-history-tracker';
 import { siteConfig } from '@/config/site';
 
-// Dynamic imports for heavy components (lazy loaded)
+// Dynamic imports for heavy components (lazy loaded). Next.js 16: ssr:false only in Client Components.
 const NewsFeed = dynamicImport(() => import('@/components/news-feed').then(mod => ({ default: mod.NewsFeed })), {
   loading: () => <div className="animate-pulse h-32 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
-  ssr: false
 });
 const SidebarWeather = dynamicImport(() => import('@/components/sidebar-weather').then(mod => ({ default: mod.SidebarWeather })), {
   loading: () => <div className="animate-pulse h-40 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
-  ssr: false
 });
 const SidebarContact = dynamicImport(() => import('@/components/sidebar-contact').then(mod => ({ default: mod.SidebarContact })), {
   loading: () => <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
-  ssr: false
 });
 const SidebarGallery = dynamicImport(() => import('@/components/sidebar-gallery').then(mod => ({ default: mod.SidebarGallery })), {
   loading: () => <div className="animate-pulse h-52 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
-  ssr: false
 });
-const BlogPostMobileWidget = dynamicImport(() => import('@/components/blog-post-mobile-widget').then(mod => ({ default: mod.BlogPostMobileWidget })), {
-  ssr: false
-});
+const BlogPostMobileWidget = dynamicImport(() => import('@/components/blog-post-mobile-widget').then(mod => ({ default: mod.BlogPostMobileWidget })), {});
 
 export const dynamic = 'force-dynamic';
 
