@@ -191,17 +191,17 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <AnalyticsTracker postSlug={post.slug} pageTitle={post.title} />
       <ReadingProgress />
       <ReadingHistoryTracker postSlug={post.slug} />
-      <main className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+      <main className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 overflow-x-hidden">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
         />
 
         {/* Breadcrumbs */}
-        <div className="border-b border-gray-200/80 dark:border-gray-800/80 bg-white/50 dark:bg-gray-950/50 backdrop-blur-sm">
-          <div className="container mx-auto px-4 py-3">
+        <div className="border-b border-gray-200/80 dark:border-gray-800/80 bg-white/50 dark:bg-gray-950/50 backdrop-blur-sm overflow-x-auto">
+          <div className="container mx-auto px-4 py-3 min-w-0">
             <div className="max-w-5xl mx-auto">
-              <nav className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+              <nav className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 flex-nowrap min-w-0">
                 <Link href="/" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
                   Home
                 </Link>
@@ -221,7 +221,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   </>
                 )}
                 <span>/</span>
-                <span className="text-gray-900 dark:text-gray-100 font-medium flex-1">
+                <span className="text-gray-900 dark:text-gray-100 font-medium flex-1 truncate min-w-0">
                   {post.title}
                 </span>
               </nav>
@@ -265,7 +265,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 </div>
 
                 {/* Title with gradient */}
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-3 bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 dark:from-gray-50 dark:via-blue-100 dark:to-purple-100 bg-clip-text text-transparent">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-3 bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 dark:from-gray-50 dark:via-blue-100 dark:to-purple-100 bg-clip-text text-transparent">
                   {post.title}
                 </h1>
 
@@ -372,15 +372,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 lg:gap-12">
             {/* Main article content */}
             <article className="min-w-0">
-                <div className="bg-gradient-to-b from-white via-gray-50/30 to-white dark:from-gray-900 dark:via-gray-900/50 dark:to-gray-900 rounded-3xl p-8 md:p-12 lg:p-16 shadow-2xl border border-gray-200/50 dark:border-gray-800/50 backdrop-blur-sm">
-                  <div className="max-w-4xl mx-auto">
+                <div className="bg-gradient-to-b from-white via-gray-50/30 to-white dark:from-gray-900 dark:via-gray-900/50 dark:to-gray-900 rounded-3xl p-6 md:p-10 lg:p-12 shadow-2xl border border-gray-200/50 dark:border-gray-800/50 backdrop-blur-sm">
+                  <div className="max-w-4xl mx-auto min-w-0">
                     <div className="prose prose-lg md:prose-xl lg:prose-2xl dark:prose-invert max-w-none font-serif
                       prose-headings:font-serif prose-headings:font-bold prose-headings:tracking-tight prose-headings:scroll-mt-24
                       prose-h1:text-4xl prose-h1:md:text-5xl prose-h1:lg:text-6xl prose-h1:mt-12 prose-h1:mb-8 prose-h1:pb-4 prose-h1:border-b prose-h1:border-gray-200 dark:prose-h1:border-gray-700
                       prose-h2:text-3xl prose-h2:md:text-4xl prose-h2:lg:text-5xl prose-h2:mt-12 prose-h2:mb-7 prose-h2:text-gray-900 dark:prose-h2:text-gray-50
                       prose-h3:text-2xl prose-h3:md:text-3xl prose-h3:mt-10 prose-h3:mb-6 prose-h3:text-gray-800 dark:prose-h3:text-gray-100
                       prose-h4:text-xl prose-h4:md:text-2xl prose-h4:mt-8 prose-h4:mb-4
-                      prose-p:text-lg prose-p:md:text-xl prose-p:leading-relaxed prose-p:md:leading-[1.75] prose-p:my-6 prose-p:md:my-7 prose-p:text-gray-800 dark:prose-p:text-gray-200 prose-p:tracking-wide
+                      prose-p:text-lg prose-p:md:text-xl prose-p:leading-normal prose-p:md:leading-[1.6] prose-p:my-4 prose-p:md:my-5 prose-p:text-gray-800 dark:prose-p:text-gray-200
                       prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-a:font-medium prose-a:transition-colors
                       prose-strong:font-bold prose-strong:text-gray-900 dark:prose-strong:text-white
                       prose-em:italic prose-em:text-gray-800 dark:prose-em:text-gray-200
@@ -388,8 +388,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                       prose-blockquote:bg-blue-50/50 dark:prose-blockquote:bg-blue-900/10
                       prose-blockquote:pl-8 prose-blockquote:pr-6 prose-blockquote:py-4 prose-blockquote:my-8
                       prose-blockquote:rounded-r-lg prose-blockquote:italic prose-blockquote:text-xl prose-blockquote:md:text-2xl prose-blockquote:font-serif
-                      prose-ul:my-8 prose-ul:space-y-4 prose-ol:my-8 prose-ol:space-y-4 prose-ul:font-serif prose-ol:font-serif
-                      prose-li:leading-relaxed prose-li:text-lg prose-li:md:text-xl prose-li:text-gray-800 dark:prose-li:text-gray-200 prose-li:pl-2 prose-li:tracking-wide
+                      prose-ul:my-6 prose-ul:space-y-1.5 prose-ol:my-6 prose-ol:space-y-1.5 prose-ul:font-serif prose-ol:font-serif
+                      prose-li:leading-snug prose-li:text-lg prose-li:md:text-xl prose-li:text-gray-800 dark:prose-li:text-gray-200 prose-li:pl-2
                       prose-img:rounded-2xl prose-img:shadow-2xl prose-img:my-10 prose-img:border-2 prose-img:border-gray-200 dark:prose-img:border-gray-700
                       prose-pre:bg-gray-900 dark:prose-pre:bg-black prose-pre:rounded-xl prose-pre:shadow-lg prose-pre:border prose-pre:border-gray-700
                       prose-code:text-pink-600 dark:prose-code:text-pink-400 prose-code:font-mono prose-code:text-base

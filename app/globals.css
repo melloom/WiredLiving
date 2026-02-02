@@ -120,6 +120,11 @@ body {
   .stable-scroll {
     scrollbar-gutter: stable;
   }
+
+  /* Smooth touch scrolling for overflow containers (iOS) */
+  .overflow-touch {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Gradient animation - DISABLED for performance */
@@ -321,6 +326,25 @@ body {
   vertical-align: middle;
 }
 
+/* Mobile: prevent prose content from overflowing */
+@media (max-width: 639px) {
+  .prose {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  .prose pre,
+  .prose .overflow-x-auto {
+    max-width: 100%;
+  }
+
+  .prose img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Prose tables - scrollable on mobile */
 .prose table {
   @apply w-full border-collapse mb-4;
 }
@@ -328,6 +352,13 @@ body {
 .prose th,
 .prose td {
   @apply border border-gray-300 dark:border-gray-700 px-4 py-2;
+}
+
+@media (max-width: 639px) {
+  .prose th,
+  .prose td {
+    @apply px-2 py-1.5 text-sm;
+  }
 }
 
 .prose th {

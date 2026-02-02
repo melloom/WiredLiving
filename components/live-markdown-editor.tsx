@@ -455,22 +455,38 @@ export function LiveMarkdownEditor({
     return getPreviewContent(previewValue);
   }, [previewValue, getPreviewContent]);
 
-  // Insert text at cursor position
-  const insertAtCursor = (text: string) => {
+  // Insert text at cursor position, or wrap selection if wrap option provided
+  const insertAtCursor = (text: string, wrap?: { prefix: string; suffix: string }) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
+    const selectedText = localValue.substring(start, end);
     const before = localValue.substring(0, start);
     const after = localValue.substring(end);
-    const newValue = before + text + after;
 
+    // If wrap provided and there's selection: wrap the selection instead of replacing
+    if (wrap && selectedText) {
+      const newValue = before + wrap.prefix + selectedText + wrap.suffix + after;
+      const scrollTop = textarea.scrollTop;
+      handleChange(newValue);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.scrollTop = scrollTop;
+        textarea.setSelectionRange(start + wrap.prefix.length, end + wrap.prefix.length);
+      }, 0);
+      return;
+    }
+
+    const newValue = before + text + after;
+    const scrollTop = textarea.scrollTop;
     handleChange(newValue);
 
-    // Set cursor position after inserted text
+    // Set cursor position after inserted text and restore scroll
     setTimeout(() => {
       textarea.focus();
+      textarea.scrollTop = scrollTop;
       textarea.setSelectionRange(start + text.length, start + text.length);
     }, 0);
   };
@@ -820,10 +836,12 @@ export function LiveMarkdownEditor({
     const after = localValue.substring(end);
 
     const newValue = before + prefix + selectedText + suffix + after;
+    const scrollTop = textarea.scrollTop;
     handleChange(newValue);
 
     setTimeout(() => {
       textarea.focus();
+      textarea.scrollTop = scrollTop;
       if (selectedText) {
         textarea.setSelectionRange(start + prefix.length, end + prefix.length);
       } else {

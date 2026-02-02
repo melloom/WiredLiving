@@ -186,7 +186,7 @@ function CodeBlockWithCopy({ id, language, code, className, children }: { id: st
           )}
         </button>
       </div>
-      <div className="overflow-x-auto bg-gray-900 dark:bg-black rounded-b-lg">
+      <div className="overflow-x-auto overflow-touch bg-gray-900 dark:bg-black rounded-b-lg -mx-4 sm:mx-0 px-4 sm:px-0" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
         <pre className="m-0 p-0 bg-transparent overflow-x-auto">
           <code className={`${className || ''} block p-4 text-sm text-gray-100 font-mono overflow-x-auto whitespace-pre text-gray-200`} {...{ 'data-language': language }}>
             {children}
@@ -446,28 +446,32 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
           <hr className="my-16 border-2 border-gray-200 dark:border-gray-700 rounded" {...props} />
         ),
         // Custom table component with ID for quick-link navigation and enhanced styling with zebra striping
+        // Mobile: -mx-4 breaks out of padding for full-width scroll area; overflow-touch enables smooth iOS scrolling
         table: ({ children, ...props }: { children: React.ReactNode; [key: string]: any }) => {
           const tableId = ++tableCounterRef.current;
           return (
-            <div id={`tbl-table-${tableId}`} className="overflow-x-auto my-8 scroll-mt-20 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-900 overflow-hidden">
+            <div
+              id={`tbl-table-${tableId}`}
+              className="overflow-x-auto overflow-y-visible my-6 sm:my-8 -mx-4 sm:mx-0 px-4 sm:px-0 scroll-mt-20 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-900 overflow-touch"
+              style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+            >
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700" {...props}>
                 {children}
               </table>
             </div>
           );
         },
-        // Enhanced table headers
+        // Enhanced table headers - smaller padding on mobile
         th: ({ children, ...props }: { children: React.ReactNode; [key: string]: any }) => (
-          <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-b-2 border-gray-300 dark:border-gray-600" {...props}>
+          <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-b-2 border-gray-300 dark:border-gray-600 whitespace-nowrap" {...props}>
             {children}
           </th>
         ),
-        // Enhanced table cells with hover effects
+        // Enhanced table cells - smaller padding on mobile, allow wrap for long content
         td: ({ children, ...props }: any) => {
-          // Allow wrapping for longer content
           const shouldWrap = typeof children === 'string' && children.length > 50;
           return (
-            <td className={`px-4 py-3 text-sm text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${shouldWrap ? 'break-words' : 'whitespace-nowrap'}`} {...props}>
+            <td className={`px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${shouldWrap ? 'break-words' : 'whitespace-nowrap'}`} {...props}>
               {children}
             </td>
           );

@@ -4,7 +4,7 @@ import { getButtonTooltip } from '@/lib/markdown-support';
 import { useToast } from '@/components/toast';
 
 interface MarkdownToolbarProps {
-  onInsert: (text: string) => void;
+  onInsert: (text: string, wrap?: { prefix: string; suffix: string }) => void;
   onInsertImage?: () => void;
   galleryImages?: Array<{ url: string; favorite: boolean }>;
   content?: string;
@@ -467,19 +467,19 @@ export function MarkdownToolbar({ onInsert, onInsertImage, galleryImages, conten
   };
 
   const insertCodeBlock = () => {
-    onInsert('\n```\n// Your code here\n```\n');
+    onInsert('\n```\n// Your code here\n```\n', { prefix: '\n```\n', suffix: '\n```\n' });
   };
 
   const insertInlineCode = () => {
-    onInsert('`code`');
+    onInsert('`code`', { prefix: '`', suffix: '`' });
   };
 
   const insertBold = () => {
-    onInsert('**bold text**');
+    onInsert('**bold text**', { prefix: '**', suffix: '**' });
   };
 
   const insertItalic = () => {
-    onInsert('*italic text*');
+    onInsert('*italic text*', { prefix: '*', suffix: '*' });
   };
 
   const insertLink = () => {
@@ -640,7 +640,10 @@ Related: [${postTitle}](${currentUrl})
   };
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 p-2">
+    <div
+      className="border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 p-2"
+      onMouseDown={(e) => e.preventDefault()}
+    >
       <div className="flex flex-wrap items-center gap-1.5">
         {/* Text Formatting */}
         <div className="flex items-center gap-1 pr-2 border-r border-gray-300 dark:border-gray-700">
@@ -694,7 +697,7 @@ Related: [${postTitle}](${currentUrl})
           </button>
           <button
             type="button"
-            onClick={() => onInsert('==highlighted text==')}
+            onClick={() => onInsert('==highlighted text==', { prefix: '==', suffix: '==' })}
             className="p-1.5 rounded hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors text-yellow-600 dark:text-yellow-400"
             title="Highlight text"
           >
@@ -704,7 +707,7 @@ Related: [${postTitle}](${currentUrl})
           </button>
           <button
             type="button"
-            onClick={() => onInsert('<u>underlined text</u>')}
+            onClick={() => onInsert('<u>underlined text</u>', { prefix: '<u>', suffix: '</u>' })}
             className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
             title="Underline text"
           >
@@ -714,7 +717,7 @@ Related: [${postTitle}](${currentUrl})
           </button>
           <button
             type="button"
-            onClick={() => onInsert('||spoiler text||')}
+            onClick={() => onInsert('||spoiler text||', { prefix: '||', suffix: '||' })}
             className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
             title="Spoiler/Hidden text (click to reveal)"
           >

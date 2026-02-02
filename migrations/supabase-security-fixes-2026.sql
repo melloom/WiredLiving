@@ -252,6 +252,7 @@ CREATE POLICY "Service role can manage rate limits"
   ON rate_limits FOR INSERT
   WITH CHECK ((SELECT auth.role()) = 'service_role');
 
+DROP POLICY IF EXISTS "Admins can manage rate limits" ON rate_limits;
 CREATE POLICY "Admins can manage rate limits"
   ON rate_limits FOR ALL
   USING ((SELECT auth.jwt() ->> 'role') = 'admin')
