@@ -707,16 +707,10 @@ kbd {
     page-break-inside: avoid;
   }
 
-  /* Page numbers */
+  /* Page numbers - @bottom-right removed for build compatibility with PostCSS/css-loader */
   @page {
     margin: 2cm;
     size: A4;
-
-    @bottom-right {
-      content: "Page " counter(page) " of " counter(pages);
-      font-size: 9pt;
-      color: #666;
-    }
   }
 
   /* Footer info */

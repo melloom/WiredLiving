@@ -240,7 +240,7 @@ function autoFixHeadingHierarchy(content: string, headings: HeadingInfo[]): { co
 }
 
 /**
- * AUTO-FIX: Add language specification to code blocks
+ * AUTO-FIX: Add language specification to code blocks and close unclosed blocks
  */
 function autoFixCodeBlocks(content: string): { content: string; modified: boolean } {
   let modified = false;
@@ -248,9 +248,23 @@ function autoFixCodeBlocks(content: string): { content: string; modified: boolea
 
   // Find code blocks without language: ```\n becomes ```text\n
   const noLangRegex = /^```\n/gm;
-  
-  if (noLangRegex.test(content)) {
+  if (noLangRegex.test(result)) {
     result = result.replace(/^```\n/gm, '```text\n');
+    modified = true;
+  }
+
+  // Ensure every opening ``` or ```lang has a closing ``` (fixes "everything after is code")
+  const fenceRegex = /^```(\w*)\s*$/;
+  let inCodeBlock = false;
+  const lines = result.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    if (fenceRegex.test(trimmed)) {
+      inCodeBlock = !inCodeBlock;
+    }
+  }
+  if (inCodeBlock) {
+    result = result.trimEnd() + '\n```\n';
     modified = true;
   }
 
