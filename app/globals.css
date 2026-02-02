@@ -113,7 +113,8 @@ body {
 
 @layer utilities {
   .text-balance {
-    text-wrap: balance;
+    /* Prefer balanced heading lines where supported; safe for PostCSS build */
+    text-wrap: normal;
   }
 
   /* Prevent scrollbars from causing layout shifts when they appear/disappear */
