@@ -2864,21 +2864,18 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
 
       if (response.ok && data.success) {
         setSuccess(true);
-
-        // Log formatting info
-        console.log('✨ Post updated with formatting:', formattingSummary);
-
-        setTimeout(() => {
-          setSuccess(false);
-          onSuccess();
-        }, 2000);
+        toast.success('Post updated. Changes saved.');
+        // Close edit panel immediately and refresh list so re-opening shows saved data
+        onSuccess();
       } else {
         const errorMessage = data.error || 'Failed to update post';
         setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred. Please try again.';
       setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
