@@ -219,12 +219,9 @@ export async function PUT(
       updateData.slug_locked = slugLocked;
     }
 
-    // Decide whether the primary slug should change
-    const desiredSlug = (() => {
-      if (sanitizedSlugOverride) return sanitizedSlugOverride;
-      if (slugLocked === false && title) return slugify(title);
-      return currentPost.slug;
-    })();
+    // On update: only change slug when user explicitly sets a custom slug.
+    // Re-deriving from title would cause "duplicate slug" if another post has the same title.
+    const desiredSlug = sanitizedSlugOverride || currentPost.slug;
 
     // If slug changes, ensure uniqueness and include in update payload
     if (desiredSlug !== currentPost.slug) {

@@ -2849,26 +2849,30 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
     try {
       const payload = buildPayload();
 
-      // Get formatting summary for notification
-      const formattingResult = autoFormatContent(formData.content);
-      const formattingSummary = getFormattingSummary(formattingResult);
-
-      // Use PUT method for update
-      const response = await fetch(`/api/admin/posts/${post.slug}`, {
+      const response = await fetch(`/api/admin/posts/${encodeURIComponent(post.slug)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        credentials: 'same-origin',
+        cache: 'no-store',
       });
 
-      const data = await response.json();
+      let data: { success?: boolean; error?: string };
+      try {
+        data = await response.json();
+      } catch {
+        setError(`Server returned invalid response (${response.status})`);
+        toast.error('Could not save. Please try again.');
+        setLoading(false);
+        return;
+      }
 
       if (response.ok && data.success) {
         setSuccess(true);
         toast.success('Post updated. Changes saved.');
-        // Close edit panel immediately and refresh list so re-opening shows saved data
         onSuccess();
       } else {
-        const errorMessage = data.error || 'Failed to update post';
+        const errorMessage = data.error || `Save failed (${response.status})`;
         setError(errorMessage);
         toast.error(errorMessage);
       }
