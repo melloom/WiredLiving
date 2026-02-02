@@ -1,0 +1,735 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Performance Optimizations */
+html {
+  scroll-behavior: auto; /* Use auto, not smooth, to avoid layout thrashing */
+}
+
+/* Optimize repaints and reflows during scroll */
+body {
+  overflow-anchor: auto;
+}
+
+/* Optimize images for better scrolling performance */
+img {
+  contain: paint; /* Isolate paint operations */
+}
+
+/* Disable expensive will-change by default - use sparingly */
+.scroll-mt-20 {
+  will-change: auto;
+}
+
+/* PWA Safe Area Support for Notches and Device Features */
+:root {
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+}
+
+/* Ensure body respects safe areas */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
+
+/* Fix for iOS devices with notches */
+@supports (padding: max(0px)) {
+  body {
+    padding-top: max(0px, env(safe-area-inset-top));
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+    padding-left: max(0px, env(safe-area-inset-left));
+  }
+}
+
+/* Utility classes for safe areas */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-all {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Fix header for devices with notches */
+.safe-area-header {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
+
+/* Fix footer for devices with home indicators */
+.safe-area-footer {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+
+:root {
+  --background: #f3ede2;
+  --foreground: #22211c;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Prevent scrollbars from causing layout shifts when they appear/disappear */
+  .stable-scroll {
+    scrollbar-gutter: stable;
+  }
+}
+
+/* Gradient animation - DISABLED for performance */
+@keyframes gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  /* animation: gradient 3s ease infinite; */ /* DISABLED: Causes continuous repaints */
+}
+
+/* Grid pattern background */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.dark .bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+}
+
+/* Circuit drawing animation */
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-draw {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw 3s ease-in-out forwards;
+}
+
+.circuit-path-2 {
+  animation-delay: 1s;
+}
+
+/* Particle animation delays */
+.particle-1 {
+  animation-delay: 0s;
+}
+
+.particle-2 {
+  animation-delay: 1s;
+}
+
+.particle-3 {
+  animation-delay: 2s;
+}
+
+.particle-4 {
+  animation-delay: 1.5s;
+}
+
+/* Fade in animation for carousel */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Markdown/Prose Styles */
+.prose {
+  @apply text-gray-900 dark:text-gray-100;
+}
+
+/* Text Alignment Utilities for Prose Content */
+.prose .text-center,
+.prose [align="center"] {
+  text-align: center;
+}
+
+.prose .text-right,
+.prose [align="right"] {
+  text-align: right;
+}
+
+.prose .text-justify,
+.prose [align="justify"] {
+  text-align: justify;
+}
+
+.prose .text-left,
+.prose [align="left"] {
+  text-align: left;
+}
+
+.prose h1 {
+  @apply text-3xl font-bold mt-8 mb-4;
+}
+
+.prose h2 {
+  @apply text-2xl font-semibold mt-6 mb-3;
+}
+
+.prose h3 {
+  @apply text-xl font-semibold mt-4 mb-2;
+}
+
+.prose p {
+  @apply mb-4 leading-relaxed;
+}
+
+.prose ul,
+.prose ol {
+  @apply mb-4 ml-6;
+}
+
+.prose li {
+  @apply mb-2;
+}
+
+.prose code {
+  @apply bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono;
+}
+
+.prose pre {
+  @apply bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto mb-4;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-gray-300 dark:border-gray-700 pl-4 italic my-4;
+}
+
+.prose a {
+  @apply text-blue-600 dark:text-blue-400 hover:underline;
+}
+
+.prose img {
+  @apply rounded-lg my-8 mx-auto shadow-lg;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Center images by default with generous spacing */
+.prose p img {
+  @apply my-8 mx-auto;
+}
+
+/* Support for right-aligned images with text wrap */
+.prose img[align="right"],
+.prose img.float-right {
+  float: right;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+  margin-right: 0;
+  margin-top: 0;
+  max-width: 50%;
+  shape-margin: 1.5rem;
+}
+
+/* Support for left-aligned images with text wrap */
+.prose img[align="left"],
+.prose img.float-left {
+  float: left;
+  margin-right: 1.5rem;
+  margin-bottom: 1rem;
+  margin-left: 0;
+  margin-top: 0;
+  max-width: 50%;
+  shape-margin: 1.5rem;
+}
+
+/* Full-width images */
+.prose img.full-width {
+  @apply w-full my-12;
+  max-width: 100%;
+}
+
+/* Small inline images */
+.prose img.inline {
+  @apply inline-block mx-2 my-0;
+  max-width: 200px;
+  vertical-align: middle;
+}
+
+.prose table {
+  @apply w-full border-collapse mb-4;
+}
+
+.prose th,
+.prose td {
+  @apply border border-gray-300 dark:border-gray-700 px-4 py-2;
+}
+
+.prose th {
+  @apply bg-gray-100 dark:bg-gray-800 font-semibold;
+}
+
+/* Enhanced Markdown Features */
+
+/* Keyboard keys */
+.prose kbd,
+kbd {
+  @apply inline-block px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-sm;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Task lists / Checklists */
+/* Enhanced Task List Styling */
+.prose ul[class*="contains-task-list"] {
+  @apply list-none ml-0 space-y-2;
+}
+
+.prose input[type="checkbox"] {
+  @apply appearance-none w-5 h-5 border-2 border-blue-500 dark:border-blue-400 rounded cursor-pointer transition-colors duration-150;
+  @apply hover:border-blue-600 dark:hover:border-blue-300 hover:shadow-md;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900;
+  @apply bg-white dark:bg-gray-800;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.prose input[type="checkbox"]:checked {
+  @apply bg-blue-500 dark:bg-blue-600 border-blue-500 dark:border-blue-600;
+  @apply shadow-lg;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.prose input[type="checkbox"]:checked:hover {
+  @apply bg-blue-600 dark:bg-blue-500;
+}
+
+/* Task list item styling */
+.prose li.task-list-item {
+  @apply flex items-start gap-3 py-2 px-3 rounded-lg transition-colors duration-150;
+  @apply hover:bg-gray-50 dark:hover:bg-gray-800/50;
+}
+
+.prose li.task-list-item label {
+  @apply flex items-start gap-3 cursor-pointer w-full select-none;
+}
+
+.prose li.task-list-item label span {
+  @apply text-gray-800 dark:text-gray-200 leading-relaxed pt-0.5;
+}
+
+.prose li.task-list-item input[type="checkbox"]:checked + span {
+  @apply text-gray-500 dark:text-gray-500 line-through;
+}
+
+/* Definition lists */
+.prose dt {
+  @apply font-bold mt-4 mb-1 text-gray-900 dark:text-gray-100;
+}
+
+.prose dd {
+  @apply ml-6 mb-3 text-gray-700 dark:text-gray-300;
+}
+
+/* Footnotes */
+.prose .footnotes {
+  @apply mt-12 pt-6 border-t border-gray-300 dark:border-gray-700;
+}
+
+.prose .footnotes ol {
+  @apply text-sm text-gray-600 dark:text-gray-400;
+}
+
+.prose sup a {
+  @apply text-blue-600 dark:text-blue-400 no-underline;
+}
+
+/* Collapsible sections (details/summary) */
+.prose details {
+  @apply my-4 p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg;
+}
+
+.prose summary {
+  @apply cursor-pointer font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 select-none;
+  list-style: none;
+}
+
+.prose summary::-webkit-details-marker {
+  display: none;
+}
+
+.prose summary::before {
+  content: "▶ ";
+  @apply inline-block mr-2 transition-transform;
+}
+
+.prose details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.prose details[open] {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+/* Nested blockquotes */
+.prose blockquote blockquote {
+  @apply mt-2 border-l-2 ml-4;
+}
+
+/* Highlighted text (using mark or specific inline code) */
+.prose mark {
+  @apply bg-yellow-200 dark:bg-yellow-800 px-1;
+}
+
+/* Table of Contents specific styling */
+.prose h2#table-of-contents + ul,
+.prose h2#table-of-contents + ol {
+  @apply bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700;
+}
+
+/* Progress tracker styling (task lists with special formatting) */
+.prose .progress-tracker ul {
+  @apply bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 p-4 rounded-lg;
+}
+
+/* Print Styles */
+@media print {
+  /* Hide navigation, sidebar, and non-essential elements */
+  header,
+  footer,
+  nav,
+  aside,
+  .no-print,
+  button:not(.print-keep),
+  .share-buttons,
+  .reading-progress,
+  .newsletter-signup,
+  .bookmark-button,
+  .post-likes,
+  .table-of-contents,
+  .keyboard-shortcuts,
+  form {
+    display: none !important;
+  }
+
+  /* Full width for print */
+  body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: white !important;
+    color: #000 !important;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  /* Container styling */
+  main {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Article styling for print */
+  article {
+    max-width: 100%;
+    margin: 0;
+    padding: 1cm 1.5cm;
+  }
+
+  /* Print header with title and metadata */
+  .print-header {
+    border-bottom: 2px solid #000;
+    padding-bottom: 10pt;
+    margin-bottom: 20pt;
+  }
+
+  .print-header h1 {
+    font-size: 20pt;
+    font-weight: bold;
+    margin: 0 0 8pt 0;
+    color: #000;
+  }
+
+  .print-header .print-meta {
+    font-size: 10pt;
+    color: #333;
+  }
+
+  /* Ensure good contrast */
+  .prose {
+    color: #000 !important;
+    max-width: 100% !important;
+  }
+
+  .prose h1 {
+    font-size: 18pt;
+    font-weight: bold;
+    margin-top: 16pt;
+    margin-bottom: 8pt;
+    page-break-after: avoid;
+    color: #000 !important;
+  }
+
+  .prose h2 {
+    font-size: 16pt;
+    font-weight: bold;
+    margin-top: 14pt;
+    margin-bottom: 6pt;
+    page-break-after: avoid;
+    color: #000 !important;
+  }
+
+  .prose h3 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin-top: 12pt;
+    margin-bottom: 6pt;
+    page-break-after: avoid;
+    color: #000 !important;
+  }
+
+  .prose h4,
+  .prose h5,
+  .prose h6 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin-top: 10pt;
+    margin-bottom: 4pt;
+    page-break-after: avoid;
+    color: #000 !important;
+  }
+
+  /* Paragraph spacing */
+  .prose p {
+    margin-top: 0;
+    margin-bottom: 8pt;
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Lists */
+  .prose ul,
+  .prose ol {
+    margin-top: 8pt;
+    margin-bottom: 8pt;
+  }
+
+  .prose li {
+    margin-bottom: 4pt;
+  }
+
+  /* Links - cleaner approach */
+  .prose a {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+
+  /* Only show URLs for external links, not internal navigation */
+  .prose a[href^="http"]:after {
+    content: " [" attr(href) "]";
+    font-size: 9pt;
+    color: #555;
+    word-wrap: break-word;
+  }
+
+  /* Don't show URLs for anchor links */
+  .prose a[href^="#"]:after {
+    content: "";
+  }
+
+  /* Images */
+  .prose img {
+    max-width: 100%;
+    height: auto;
+    page-break-inside: avoid;
+    margin: 10pt 0;
+    border: 1px solid #ddd;
+  }
+
+  /* Code blocks */
+  .prose pre {
+    page-break-inside: avoid;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background: #f5f5f5 !important;
+    border: 1px solid #ddd !important;
+    padding: 8pt !important;
+    margin: 10pt 0 !important;
+    font-size: 9pt;
+    line-height: 1.4;
+  }
+
+  .prose code {
+    background: #f5f5f5 !important;
+    padding: 2pt 4pt !important;
+    border: 1px solid #ddd !important;
+    font-size: 10pt;
+    color: #000 !important;
+  }
+
+  /* Blockquotes */
+  .prose blockquote {
+    border-left: 3pt solid #000 !important;
+    padding-left: 12pt !important;
+    margin: 10pt 0 !important;
+    font-style: italic;
+    color: #333 !important;
+    background: transparent !important;
+  }
+
+  /* Tables */
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10pt 0;
+    page-break-inside: avoid;
+  }
+
+  .prose th,
+  .prose td {
+    border: 1px solid #000 !important;
+    padding: 6pt !important;
+    text-align: left;
+    background: white !important;
+    color: #000 !important;
+  }
+
+  .prose th {
+    background: #f0f0f0 !important;
+    font-weight: bold;
+  }
+
+  /* Page breaks */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+
+  img, table, pre, blockquote {
+    page-break-inside: avoid;
+  }
+
+  /* Page numbers */
+  @page {
+    margin: 2cm;
+    size: A4;
+
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: 9pt;
+      color: #666;
+    }
+  }
+
+  /* Footer info */
+  .print-footer {
+    margin-top: 20pt;
+    padding-top: 10pt;
+    border-top: 1px solid #ccc;
+    font-size: 9pt;
+    color: #666;
+  }
+}
+
+/* Footnotes styling */
+.prose .footnotes {
+  @apply mt-12 pt-8 border-t-2 border-gray-200 dark:border-gray-700;
+  font-size: 0.875rem;
+}
+
+.prose .footnotes ol {
+  @apply list-decimal pl-6 space-y-2;
+}
+
+.prose .footnotes li {
+  @apply text-gray-600 dark:text-gray-400;
+}
+
+.prose a[data-footnote-ref] {
+  @apply text-blue-600 dark:text-blue-400 no-underline;
+  @apply hover:underline;
+  font-size: 0.75em;
+  vertical-align: super;
+}
+
+.prose a[data-footnote-backref] {
+  @apply text-blue-600 dark:text-blue-400 no-underline ml-1;
+  @apply hover:underline;
+}
+
+/* Mark/Highlight text */
+.prose mark {
+  @apply bg-yellow-200 dark:bg-yellow-700/40 text-gray-900 dark:text-gray-100 px-1 rounded;
+}
+
+/* Enhanced underline */
+.prose u {
+  @apply underline decoration-2 decoration-blue-500 dark:decoration-blue-400 underline-offset-2;
+}

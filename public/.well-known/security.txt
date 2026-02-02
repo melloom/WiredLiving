@@ -1,0 +1,4 @@
+/workspaces/WiredLiving/public/MAIN PIC.pngContact: mailto:contact@mellowsites.com
+Expires: 2027-01-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://wiredliving.blog/.well-known/security.txt
