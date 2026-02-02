@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, KeyboardEvent, ClipboardEvent, useMemo, useCallback, useEffect, memo, createElement } from 'react';
+import { useState, useRef, KeyboardEvent, ClipboardEvent, useMemo, useCallback, useEffect, memo, createElement, forwardRef, useImperativeHandle } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -203,6 +203,10 @@ function EnhancedImage({ src, alt, className, ...props }: any) {
   );
 }
 
+export interface LiveMarkdownEditorHandle {
+  insertAtCursor: (text: string, wrap?: { prefix: string; suffix: string }) => void;
+}
+
 interface LiveMarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -380,7 +384,7 @@ const MarkdownPreview = memo(({ content, inline = false }: { content: string; in
 
 MarkdownPreview.displayName = 'MarkdownPreview';
 
-export function LiveMarkdownEditor({
+export const LiveMarkdownEditor = forwardRef<LiveMarkdownEditorHandle, LiveMarkdownEditorProps>(function LiveMarkdownEditor({
   value,
   onChange,
   placeholder = 'Write your content here...',
@@ -389,7 +393,7 @@ export function LiveMarkdownEditor({
   title,
   onFormat,
   className = '',
-}: LiveMarkdownEditorProps) {
+}, ref) {
   const [mode, setMode] = useState<'write' | 'preview' | 'split'>('split');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [localValue, setLocalValue] = useState(value);
@@ -490,6 +494,10 @@ export function LiveMarkdownEditor({
       textarea.setSelectionRange(start + text.length, start + text.length);
     }, 0);
   };
+
+  useImperativeHandle(ref, () => ({
+    insertAtCursor,
+  }), [insertAtCursor]);
 
   // Auto-pair brackets, quotes, and markdown syntax
   const handleAutoPair = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1001,4 +1009,4 @@ export function LiveMarkdownEditor({
       )}
     </div>
   );
-}
+});

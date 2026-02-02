@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-client';
 import { BlogPost } from '@/types';
-import { formatDate } from '@/lib/utils';
+import { formatDate, extractImageUrlsFromContent } from '@/lib/utils';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import readingTime from 'reading-time';
@@ -16,7 +16,7 @@ import { ImageCropModal } from '@/components/image-crop-modal';
 import { MediaUploadButton } from '@/components/media-upload-button';
 import { useToast } from '@/components/toast';
 import { useConfirm } from '@/components/confirm-dialog';
-import { LiveMarkdownEditor } from '@/components/live-markdown-editor';
+import { LiveMarkdownEditor, type LiveMarkdownEditorHandle } from '@/components/live-markdown-editor';
 import { generateSmartSEO, validateSEO } from '@/lib/seo-generator';
 import { SeriesMetadataModal } from '@/components/series-metadata-modal';
 import type { SeriesMetadata } from '@/types';
@@ -1190,7 +1190,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
     featured: false,
     seoTitle: '',
     seoDescription: '',
-    galleryImages: [] as Array<{ url: string; favorite: boolean }>,
+    galleryImages: [] as Array<{ url: string; favorite: boolean; size?: 'small'|'medium'|'large'|'full' }>,
     // New fields
     category: '',
     series: '',
@@ -1228,8 +1228,23 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<LiveMarkdownEditorHandle>(null);
   const coverObjectPosition = formData.coverImageCrop?.objectPosition || 'center';
+
+  // Sync image/GIF URLs from content into additional images gallery (so inserted GIFs show up automatically)
+  useEffect(() => {
+    const urls = extractImageUrlsFromContent(formData.content || '');
+    const existing = new Set(formData.galleryImages.map((img) => img.url));
+    const toAdd = urls.filter((u) => !existing.has(u));
+    if (toAdd.length === 0) return;
+    setFormData((prev) => ({
+      ...prev,
+      galleryImages: [
+        ...prev.galleryImages,
+        ...toAdd.map((url) => ({ url, favorite: false, size: 'medium' as const })),
+      ],
+    }));
+  }, [formData.content]);
 
   // Fetch existing series from database
   useEffect(() => {
@@ -1326,8 +1341,8 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
           ...draft,
           tags: typeof draft.tags === 'string' ? draft.tags : draft.tags?.join(', ') || '',
           galleryImages: Array.isArray(draft.galleryImages)
-            ? draft.galleryImages.map((url: string | { url: string; favorite?: boolean }) =>
-                typeof url === 'string' ? { url, favorite: false } : { url: url.url, favorite: url.favorite || false }
+            ? draft.galleryImages.map((url: string | { url: string; favorite?: boolean; size?: 'small'|'medium'|'large'|'full' }) =>
+                typeof url === 'string' ? { url, favorite: false, size: 'medium' as const } : { url: url.url, favorite: url.favorite || false, size: url.size ?? 'medium' }
               )
             : [],
         });
@@ -1669,7 +1684,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
 
       setFormData((prev) => ({
         ...prev,
-        galleryImages: [...prev.galleryImages, ...uploadedUrls.map(url => ({ url, favorite: false }))],
+        galleryImages: [...prev.galleryImages, ...uploadedUrls.map(url => ({ url, favorite: false, size: 'medium' as const }))],
       }));
     } catch (err) {
       setGalleryUploadError(err instanceof Error ? err.message : 'Failed to upload images');
@@ -1697,7 +1712,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
     // Add to gallery
     setFormData((prev) => ({
       ...prev,
-      galleryImages: [...prev.galleryImages, { url: trimmedUrl, favorite: false }],
+      galleryImages: [...prev.galleryImages, { url: trimmedUrl, favorite: false, size: 'medium' as const }],
     }));
     setGalleryUploadError('');
   };
@@ -1741,25 +1756,14 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
     }
   };
 
-  // Quick insert function for markdown toolbar
+  // Quick insert function — delegates to editor ref so gallery/toolbar inserts go to the right textarea
   const insertAtCursor = (text: string) => {
-    const textarea = contentTextareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const before = formData.content.substring(0, start);
-    const after = formData.content.substring(end);
-    const newContent = before + text + after;
-
-    setFormData((prev) => ({ ...prev, content: newContent }));
-
-    // Restore cursor position
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + text.length, start + text.length);
-    }, 0);
+    editorRef.current?.insertAtCursor(text);
   };
+
+  // Size class for gallery insert (works for images and GIFs in mdx-content)
+  const getSizeClass = (size: 'small'|'medium'|'large'|'full' = 'medium') =>
+    size === 'full' ? 'full-width' : `size-${size}`;
 
   return (
     <div className="bg-white/90 dark:bg-gray-900/90 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden">
@@ -1936,6 +1940,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
 
                 <div className="mt-2">
                   <LiveMarkdownEditor
+                    ref={editorRef}
                     value={formData.content}
                     onChange={(value) => setFormData({ ...formData, content: value })}
                     placeholder="# Intro — share the story, insights, or deep dive for this post here..."
@@ -2136,21 +2141,40 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                   )}
                   {formData.galleryImages.length > 0 && (
                     <div className="mt-2 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-80 overflow-auto">
-                      {formData.galleryImages.map((img, idx) => (
-                        <div key={img.url + idx} className="flex flex-col gap-1 rounded-lg border border-gray-200 dark:border-gray-700 p-2 bg-white dark:bg-gray-950">
-                          <img src={img.url} alt="" className="w-full aspect-video object-cover rounded" />
-                          <div className="grid grid-cols-2 gap-1">
-                            <button type="button" onClick={() => insertAtCursor(`![](${img.url})`)} className="px-1 py-1 rounded bg-blue-50 dark:bg-blue-900/40 text-[9px] text-blue-700 dark:text-blue-200">📐 Center</button>
-                            <button type="button" onClick={() => insertAtCursor(`<img src="${img.url}" alt="" align="right" />`)} className="px-1 py-1 rounded bg-green-50 dark:bg-green-900/40 text-[9px] text-green-700 dark:text-green-200">➡️ Right</button>
-                            <button type="button" onClick={() => insertAtCursor(`<img src="${img.url}" alt="" align="left" />`)} className="px-1 py-1 rounded bg-purple-50 dark:bg-purple-900/40 text-[9px] text-purple-700 dark:text-purple-200">⬅️ Left</button>
-                            <button type="button" onClick={() => insertAtCursor(`<img src="${img.url}" alt="" class="full-width" />`)} className="px-1 py-1 rounded bg-indigo-50 dark:bg-indigo-900/40 text-[9px] text-indigo-700 dark:text-indigo-200">↔️ Full</button>
+                      {formData.galleryImages.map((img, idx) => {
+                        const size = img.size ?? 'medium';
+                        const sizeClass = getSizeClass(size);
+                        const insertImg = (align: 'center' | 'right' | 'left' | 'full') => {
+                          if (align === 'full') {
+                            insertAtCursor(`<img src="${img.url}" alt="" class="full-width" />`);
+                          } else if (align === 'center') {
+                            insertAtCursor(`<img src="${img.url}" alt="" class="${sizeClass}" />`);
+                          } else {
+                            insertAtCursor(`<img src="${img.url}" alt="" align="${align}" class="${sizeClass}" />`);
+                          }
+                        };
+                        return (
+                          <div key={img.url + idx} className="flex flex-col gap-1 rounded-lg border border-gray-200 dark:border-gray-700 p-2 bg-white dark:bg-gray-950">
+                            <img src={img.url} alt="" className="w-full aspect-video object-cover rounded" />
+                            <div className="text-[9px] text-gray-500 dark:text-gray-400 font-medium">Size</div>
+                            <div className="flex flex-wrap gap-0.5">
+                              {(['small', 'medium', 'large', 'full'] as const).map((s) => (
+                                <button key={s} type="button" onClick={() => setFormData((prev) => { const next = [...prev.galleryImages]; next[idx] = { ...next[idx], size: s }; return { ...prev, galleryImages: next }; })} className={`px-1 py-0.5 rounded text-[9px] ${size === s ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>{s === 'full' ? 'Full' : s.charAt(0).toUpperCase() + s.slice(1)}</button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button type="button" onClick={() => insertImg('center')} className="px-1 py-1 rounded bg-blue-50 dark:bg-blue-900/40 text-[9px] text-blue-700 dark:text-blue-200">📐 Center</button>
+                              <button type="button" onClick={() => insertImg('right')} className="px-1 py-1 rounded bg-green-50 dark:bg-green-900/40 text-[9px] text-green-700 dark:text-green-200">➡️ Right</button>
+                              <button type="button" onClick={() => insertImg('left')} className="px-1 py-1 rounded bg-purple-50 dark:bg-purple-900/40 text-[9px] text-purple-700 dark:text-purple-200">⬅️ Left</button>
+                              <button type="button" onClick={() => insertImg('full')} className="px-1 py-1 rounded bg-indigo-50 dark:bg-indigo-900/40 text-[9px] text-indigo-700 dark:text-indigo-200">↔️ Full</button>
+                            </div>
+                            <div className="flex gap-1">
+                              <button type="button" onClick={() => copyGalleryImageUrl(img.url)} className="flex-1 px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-[9px]">Copy</button>
+                              <button type="button" onClick={() => removeGalleryImage(idx)} className="flex-1 px-1 py-0.5 rounded bg-red-50 dark:bg-red-900/30 text-[9px] text-red-600">Remove</button>
+                            </div>
                           </div>
-                          <div className="flex gap-1">
-                            <button type="button" onClick={() => copyGalleryImageUrl(img.url)} className="flex-1 px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-[9px]">Copy</button>
-                            <button type="button" onClick={() => removeGalleryImage(idx)} className="flex-1 px-1 py-0.5 rounded bg-red-50 dark:bg-red-900/30 text-[9px] text-red-600">Remove</button>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -2625,7 +2649,7 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
     featured: post.featured || false,
     seoTitle: post.seoTitle || '',
     seoDescription: post.seoDescription || '',
-    galleryImages: (post.galleryImages || []).map(url => ({ url, favorite: false })) as Array<{ url: string; favorite: boolean }>,
+    galleryImages: (post.galleryImages || []).map(url => ({ url, favorite: false, size: 'medium' as const })) as Array<{ url: string; favorite: boolean; size?: 'small'|'medium'|'large'|'full' }>,
     category: post.category || '',
     series: post.series || '',
     seriesOrder: post.seriesOrder ?? null,
@@ -2658,8 +2682,23 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
   const [readingTimeMinutes, setReadingTimeMinutes] = useState(0);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
-  const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<LiveMarkdownEditorHandle>(null);
   const coverObjectPosition = formData.coverImageCrop?.objectPosition || 'center';
+
+  // Sync image/GIF URLs from content into additional images gallery (edit form)
+  useEffect(() => {
+    const urls = extractImageUrlsFromContent(formData.content || '');
+    const existing = new Set(formData.galleryImages.map((img) => img.url));
+    const toAdd = urls.filter((u) => !existing.has(u));
+    if (toAdd.length === 0) return;
+    setFormData((prev) => ({
+      ...prev,
+      galleryImages: [
+        ...prev.galleryImages,
+        ...toAdd.map((url) => ({ url, favorite: false, size: 'medium' as const })),
+      ],
+    }));
+  }, [formData.content]);
 
   // Fetch existing series from database
   useEffect(() => {
@@ -2713,7 +2752,7 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
     // Add to gallery
     setFormData((prev) => ({
       ...prev,
-      galleryImages: [...prev.galleryImages, { url: trimmedUrl, favorite: false }],
+      galleryImages: [...prev.galleryImages, { url: trimmedUrl, favorite: false, size: 'medium' as const }],
     }));
     setGalleryUploadError('');
   };
@@ -2854,22 +2893,11 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
   };
 
   const insertAtCursor = (text: string) => {
-    const textarea = contentTextareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const before = formData.content.substring(0, start);
-    const after = formData.content.substring(end);
-    const newContent = before + text + after;
-
-    setFormData((prev) => ({ ...prev, content: newContent }));
-
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + text.length, start + text.length);
-    }, 0);
+    editorRef.current?.insertAtCursor(text);
   };
+
+  const getSizeClass = (size: 'small'|'medium'|'large'|'full' = 'medium') =>
+    size === 'full' ? 'full-width' : `size-${size}`;
 
   const handleCoverUpload = async (file: File | null) => {
     if (!file) return;
@@ -2927,7 +2955,7 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
 
       setFormData((prev) => ({
         ...prev,
-        galleryImages: [...prev.galleryImages, ...uploadedUrls.map(url => ({ url, favorite: false }))],
+        galleryImages: [...prev.galleryImages, ...uploadedUrls.map(url => ({ url, favorite: false, size: 'medium' as const }))],
       }));
     } catch (err) {
       setGalleryUploadError(err instanceof Error ? err.message : 'Failed to upload images');
@@ -3050,6 +3078,7 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
 
                 <div className="mt-2">
                   <LiveMarkdownEditor
+                    ref={editorRef}
                     value={formData.content}
                     onChange={(value) => setFormData({ ...formData, content: value })}
                     placeholder="# Intro — share the story, insights, or deep dive for this post here..."
@@ -3250,21 +3279,40 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                   )}
                   {formData.galleryImages.length > 0 && (
                     <div className="mt-2 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-80 overflow-auto">
-                      {formData.galleryImages.map((img, idx) => (
-                        <div key={img.url + idx} className="flex flex-col gap-1 rounded-lg border border-gray-200 dark:border-gray-700 p-2 bg-white dark:bg-gray-950">
-                          <img src={img.url} alt="" className="w-full aspect-video object-cover rounded" />
-                          <div className="grid grid-cols-2 gap-1">
-                            <button type="button" onClick={() => insertAtCursor(`![](${img.url})`)} className="px-1 py-1 rounded bg-blue-50 dark:bg-blue-900/40 text-[9px] text-blue-700 dark:text-blue-200">📐 Center</button>
-                            <button type="button" onClick={() => insertAtCursor(`<img src="${img.url}" alt="" align="right" />`)} className="px-1 py-1 rounded bg-green-50 dark:bg-green-900/40 text-[9px] text-green-700 dark:text-green-200">➡️ Right</button>
-                            <button type="button" onClick={() => insertAtCursor(`<img src="${img.url}" alt="" align="left" />`)} className="px-1 py-1 rounded bg-purple-50 dark:bg-purple-900/40 text-[9px] text-purple-700 dark:text-purple-200">⬅️ Left</button>
-                            <button type="button" onClick={() => insertAtCursor(`<img src="${img.url}" alt="" class="full-width" />`)} className="px-1 py-1 rounded bg-indigo-50 dark:bg-indigo-900/40 text-[9px] text-indigo-700 dark:text-indigo-200">↔️ Full</button>
+                      {formData.galleryImages.map((img, idx) => {
+                        const size = img.size ?? 'medium';
+                        const sizeClass = getSizeClass(size);
+                        const insertImg = (align: 'center' | 'right' | 'left' | 'full') => {
+                          if (align === 'full') {
+                            insertAtCursor(`<img src="${img.url}" alt="" class="full-width" />`);
+                          } else if (align === 'center') {
+                            insertAtCursor(`<img src="${img.url}" alt="" class="${sizeClass}" />`);
+                          } else {
+                            insertAtCursor(`<img src="${img.url}" alt="" align="${align}" class="${sizeClass}" />`);
+                          }
+                        };
+                        return (
+                          <div key={img.url + idx} className="flex flex-col gap-1 rounded-lg border border-gray-200 dark:border-gray-700 p-2 bg-white dark:bg-gray-950">
+                            <img src={img.url} alt="" className="w-full aspect-video object-cover rounded" />
+                            <div className="text-[9px] text-gray-500 dark:text-gray-400 font-medium">Size</div>
+                            <div className="flex flex-wrap gap-0.5">
+                              {(['small', 'medium', 'large', 'full'] as const).map((s) => (
+                                <button key={s} type="button" onClick={() => setFormData((prev) => { const next = [...prev.galleryImages]; next[idx] = { ...next[idx], size: s }; return { ...prev, galleryImages: next }; })} className={`px-1 py-0.5 rounded text-[9px] ${size === s ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>{s === 'full' ? 'Full' : s.charAt(0).toUpperCase() + s.slice(1)}</button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button type="button" onClick={() => insertImg('center')} className="px-1 py-1 rounded bg-blue-50 dark:bg-blue-900/40 text-[9px] text-blue-700 dark:text-blue-200">📐 Center</button>
+                              <button type="button" onClick={() => insertImg('right')} className="px-1 py-1 rounded bg-green-50 dark:bg-green-900/40 text-[9px] text-green-700 dark:text-green-200">➡️ Right</button>
+                              <button type="button" onClick={() => insertImg('left')} className="px-1 py-1 rounded bg-purple-50 dark:bg-purple-900/40 text-[9px] text-purple-700 dark:text-purple-200">⬅️ Left</button>
+                              <button type="button" onClick={() => insertImg('full')} className="px-1 py-1 rounded bg-indigo-50 dark:bg-indigo-900/40 text-[9px] text-indigo-700 dark:text-indigo-200">↔️ Full</button>
+                            </div>
+                            <div className="flex gap-1">
+                              <button type="button" onClick={() => copyGalleryImageUrl(img.url)} className="flex-1 px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-[9px]">Copy</button>
+                              <button type="button" onClick={() => removeGalleryImage(idx)} className="flex-1 px-1 py-0.5 rounded bg-red-50 dark:bg-red-900/30 text-[9px] text-red-600">Remove</button>
+                            </div>
                           </div>
-                          <div className="flex gap-1">
-                            <button type="button" onClick={() => copyGalleryImageUrl(img.url)} className="flex-1 px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-[9px]">Copy</button>
-                            <button type="button" onClick={() => removeGalleryImage(idx)} className="flex-1 px-1 py-0.5 rounded bg-red-50 dark:bg-red-900/30 text-[9px] text-red-600">Remove</button>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>

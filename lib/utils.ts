@@ -42,4 +42,25 @@ export function generateHeadingId(text: string): { id: string; cleanText: string
   return { id, cleanText: textStr };
 }
 
-
+/**
+ * Extract image/GIF URLs from markdown or HTML content.
+ * Used to sync content-inserted images into the additional images gallery.
+ */
+export function extractImageUrlsFromContent(content: string): string[] {
+  if (!content?.trim()) return [];
+  const urls: string[] = [];
+  // Markdown image: ![alt](url)
+  const markdownRe = /!\[[^\]]*\]\((https?:\/\/[^)\s"']+|[^)\s"']+)\)/g;
+  let m: RegExpExecArray | null;
+  while ((m = markdownRe.exec(content)) !== null) {
+    const u = m[1].trim();
+    if (u && !urls.includes(u)) urls.push(u);
+  }
+  // HTML img: <img ... src="url" or src='url'
+  const htmlRe = /<img[^>]+src=["']([^"']+)["']/gi;
+  while ((m = htmlRe.exec(content)) !== null) {
+    const u = m[1].trim();
+    if (u && !urls.includes(u)) urls.push(u);
+  }
+  return urls;
+}
