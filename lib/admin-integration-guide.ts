@@ -62,8 +62,7 @@ import { autoFormatContent, getFormattingSummary } from '@/lib/content-auto-form
  * ✅ Image Alt Text: Generate from filename if missing
  *    ![](photo.png) → ![photo](photo.png)
  * 
- * ✅ Code Block Language: Default to 'text' if not specified
- *    ``` → ```text
+ * ✅ Code blocks: Bare ``` is preserved (no longer forced to ```text). Unclosed blocks get a closing ```.
  * 
  * ✅ Table of Contents: Generated from heading structure
  * 

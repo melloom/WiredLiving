@@ -240,21 +240,49 @@ function autoFixHeadingHierarchy(content: string, headings: HeadingInfo[]): { co
 }
 
 /**
- * AUTO-FIX: Add language specification to code blocks and close unclosed blocks
+ * AUTO-FIX: Fix code blocks so "whole thing code blocked" doesn't happen.
+ * - Do NOT add ```text to bare ``` (user choice).
+ * - Fix "double open": ```text ... ```text followed by markdown → second becomes ``` only (close, don't open).
+ * - Ensure unclosed blocks get a closing ```.
  */
 function autoFixCodeBlocks(content: string): { content: string; modified: boolean } {
   let modified = false;
   let result = content;
-
-  // Do NOT change bare ``` to ```text - user may want no language; adding "text" caused
-  // "code blocking everything" and revert on save when they removed it.
-
-  // Ensure every opening ``` or ```lang has a closing ``` (fixes "everything after is code")
-  const fenceRegex = /^```(\w*)\s*$/;
-  let inCodeBlock = false;
   const lines = result.split('\n');
+  const fenceRegex = /^```(\w*)\s*$/;
+
+  // Fix "double open": when we're inside a code block and see ```lang, and the NEXT non-empty line
+  // looks like markdown (##, **, -, |, <), treat this line as close-only so the rest isn't code-blocked.
+  let fenceCount = 0;
   for (let i = 0; i < lines.length; i++) {
     const trimmed = lines[i].trim();
+    if (fenceRegex.test(trimmed)) {
+      const hasLang = trimmed.length > 3 && /\w/.test(trimmed.slice(3));
+      if (hasLang && fenceCount % 2 === 1) {
+        let nextNonEmpty = '';
+        for (let k = i + 1; k < lines.length; k++) {
+          const t = lines[k].trim();
+          if (t) {
+            nextNonEmpty = t;
+            break;
+          }
+        }
+        if (/^(#{1,6}\s|\*\*|[\-\*]\s|\||<\w|<\?)/.test(nextNonEmpty)) {
+          lines[i] = lines[i].replace(/^(\s*)```\w+/, '$1```');
+          result = lines.join('\n');
+          modified = true;
+          break;
+        }
+      }
+      fenceCount++;
+    }
+  }
+
+  // Ensure every opening ``` or ```lang has a closing ``` (fix unclosed at end)
+  let inCodeBlock = false;
+  const lines2 = result.split('\n');
+  for (let i = 0; i < lines2.length; i++) {
+    const trimmed = lines2[i].trim();
     if (fenceRegex.test(trimmed)) {
       inCodeBlock = !inCodeBlock;
     }
