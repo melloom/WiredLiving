@@ -346,7 +346,7 @@ body {
   }
 }
 
-/* Prose tables - scrollable on mobile */
+/* Prose tables - scrollable on mobile with clear affordance */
 .prose table {
   @apply w-full border-collapse mb-4;
 }
@@ -360,6 +360,26 @@ body {
   .prose th,
   .prose td {
     @apply px-2 py-1.5 text-sm;
+  }
+}
+
+/* Mobile table scroll: hint that more columns exist to the right */
+@media (max-width: 639px) {
+  .table-scroll-inner {
+    position: relative;
+  }
+  .table-scroll-inner::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    background: linear-gradient(to left, rgba(255,255,255,0.9) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  .dark .table-scroll-inner::after {
+    background: linear-gradient(to left, rgba(17,24,39,0.95) 0%, transparent 100%);
   }
 }
 

@@ -445,19 +445,23 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
         hr: ({ ...props }: { [key: string]: any }) => (
           <hr className="my-16 border-2 border-gray-200 dark:border-gray-700 rounded" {...props} />
         ),
-        // Custom table component with ID for quick-link navigation and enhanced styling with zebra striping
-        // Mobile: -mx-4 breaks out of padding for full-width scroll area; overflow-touch enables smooth iOS scrolling
+        // Custom table component: mobile-friendly horizontal scroll with hint; wide tables don't squish
         table: ({ children, ...props }: { children: React.ReactNode; [key: string]: any }) => {
           const tableId = ++tableCounterRef.current;
           return (
             <div
               id={`tbl-table-${tableId}`}
-              className="overflow-x-auto overflow-y-visible my-6 sm:my-8 -mx-4 sm:mx-0 px-4 sm:px-0 scroll-mt-20 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-900 overflow-touch"
+              className="my-6 sm:my-8 -mx-4 sm:mx-0 px-4 sm:px-0 scroll-mt-20 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-900 overflow-touch"
               style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
             >
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700" {...props}>
-                {children}
-              </table>
+              <p className="sm:hidden text-[11px] text-gray-500 dark:text-gray-400 px-3 pt-2 pb-1 border-b border-gray-100 dark:border-gray-800">
+                Swipe sideways to see all columns →
+              </p>
+              <div className="overflow-x-auto overflow-y-visible table-scroll-inner">
+                <table className="min-w-full min-w-max divide-y divide-gray-200 dark:divide-gray-700" {...props}>
+                  {children}
+                </table>
+              </div>
             </div>
           );
         },

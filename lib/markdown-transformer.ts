@@ -246,12 +246,8 @@ function autoFixCodeBlocks(content: string): { content: string; modified: boolea
   let modified = false;
   let result = content;
 
-  // Find code blocks without language: ```\n becomes ```text\n
-  const noLangRegex = /^```\n/gm;
-  if (noLangRegex.test(result)) {
-    result = result.replace(/^```\n/gm, '```text\n');
-    modified = true;
-  }
+  // Do NOT change bare ``` to ```text - user may want no language; adding "text" caused
+  // "code blocking everything" and revert on save when they removed it.
 
   // Ensure every opening ``` or ```lang has a closing ``` (fixes "everything after is code")
   const fenceRegex = /^```(\w*)\s*$/;
