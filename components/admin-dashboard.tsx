@@ -2192,21 +2192,12 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                 </div>
               </div>
 
-              {/* Sidebar Music Player */}
+              {/* Sticky Music Player */}
               <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    🎵 Sidebar Music Player
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: !formData.sidebarMusicPlayer?.enabled } })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.sidebarMusicPlayer?.enabled ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.sidebarMusicPlayer?.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
-                  </button>
-                </div>
-                {formData.sidebarMusicPlayer?.enabled && (
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                  🎵 Sticky Music Player
+                </h3>
+                <div className="space-y-3">
                   <div className="space-y-3">
                     {/<music\s/i.test(formData.content) && (
                       <div className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-red-600 dark:text-red-400">
@@ -2219,7 +2210,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                         <input
                           type="text"
                           value={formData.sidebarMusicPlayer?.src || ''}
-                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: e.target.value } })}
+                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { enabled: !!e.target.value, src: e.target.value, title: formData.sidebarMusicPlayer?.title || '', artist: formData.sidebarMusicPlayer?.artist || '' } })}
                           placeholder="https://example.com/song.mp3 or YouTube URL"
                           className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
                         />
@@ -2281,7 +2272,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                         <input
                           type="text"
                           value={formData.sidebarMusicPlayer?.title || ''}
-                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: formData.sidebarMusicPlayer?.src || '', title: e.target.value } })}
+                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, title: e.target.value } })}
                           placeholder="Song name"
                           className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
                         />
@@ -2291,7 +2282,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                         <input
                           type="text"
                           value={formData.sidebarMusicPlayer?.artist || ''}
-                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: formData.sidebarMusicPlayer?.src || '', artist: e.target.value } })}
+                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, artist: e.target.value } })}
                           placeholder="Artist name"
                           className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
                         />
@@ -2310,7 +2301,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                       </div>
                     )}
                     
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear in the sidebar of this post. Only one music player per post is allowed.</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear as a sticky widget at the bottom-right of the screen. Only one music player per post is allowed.</p>
                   </div>
                 )}
               </div>
@@ -3477,21 +3468,12 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                 </div>
               </div>
 
-              {/* Sidebar Music Player */}
+              {/* Sticky Music Player */}
               <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    🎵 Sidebar Music Player
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: !formData.sidebarMusicPlayer?.enabled } })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.sidebarMusicPlayer?.enabled ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.sidebarMusicPlayer?.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
-                  </button>
-                </div>
-                {formData.sidebarMusicPlayer?.enabled && (
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                  🎵 Sticky Music Player
+                </h3>
+                <div className="space-y-3">
                   <div className="space-y-3">
                     {/<music\s/i.test(formData.content) && (
                       <div className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-red-600 dark:text-red-400">
@@ -3504,7 +3486,7 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                         <input
                           type="text"
                           value={formData.sidebarMusicPlayer?.src || ''}
-                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: e.target.value } })}
+                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { enabled: !!e.target.value, src: e.target.value, title: formData.sidebarMusicPlayer?.title || '', artist: formData.sidebarMusicPlayer?.artist || '' } })}
                           placeholder="https://example.com/song.mp3 or YouTube URL"
                           className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
                         />
@@ -3566,7 +3548,7 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                         <input
                           type="text"
                           value={formData.sidebarMusicPlayer?.title || ''}
-                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: formData.sidebarMusicPlayer?.src || '', title: e.target.value } })}
+                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, title: e.target.value } })}
                           placeholder="Song name"
                           className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
                         />
@@ -3576,7 +3558,7 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                         <input
                           type="text"
                           value={formData.sidebarMusicPlayer?.artist || ''}
-                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: formData.sidebarMusicPlayer?.src || '', artist: e.target.value } })}
+                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, artist: e.target.value } })}
                           placeholder="Artist name"
                           className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
                         />
@@ -3595,7 +3577,7 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                       </div>
                     )}
                     
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear in the sidebar of this post. Only one music player per post is allowed.</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear as a sticky widget at the bottom-right of the screen. Only one music player per post is allowed.</p>
                   </div>
                 )}
               </div>

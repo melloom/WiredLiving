@@ -148,11 +148,11 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
       />
       
       <div
-        className={`fixed bottom-0 left-0 right-0 bg-gradient-to-r from-gray-900 via-purple-900/90 to-gray-900 backdrop-blur-xl border-t border-purple-500/20 shadow-2xl transition-all duration-500 z-50 ${
-          isExpanded ? 'h-32' : 'h-20'
+        className={`fixed bottom-4 right-4 bg-gradient-to-r from-gray-900 via-purple-900/90 to-gray-900 backdrop-blur-xl border border-purple-500/20 shadow-2xl rounded-2xl transition-all duration-500 z-50 max-w-md ${
+          isExpanded ? 'w-96 h-32' : 'w-80 h-20'
         }`}
       >
-        <div className="container mx-auto px-4 h-full flex items-center justify-between">
+        <div className="p-4 h-full flex items-center justify-between gap-3">
           {/* Album Art and Info */}
           <div className="flex items-center gap-4 flex-1">
             <div className="relative w-14 h-14 rounded-lg overflow-hidden shadow-lg">
@@ -193,8 +193,8 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
 
           {/* Progress Bar - Visible when expanded */}
           {isExpanded && (
-            <div className="flex-1 max-w-md mx-8">
-              <div className="flex items-center gap-3">
+            <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/20 rounded-b-2xl">
+              <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-300">{formatTime(currentTime)}</span>
                 <input
                   type="range"
@@ -274,9 +274,6 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
           </div>
         </div>
       </div>
-
-      {/* Add padding to body when player is visible */}
-      {isVisible && <div className="h-20" />}
 
       <style jsx>{`
         .slider::-webkit-slider-thumb {
