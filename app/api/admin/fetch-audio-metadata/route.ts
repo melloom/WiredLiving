@@ -25,7 +25,9 @@ function extractYouTubeId(url: string): string | null {
  */
 async function fetchYouTubeMetadata(videoId: string) {
   if (!YOUTUBE_API_KEY) {
-    throw new Error('YouTube API key not configured');
+    // Return empty metadata instead of throwing to prevent errors
+    console.warn('YouTube API key not configured');
+    return { title: '', artist: '' };
   }
 
   const response = await fetch(

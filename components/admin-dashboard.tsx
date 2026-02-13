@@ -1416,8 +1416,8 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
     };
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError('');
 
     // Validate: no two music players
@@ -2224,12 +2224,16 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                         />
                         <button
                           type="button"
-                          onClick={async () => {
+                          onClick={async (event: React.MouseEvent<HTMLButtonElement>) => {
                             const url = formData.sidebarMusicPlayer?.src;
                             if (!url) {
                               toast.error('Please enter a URL first');
                               return;
                             }
+                            
+                            // Prevent multiple clicks
+                            const button = event.currentTarget;
+                            button.disabled = true;
                             
                             try {
                               const response = await fetch('/api/admin/fetch-audio-metadata', {
@@ -2240,22 +2244,25 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                               
                               const data = await response.json();
                               if (data.success) {
-                                setFormData({
-                                  ...formData,
+                                setFormData(prev => ({
+                                  ...prev,
                                   sidebarMusicPlayer: {
-                                    ...formData.sidebarMusicPlayer,
+                                    ...prev.sidebarMusicPlayer,
                                     enabled: true,
                                     src: url,
                                     title: data.metadata.title || '',
                                     artist: data.metadata.artist || '',
                                   }
-                                });
+                                }));
                                 toast.success('Metadata fetched successfully!');
                               } else {
                                 toast.error(data.error || 'Failed to fetch metadata');
                               }
                             } catch (error) {
+                              console.error('Fetch error:', error);
                               toast.error('Error fetching metadata');
+                            } finally {
+                              button.disabled = false;
                             }
                           }}
                           className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors flex items-center gap-1"
@@ -2970,8 +2977,8 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
     };
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError('');
 
     // Validate: no two music players
@@ -3489,12 +3496,16 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                         />
                         <button
                           type="button"
-                          onClick={async () => {
+                          onClick={async (event: React.MouseEvent<HTMLButtonElement>) => {
                             const url = formData.sidebarMusicPlayer?.src;
                             if (!url) {
                               toast.error('Please enter a URL first');
                               return;
                             }
+                            
+                            // Prevent multiple clicks
+                            const button = event.currentTarget;
+                            button.disabled = true;
                             
                             try {
                               const response = await fetch('/api/admin/fetch-audio-metadata', {
@@ -3505,22 +3516,25 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                               
                               const data = await response.json();
                               if (data.success) {
-                                setFormData({
-                                  ...formData,
+                                setFormData(prev => ({
+                                  ...prev,
                                   sidebarMusicPlayer: {
-                                    ...formData.sidebarMusicPlayer,
+                                    ...prev.sidebarMusicPlayer,
                                     enabled: true,
                                     src: url,
                                     title: data.metadata.title || '',
                                     artist: data.metadata.artist || '',
                                   }
-                                });
+                                }));
                                 toast.success('Metadata fetched successfully!');
                               } else {
                                 toast.error(data.error || 'Failed to fetch metadata');
                               }
                             } catch (error) {
+                              console.error('Fetch error:', error);
                               toast.error('Error fetching metadata');
+                            } finally {
+                              button.disabled = false;
                             }
                           }}
                           className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors flex items-center gap-1"
