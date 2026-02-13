@@ -2214,13 +2214,58 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                     )}
                     <div>
                       <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">Audio URL or YouTube URL <span className="text-red-500">*</span></label>
-                      <input
-                        type="text"
-                        value={formData.sidebarMusicPlayer?.src || ''}
-                        onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: e.target.value } })}
-                        placeholder="https://example.com/song.mp3 or YouTube URL"
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={formData.sidebarMusicPlayer?.src || ''}
+                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: e.target.value } })}
+                          placeholder="https://example.com/song.mp3 or YouTube URL"
+                          className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const url = formData.sidebarMusicPlayer?.src;
+                            if (!url) {
+                              toast.error('Please enter a URL first');
+                              return;
+                            }
+                            
+                            try {
+                              const response = await fetch('/api/admin/fetch-audio-metadata', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ url }),
+                              });
+                              
+                              const data = await response.json();
+                              if (data.success) {
+                                setFormData({
+                                  ...formData,
+                                  sidebarMusicPlayer: {
+                                    ...formData.sidebarMusicPlayer,
+                                    enabled: true,
+                                    src: url,
+                                    title: data.metadata.title || '',
+                                    artist: data.metadata.artist || '',
+                                  }
+                                });
+                                toast.success('Metadata fetched successfully!');
+                              } else {
+                                toast.error(data.error || 'Failed to fetch metadata');
+                              }
+                            } catch (error) {
+                              toast.error('Error fetching metadata');
+                            }
+                          }}
+                          className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Fetch
+                        </button>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
@@ -3434,13 +3479,58 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                     )}
                     <div>
                       <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">Audio URL or YouTube URL <span className="text-red-500">*</span></label>
-                      <input
-                        type="text"
-                        value={formData.sidebarMusicPlayer?.src || ''}
-                        onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: e.target.value } })}
-                        placeholder="https://example.com/song.mp3 or YouTube URL"
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={formData.sidebarMusicPlayer?.src || ''}
+                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: e.target.value } })}
+                          placeholder="https://example.com/song.mp3 or YouTube URL"
+                          className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const url = formData.sidebarMusicPlayer?.src;
+                            if (!url) {
+                              toast.error('Please enter a URL first');
+                              return;
+                            }
+                            
+                            try {
+                              const response = await fetch('/api/admin/fetch-audio-metadata', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ url }),
+                              });
+                              
+                              const data = await response.json();
+                              if (data.success) {
+                                setFormData({
+                                  ...formData,
+                                  sidebarMusicPlayer: {
+                                    ...formData.sidebarMusicPlayer,
+                                    enabled: true,
+                                    src: url,
+                                    title: data.metadata.title || '',
+                                    artist: data.metadata.artist || '',
+                                  }
+                                });
+                                toast.success('Metadata fetched successfully!');
+                              } else {
+                                toast.error(data.error || 'Failed to fetch metadata');
+                              }
+                            } catch (error) {
+                              toast.error('Error fetching metadata');
+                            }
+                          }}
+                          className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Fetch
+                        </button>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
