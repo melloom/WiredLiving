@@ -19,6 +19,7 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false); // on mobile: whole panel visible vs hidden (widget toggles this)
   const [isLoading, setIsLoading] = useState(false);
   const [showYouTubeIframe, setShowYouTubeIframe] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -30,20 +31,17 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
       setIsVisible(false);
       setIsPlaying(false);
       setShowYouTubeIframe(false);
+      setIsMobileOpen(false);
     }
   }, [musicPlayer]);
 
-  // Register global toggle callback for mobile widget bar
+  // Register global toggle callback for mobile widget bar — toggles whole panel; down chevron only collapses video
   useEffect(() => {
     (window as unknown as Record<string, unknown>).__toggleStickyMusicPlayer = () => {
       if (!musicPlayer?.enabled || !musicPlayer?.src) return;
-      setIsExpanded((prev) => {
-        if (prev) {
-          // Collapsing — hide iframe so it stops playing
-          setShowYouTubeIframe(false);
-          setIsPlaying(false);
-        } else {
-          // Expanding — start playback
+      setIsMobileOpen((prev) => {
+        if (!prev) {
+          // Opening panel — expand video and start playback
           const ytMatch = musicPlayer.src.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
           if (ytMatch) {
             setShowYouTubeIframe(true);
@@ -52,8 +50,10 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
             audioRef.current.play().catch(() => {});
             setIsPlaying(true);
           }
+          setIsExpanded(true);
+          return true;
         }
-        return !prev;
+        return false;
       });
     };
     return () => {
@@ -216,7 +216,7 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
       )}
 
       <div
-        className={`fixed bg-gradient-to-r from-gray-900 via-purple-900/90 to-gray-900 backdrop-blur-xl border border-purple-500/20 shadow-2xl rounded-2xl transition-all duration-500 ease-in-out z-50 overflow-hidden bottom-[5.5rem] right-2 left-2 lg:bottom-4 lg:right-4 lg:left-auto ${isExpanded ? 'lg:w-96 translate-y-0 opacity-100' : 'lg:w-80 max-lg:translate-y-full max-lg:opacity-0 max-lg:pointer-events-none'}`}
+        className={`fixed bg-gradient-to-r from-gray-900 via-purple-900/90 to-gray-900 backdrop-blur-xl border border-purple-500/20 shadow-2xl rounded-2xl transition-all duration-500 ease-in-out z-50 overflow-hidden bottom-[5.5rem] right-2 left-2 lg:bottom-4 lg:right-4 lg:left-auto ${isExpanded ? 'lg:w-96' : 'lg:w-80'} ${isMobileOpen ? 'max-lg:translate-y-0 max-lg:opacity-100' : 'max-lg:translate-y-full max-lg:opacity-0 max-lg:pointer-events-none'} lg:translate-y-0 lg:opacity-100`}
         style={{
           maxWidth: 'calc(100vw - 1rem)',
         }}
@@ -322,14 +322,14 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
               </div>
             )}
 
-            {/* Close */}
+            {/* Close — hidden on mobile */}
             <button
               onClick={() => {
                 setIsVisible(false);
                 setShowYouTubeIframe(false);
                 setIsExpanded(false);
               }}
-              className="text-gray-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
+              className="max-lg:hidden text-gray-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
