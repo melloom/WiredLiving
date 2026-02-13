@@ -178,6 +178,10 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
   };
 
   const handleToggleExpand = () => {
+    if (!isExpanded && isYouTube) {
+      setShowYouTubeIframe(true);
+      setIsPlaying(true);
+    }
     setIsExpanded(!isExpanded);
   };
 
