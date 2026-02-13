@@ -116,7 +116,7 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
     }
   };
 
-  const handleUrlInsert = () => {
+  const handleUrlInsert = async () => {
     const trimmedUrl = urlValue.trim();
     if (!trimmedUrl) {
       toast.error('Please enter a valid URL');
@@ -131,11 +131,57 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
       return;
     }
 
+    // Check if it's a YouTube URL and type is audio
+    const isYouTube = trimmedUrl.includes('youtube.com/watch?v=') || trimmedUrl.includes('youtu.be/');
+    
+    if (type === 'audio' && isYouTube) {
+      // Convert YouTube to MP3
+      setUploading(true);
+      setProgress(10);
+      
+      try {
+        toast.info('Converting YouTube video to MP3... This may take a moment.');
+        setProgress(30);
+        
+        const response = await fetch('/api/admin/convert-youtube', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ url: trimmedUrl }),
+        });
+        
+        setProgress(70);
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Conversion failed');
+        }
+        
+        setProgress(100);
+        
+        // Insert the generated markdown
+        onInsert(data.markdown);
+        setUrlValue('');
+        setShowUrlInput(false);
+        
+        toast.success(`YouTube video converted and saved! ${data.title} 🎵`);
+        
+      } catch (error: any) {
+        console.error('YouTube conversion error:', error);
+        toast.error(error.message || 'Failed to convert YouTube video');
+      } finally {
+        setUploading(false);
+        setProgress(0);
+      }
+      return;
+    }
+
     // Check if URL is from a supported media host
     const isGiphy = trimmedUrl.includes('giphy.com');
     const isTenor = trimmedUrl.includes('tenor.com');
     const isImgur = trimmedUrl.includes('imgur.com');
-    const isYouTube = trimmedUrl.includes('youtube.com/watch?v=') || trimmedUrl.includes('youtu.be/');
     const isDirectMedia = /\.(gif|jpg|jpeg|png|webp|mp4|webm|mov|mp3|wav|ogg|m4a)$/i.test(trimmedUrl.split('?')[0]);
 
     if (!isGiphy && !isTenor && !isImgur && !isYouTube && !isDirectMedia) {
@@ -202,6 +248,9 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
         return `Compressing... ${progress}%`;
       }
       if (type === 'gif') {
+        return `Converting... ${progress}%`;
+      }
+      if (type === 'audio' && urlValue.includes('youtube')) {
         return `Converting... ${progress}%`;
       }
       return `Uploading... ${progress}%`;
@@ -322,7 +371,7 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
           </div>
         )}
 
-        {uploading && (type === 'video' || type === 'gif') && (
+        {uploading && ((type === 'video' || type === 'gif') || (type === 'audio' && urlValue.includes('youtube'))) && (
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
             <div className="bg-blue-600 h-1.5 rounded-full transition-all duration-300 progress-inner"></div>
             <style jsx>{`
@@ -333,7 +382,7 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
 
         {showUrlInput && (
           <div className="text-xs text-gray-500 dark:text-gray-400 px-1">
-            💡 Supports Giphy, Tenor, Imgur, YouTube, and direct media URLs
+            💡 Supports Giphy, Tenor, Imgur, YouTube (converts to MP3), and direct media URLs
           </div>
         )}
       </div>

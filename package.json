@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@auth/pg-adapter": "^1.11.1",
+    "@distube/ytdl-core": "^4.16.12",
     "@mdx-js/loader": "^3.0.0",
     "@mdx-js/react": "^3.0.0",
     "@next/mdx": "^14.2.0",
