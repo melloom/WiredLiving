@@ -105,7 +105,7 @@ export function YoutubeDownloader({ url, onDownloadComplete }: YoutubeDownloader
       )}
       
       <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
-        Note: This will download and convert the video to MP3 format for optimal playback.
+        Note: Downloads and stores the MP3 on your server for permanent access.
       </p>
     </div>
   );

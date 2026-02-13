@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { uploadFile } from '@/lib/supabase-storage';
 
 // YouTube video ID extraction
 function extractYouTubeId(url: string): string | null {
@@ -53,7 +54,7 @@ async function getYouTubeInfo(videoId: string) {
 }
 
 // Download and convert YouTube to MP3 using external service
-async function downloadYouTubeMP3(videoId: string): Promise<{ url: string; filename: string }> {
+async function downloadYouTubeMP3(videoId: string, title: string): Promise<{ url: string; filename: string }> {
   // Using yt-download.org API (free tier)
   // Alternative services:
   // - yt1s.com
@@ -82,18 +83,31 @@ async function downloadYouTubeMP3(videoId: string): Promise<{ url: string; filen
       throw new Error('Download link not available');
     }
 
-    // In production, you'd want to:
-    // 1. Download the file to your storage
-    // 2. Return your own URL
-    // 3. Handle rate limiting
+    // Download the MP3 file
+    const mp3Response = await fetch(data.download_link);
+    if (!mp3Response.ok) {
+      throw new Error('Failed to download MP3 file');
+    }
+
+    const mp3Buffer = Buffer.from(await mp3Response.arrayBuffer());
+    
+    // Create a clean filename
+    const cleanTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const filename = `audio/${cleanTitle}-${videoId}-${Date.now()}.mp3`;
+    
+    // Upload to Supabase Storage
+    const { url } = await uploadFile(mp3Buffer, filename, {
+      contentType: 'audio/mpeg',
+      bucket: 'audio' // Dedicated audio bucket
+    });
     
     return {
-      url: data.download_link,
-      filename: `${videoId}.mp3`
+      url,
+      filename
     };
   } catch (error) {
     console.error('Download error:', error);
-    throw new Error('Failed to download audio');
+    throw new Error('Failed to download and store audio');
   }
 }
 
@@ -130,7 +144,7 @@ export async function POST(request: Request) {
     const videoInfo = await getYouTubeInfo(videoId);
 
     // Download the MP3
-    const downloadResult = await downloadYouTubeMP3(videoId);
+    const downloadResult = await downloadYouTubeMP3(videoId, videoInfo.title);
     
     return NextResponse.json({
       success: true,
