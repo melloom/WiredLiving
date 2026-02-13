@@ -274,8 +274,8 @@ export function ImageCropModal({ imageUrl, onSave, onClose, initialCrop }: Image
               ref={markerRef}
               className="absolute pointer-events-none z-10"
             >
-              {/* Outer ring with animation */}
-              <div className="absolute -inset-4 border-2 border-white/30 rounded-full animate-ping [animation-duration:2s]" />
+              {/* Outer ring - removed animation for performance */}
+              <div className="absolute -inset-4 border-2 border-white/30 rounded-full" />
               {/* Main marker */}
               <div className="w-10 h-10 border-2 border-white rounded-full shadow-lg flex items-center justify-center bg-blue-500/60 backdrop-blur-sm">
                 <div className="w-3 h-3 bg-white rounded-full shadow-inner" />
