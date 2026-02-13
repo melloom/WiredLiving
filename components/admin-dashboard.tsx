@@ -2319,12 +2319,11 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                               artist
                             }
                           });
-                          toast.success('MP3 downloaded and updated!');
                         }}
                       />
                     )}
                     
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear as a sticky widget at the bottom-right of the screen. Only one music player per post is allowed. Note: YouTube URLs will open in a new tab when played.</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear as a sticky widget at the bottom-right of the screen. Only one music player per post is allowed. YouTube URLs play via embedded player.</p>
                   </div>
               </div>
             </div>
@@ -3617,12 +3616,11 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                               artist
                             }
                           });
-                          toast.success('MP3 downloaded and updated!');
                         }}
                       />
                     )}
                     
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear as a sticky widget at the bottom-right of the screen. Only one music player per post is allowed. Note: YouTube URLs will open in a new tab when played.</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear as a sticky widget at the bottom-right of the screen. Only one music player per post is allowed. YouTube URLs play via embedded player.</p>
                   </div>
               </div>
 

@@ -1,10 +1,5 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { uploadFile } from '@/lib/supabase-storage';
-import ytdl from '@distube/ytdl-core';
-
-// Allow up to 60 seconds for audio download + upload (requires Vercel Pro for >10s)
-export const maxDuration = 60;
 
 // YouTube video ID extraction
 function extractYouTubeId(url: string): string | null {
@@ -18,46 +13,6 @@ function extractYouTubeId(url: string): string | null {
     if (match) return match[1];
   }
   return null;
-}
-
-// Download audio from YouTube using ytdl-core and upload to Supabase
-async function downloadAndStoreAudio(
-  url: string,
-  videoId: string,
-  title: string
-): Promise<{ url: string; filename: string }> {
-  try {
-    // Download audio-only stream using ytdl-core
-    const stream = ytdl(url, {
-      filter: 'audioonly',
-      quality: 'lowestaudio', // Smallest file size for background music
-    });
-
-    const chunks: Buffer[] = [];
-    for await (const chunk of stream) {
-      chunks.push(chunk as Buffer);
-    }
-
-    const audioBuffer = Buffer.concat(chunks);
-    console.log(`Downloaded audio size: ${(audioBuffer.length / 1024 / 1024).toFixed(2)}MB`);
-
-    // Create a clean filename
-    const cleanTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    const filename = `${cleanTitle}-${videoId}-${Date.now()}.mp3`;
-
-    // Upload to Supabase Storage
-    const { url: publicUrl } = await uploadFile(audioBuffer, filename, {
-      contentType: 'audio/mpeg',
-      bucket: 'audio',
-    });
-
-    return { url: publicUrl, filename };
-  } catch (error) {
-    console.error('Download/upload error:', error);
-    throw new Error(
-      `Failed to download and store audio: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
-  }
 }
 
 export async function POST(request: Request) {
@@ -80,37 +35,33 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate YouTube URL
-    if (!ytdl.validateURL(url)) {
+    // Extract YouTube video ID
+    const videoId = extractYouTubeId(url);
+    if (!videoId) {
       return NextResponse.json(
         { success: false, error: 'Invalid YouTube URL' },
         { status: 400 }
       );
     }
 
-    // Extract video ID for filename
-    const videoId = extractYouTubeId(url);
-    if (!videoId) {
-      return NextResponse.json(
-        { success: false, error: 'Could not extract video ID' },
-        { status: 400 }
-      );
+    // Fetch video metadata via noembed (no API key needed, no bot detection)
+    const metaResponse = await fetch(
+      `https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`
+    );
+
+    let title = 'YouTube Video';
+    let artist = 'Unknown';
+
+    if (metaResponse.ok) {
+      const meta = await metaResponse.json();
+      title = meta.title || title;
+      artist = meta.author_name || artist;
     }
 
-    // Get video info using ytdl-core
-    const info = await ytdl.getInfo(url);
-    const title = info.videoDetails.title || 'Unknown';
-    const artist = info.videoDetails.author?.name || 'Unknown';
-    const duration = parseInt(info.videoDetails.lengthSeconds) || 0;
-
-    // Download audio and upload to Supabase
-    const downloadResult = await downloadAndStoreAudio(url, videoId, title);
-    
+    // Return metadata — the sticky player handles YouTube URLs via iframe embed
     return NextResponse.json({
       success: true,
-      mp3Url: downloadResult.url,
-      filename: downloadResult.filename,
-      videoInfo: { title, artist, duration },
+      videoInfo: { title, artist, videoId },
     });
 
   } catch (error) {
