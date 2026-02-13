@@ -19,6 +19,7 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -49,16 +50,49 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
     };
   }, []);
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     const audio = audioRef.current;
     if (!audio) return;
 
     if (isPlaying) {
       audio.pause();
+      setIsPlaying(false);
     } else {
-      audio.play();
+      try {
+        // Ensure audio is loaded
+        if (audio.readyState < 2) {
+          await new Promise((resolve, reject) => {
+            const onLoad = () => {
+              audio.removeEventListener('loadeddata', onLoad);
+              audio.removeEventListener('error', onError);
+              resolve(void 0);
+            };
+            const onError = (e: any) => {
+              audio.removeEventListener('loadeddata', onLoad);
+              audio.removeEventListener('error', onError);
+              reject(e);
+            };
+            audio.addEventListener('loadeddata', onLoad);
+            audio.addEventListener('error', onError);
+          });
+        }
+        
+        await audio.play();
+        setIsPlaying(true);
+      } catch (error) {
+        console.error('Audio play error:', error);
+        // Show user-friendly error
+        if (error instanceof Error) {
+          if (error.name === 'NotAllowedError') {
+            alert('Please click again to enable audio playback. Browsers require user interaction.');
+          } else if (error.name === 'NotSupportedError') {
+            alert('This audio format is not supported.');
+          } else {
+            alert(`Error playing audio: ${error.message}`);
+          }
+        }
+      }
     }
-    setIsPlaying(!isPlaying);
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,8 +135,16 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
       <audio
         ref={audioRef}
         src={musicPlayer.src}
+        crossOrigin="anonymous"
+        preload="metadata"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
+        onLoadStart={() => setIsLoading(true)}
+        onCanPlay={() => setIsLoading(false)}
+        onError={(e) => {
+          console.error('Audio error:', e);
+          setIsLoading(false);
+        }}
       />
       
       <div
@@ -187,9 +229,15 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
 
             <button
               onClick={togglePlay}
-              className="bg-purple-600 hover:bg-purple-700 text-white rounded-full p-3 shadow-lg transition-all hover:scale-105"
+              disabled={isLoading}
+              className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 text-white rounded-full p-3 shadow-lg transition-all hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
             >
-              {isPlaying ? (
+              {isLoading ? (
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : isPlaying ? (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
                 </svg>
