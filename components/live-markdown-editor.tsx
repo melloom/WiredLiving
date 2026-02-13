@@ -404,6 +404,7 @@ export const LiveMarkdownEditor = forwardRef<LiveMarkdownEditorHandle, LiveMarkd
   className = '',
 }, ref) {
   const [mode, setMode] = useState<'write' | 'preview' | 'split'>('split');
+  const [syncScroll, setSyncScroll] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const [previewValue, setPreviewValue] = useState(value);
@@ -871,7 +872,7 @@ export const LiveMarkdownEditor = forwardRef<LiveMarkdownEditorHandle, LiveMarkd
 
   // Scroll synchronization functions
   const syncScrollFromTextarea = useCallback(() => {
-    if (mode !== 'split') return;
+    if (mode !== 'split' || !syncScroll) return;
     
     const textarea = textareaRef.current;
     const preview = previewRef.current;
@@ -892,10 +893,10 @@ export const LiveMarkdownEditor = forwardRef<LiveMarkdownEditorHandle, LiveMarkd
         preview.scrollTop = scrollPercentage * previewHeight;
       }
     }, 16); // ~60fps
-  }, [mode]);
+  }, [mode, syncScroll]);
 
   const syncScrollFromPreview = useCallback(() => {
-    if (mode !== 'split') return;
+    if (mode !== 'split' || !syncScroll) return;
     
     const textarea = textareaRef.current;
     const preview = previewRef.current;
@@ -916,7 +917,25 @@ export const LiveMarkdownEditor = forwardRef<LiveMarkdownEditorHandle, LiveMarkd
         textarea.scrollTop = scrollPercentage * textareaHeight;
       }
     }, 16); // ~60fps
-  }, [mode]);
+  }, [mode, syncScroll]);
+
+  // Manual one-time sync from editor to preview
+  const handleManualSync = useCallback(() => {
+    const textarea = textareaRef.current;
+    const preview = previewRef.current;
+    if (!textarea || !preview) return;
+
+    const textareaHeight = textarea.scrollHeight - textarea.clientHeight;
+    const previewHeight = preview.scrollHeight - preview.clientHeight;
+    
+    if (textareaHeight > 0 && previewHeight > 0) {
+      const scrollPercentage = textarea.scrollTop / textareaHeight;
+      preview.scrollTo({
+        top: scrollPercentage * previewHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, []);
 
   // Handle click to sync scroll position
   const handleTextareaClick = useCallback(() => {
@@ -954,7 +973,7 @@ export const LiveMarkdownEditor = forwardRef<LiveMarkdownEditorHandle, LiveMarkd
 
     // Sync current preview scroll to textarea
     syncScrollFromPreview();
-  }, [mode, syncScrollFromPreview]);
+  }, [mode, syncScroll, syncScrollFromPreview]);
 
 
   return (
@@ -1059,14 +1078,33 @@ export const LiveMarkdownEditor = forwardRef<LiveMarkdownEditorHandle, LiveMarkd
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 h-full overflow-hidden">
             {/* Editor Side */}
             <div className="flex flex-col min-w-0 h-full overflow-hidden">
-              <button
-                type="button"
-                onClick={handleTextareaClick}
-                className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 px-1 flex-shrink-0 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-left"
-                title="Click to sync scroll position"
-              >
-                ✏️ Markdown Source
-              </button>
+              <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400 px-1">
+                  ✏️ Markdown Source
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleManualSync}
+                    className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors font-medium"
+                    title="Sync preview scroll to editor position"
+                  >
+                    ⇅ Sync
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSyncScroll(!syncScroll)}
+                    className={`text-xs px-2 py-1 rounded font-medium transition-colors ${
+                      syncScroll
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                    title={syncScroll ? 'Auto-sync is ON — click to disable' : 'Auto-sync is OFF — click to enable'}
+                  >
+                    {syncScroll ? '🔗 Auto-Sync ON' : '🔓 Auto-Sync OFF'}
+                  </button>
+                </div>
+              </div>
               <textarea
                 ref={textareaRef}
                 value={localValue}
@@ -1083,14 +1121,9 @@ export const LiveMarkdownEditor = forwardRef<LiveMarkdownEditorHandle, LiveMarkd
 
             {/* Preview Side */}
             <div className="flex flex-col min-w-0 h-full overflow-hidden">
-              <button
-                type="button"
-                onClick={handlePreviewClick}
-                className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 px-1 flex-shrink-0 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-left"
-                title="Click to sync scroll position"
-              >
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 px-1 flex-shrink-0">
                 👁️ Live Preview
-              </button>
+              </span>
               <div
                 ref={previewRef}
                 onScroll={syncScrollFromPreview}
