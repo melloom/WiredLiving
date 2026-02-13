@@ -134,7 +134,7 @@ export async function POST(request: Request) {
       : null;
 
     // Destructure fields we're overriding to avoid type conflicts
-    const { date: _date, scheduledAt: _scheduledAt, title: _title, author: _author, content: _content, ...restValidatedData } = validatedData;
+    const { date: _date, scheduledAt: _scheduledAt, title: _title, author: _author, content: _content, sidebarMusicPlayer, ...restValidatedData } = validatedData;
 
     const post: Omit<BlogPost, 'slug'> & { slug?: string } = {
       ...restValidatedData,
@@ -143,6 +143,8 @@ export async function POST(request: Request) {
       content: finalContent,
       date: postDate,
       scheduledAt: postScheduledAt,
+      // Convert null to undefined to match BlogPost type
+      sidebarMusicPlayer: sidebarMusicPlayer || undefined,
     };
 
     console.log('Creating post with data:', { 

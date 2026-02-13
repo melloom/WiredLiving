@@ -2681,6 +2681,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                   twitterDescription: '',
                   structuredDataType: 'BlogPosting',
                   relatedLinks: [],
+                  sidebarMusicPlayer: { enabled: false, src: '', title: '', artist: '' },
                 });
                 setError('');
                 localStorage.removeItem('blog_draft_autosave');
