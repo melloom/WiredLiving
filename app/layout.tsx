@@ -205,7 +205,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         {/* ThemeProvider ensures theme context and <html> class for all pages */}
         <Providers>
           <AnalyticsTracker />

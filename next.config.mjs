@@ -58,19 +58,9 @@ const nextConfig = {
       },
     ];
   },
-  // Headers for security
+  // Security headers are set in middleware.ts to avoid duplicate CSP conflicts
   async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://platform.twitter.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://wttr.in https://*.supabase.co; manifest-src 'self' https://github.dev https://*.github.dev; frame-src 'self' https://platform.twitter.com;",
-          },
-        ],
-      },
-    ];
+    return [];
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',

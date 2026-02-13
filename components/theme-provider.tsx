@@ -11,17 +11,10 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<"light" | "dark">(() => {
-    // Initialize theme on first render to avoid flash
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("theme");
-      if (saved === "light" || saved === "dark") {
-        return saved;
-      }
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    }
-    return "light";
-  });
+  // Always start with "light" to match server render and avoid hydration mismatch.
+  // The inline <script> in layout.tsx already adds the "dark" class to <html> before
+  // paint, so there's no flash. useEffect below syncs state after hydration.
+  const [theme, setThemeState] = useState<"light" | "dark">("light");
 
   // Set theme from localStorage or system preference
   useEffect(() => {
