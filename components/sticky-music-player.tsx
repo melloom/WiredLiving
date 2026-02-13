@@ -52,7 +52,7 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
 
   const togglePlay = async () => {
     // For YouTube URLs, open in a new tab
-    if (isYouTube) {
+    if (isYouTube && musicPlayer) {
       window.open(musicPlayer.src, '_blank', 'width=560,height=315');
       return;
     }
