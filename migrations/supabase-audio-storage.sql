@@ -8,29 +8,29 @@ VALUES (
   ARRAY['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a']
 ) ON CONFLICT (id) DO NOTHING;
 
--- Create policies for audio bucket
+-- Create policies for audio bucket (only if they don't exist)
 -- Allow authenticated users to upload audio
-CREATE POLICY "Authenticated users can upload audio" ON storage.objects
+CREATE POLICY IF NOT EXISTS "Authenticated users can upload audio" ON storage.objects
 FOR INSERT WITH CHECK (
   bucket_id = 'audio' AND 
   auth.role() = 'authenticated'
 );
 
 -- Allow public access to view audio files
-CREATE POLICY "Public can view audio" ON storage.objects
+CREATE POLICY IF NOT EXISTS "Public can view audio" ON storage.objects
 FOR SELECT USING (
   bucket_id = 'audio'
 );
 
 -- Allow users to update their own audio files
-CREATE POLICY "Users can update own audio" ON storage.objects
+CREATE POLICY IF NOT EXISTS "Users can update own audio" ON storage.objects
 FOR UPDATE USING (
   bucket_id = 'audio' AND 
   auth.role() = 'authenticated'
 );
 
 -- Allow users to delete their own audio files
-CREATE POLICY "Users can delete own audio" ON storage.objects
+CREATE POLICY IF NOT EXISTS "Users can delete own audio" ON storage.objects
 FOR DELETE USING (
   bucket_id = 'audio' AND 
   auth.role() = 'authenticated'
