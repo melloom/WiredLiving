@@ -297,8 +297,8 @@ const MarkdownPreview = memo(({ content, inline = false }: { content: string; in
             }
             return <p className="mb-4 text-gray-700 dark:text-gray-300 leading-relaxed" {...props}>{children}</p>;
           },
-          strong: ({ node, ...props }) => <strong className="font-bold text-gray-900 dark:text-white" {...props} />,
-          em: ({ node, ...props }) => <em className="italic text-gray-800 dark:text-gray-200" {...props} />,
+          strong: ({ node, ...props }: any) => <strong className="font-bold text-gray-900 dark:text-white" {...props} />,
+          em: ({ node, ...props }: any) => <em className="italic text-gray-800 dark:text-gray-200" {...props} />,
           code: ({ node, inline, className, children, ...props }: any) => {
             return inline ? (
               <code className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-pink-600 dark:text-pink-400 text-sm font-mono" {...props}>
@@ -308,40 +308,40 @@ const MarkdownPreview = memo(({ content, inline = false }: { content: string; in
               <code className={className} {...props}>{children}</code>
             );
           },
-          pre: ({ node, ...props }) => (
+          pre: ({ node, ...props }: any) => (
             <pre className="mb-4 p-4 rounded-lg bg-gray-900 dark:bg-gray-950 overflow-x-auto" {...props} />
           ),
-          blockquote: ({ node, ...props }) => (
+          blockquote: ({ node, ...props }: any) => (
             <blockquote className="border-l-4 border-blue-500 pl-4 py-2 mb-4 italic text-gray-700 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 rounded-r" {...props} />
           ),
-          ul: ({ node, ...props }) => <ul className="mb-4 ml-6 list-disc space-y-2 marker:text-blue-500 dark:marker:text-blue-400" {...props} />,
-          ol: ({ node, ...props }) => <ol className="mb-4 ml-6 list-decimal space-y-2 marker:text-blue-500 dark:marker:text-blue-400" {...props} />,
-          li: ({ node, ...props }) =>
+          ul: ({ node, ...props }: any) => <ul className="mb-4 ml-6 list-disc space-y-2 marker:text-blue-500 dark:marker:text-blue-400" {...props} />,
+          ol: ({ node, ...props }: any) => <ol className="mb-4 ml-6 list-decimal space-y-2 marker:text-blue-500 dark:marker:text-blue-400" {...props} />,
+          li: ({ node, ...props }: any) =>
             createElement('li', {
               className: 'text-gray-700 dark:text-gray-300 leading-relaxed',
               ...props,
             }),
-          table: ({ node, ...props }) => (
+          table: ({ node, ...props }: any) => (
             <div className="overflow-x-auto my-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-900">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700" {...props} />
             </div>
           ),
-          thead: ({ node, ...props }) => (
+          thead: ({ node, ...props }: any) => (
             <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900" {...props} />
           ),
-          tbody: ({ node, ...props }) => (
+          tbody: ({ node, ...props }: any) => (
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900" {...props} />
           ),
-          tr: ({ node, ...props }) => (
+          tr: ({ node, ...props }: any) => (
             <tr className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors" {...props} />
           ),
-          th: ({ node, ...props }) => (
+          th: ({ node, ...props }: any) => (
             <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700" {...props} />
           ),
-          td: ({ node, ...props }) => (
+          td: ({ node, ...props }: any) => (
             <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap" {...props} />
           ),
-          a: ({ node, ...props }) => (
+          a: ({ node, ...props }: any) => (
             <a className="text-blue-600 dark:text-blue-400 hover:underline font-medium" target="_blank" rel="noopener noreferrer" {...props} />
           ),
           img: ({ node, src, alt, className, ...props }: any) => (
@@ -353,10 +353,10 @@ const MarkdownPreview = memo(({ content, inline = false }: { content: string; in
           iframe: ({ node, src, ...props }: any) => (
             <EnhancedIframe src={src} {...props} />
           ),
-          mark: ({ node, ...props }) => (
+          mark: ({ node, ...props }: any) => (
             <mark className="bg-yellow-200 dark:bg-yellow-500/40 text-gray-900 dark:text-yellow-100 px-1 rounded" {...props} />
           ),
-          u: ({ node, ...props }) => (
+          u: ({ node, ...props }: any) => (
             <u className="underline decoration-2 decoration-blue-500 dark:decoration-blue-400 underline-offset-2" {...props} />
           ),
           span: ({ node, ...props }: any) => {
