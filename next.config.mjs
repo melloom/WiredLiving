@@ -6,6 +6,18 @@ import rehypeHighlight from 'rehype-highlight';
 const nextConfig = {
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   reactStrictMode: true,
+  experimental: {
+    optimizeFonts: true, // Enable font optimization
+    fontLoaders: [
+      {
+        loader: '@next/font/google',
+        options: {
+          subsets: ['latin'],
+          display: 'swap',
+        },
+      },
+    ],
+  },
   images: {
     remotePatterns: [
       {

@@ -9,7 +9,11 @@ import { Providers } from '@/components/providers';
 import { AnalyticsTracker } from '@/components/analytics-tracker';
 import { PWAInstallPrompt } from '@/components/pwa-install-prompt';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap', // Prevents invisible text during font loading
+  preload: true,   // Explicitly set preload
+});
 
 export const viewport: Viewport = {
   width: 'device-width',
