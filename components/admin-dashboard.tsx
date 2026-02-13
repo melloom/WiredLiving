@@ -20,6 +20,7 @@ import { LiveMarkdownEditor, type LiveMarkdownEditorHandle } from '@/components/
 import { generateSmartSEO, validateSEO } from '@/lib/seo-generator';
 import { SeriesMetadataModal } from '@/components/series-metadata-modal';
 import { MusicPreviewPlayer } from '@/components/music-preview-player';
+import { YoutubeDownloader } from '@/components/youtube-downloader';
 import type { SeriesMetadata } from '@/types';
 
 const supabase = createClient();
@@ -2301,6 +2302,28 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                       </div>
                     )}
                     
+                    {/* YouTube Downloader */}
+                    {formData.sidebarMusicPlayer?.src && (
+                      formData.sidebarMusicPlayer.src.includes('youtube.com') || 
+                      formData.sidebarMusicPlayer.src.includes('youtu.be')
+                    ) && (
+                      <YoutubeDownloader
+                        url={formData.sidebarMusicPlayer.src}
+                        onDownloadComplete={(mp3Url, title, artist) => {
+                          setFormData({
+                            ...formData,
+                            sidebarMusicPlayer: {
+                              ...formData.sidebarMusicPlayer,
+                              src: mp3Url,
+                              title,
+                              artist
+                            }
+                          });
+                          toast.success('MP3 downloaded and updated!');
+                        }}
+                      />
+                    )}
+                    
                     <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear as a sticky widget at the bottom-right of the screen. Only one music player per post is allowed. Note: YouTube URLs will open in a new tab when played.</p>
                   </div>
                 )}
@@ -3575,6 +3598,28 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                           artist={formData.sidebarMusicPlayer.artist}
                         />
                       </div>
+                    )}
+                    
+                    {/* YouTube Downloader */}
+                    {formData.sidebarMusicPlayer?.src && (
+                      formData.sidebarMusicPlayer.src.includes('youtube.com') || 
+                      formData.sidebarMusicPlayer.src.includes('youtu.be')
+                    ) && (
+                      <YoutubeDownloader
+                        url={formData.sidebarMusicPlayer.src}
+                        onDownloadComplete={(mp3Url, title, artist) => {
+                          setFormData({
+                            ...formData,
+                            sidebarMusicPlayer: {
+                              ...formData.sidebarMusicPlayer,
+                              src: mp3Url,
+                              title,
+                              artist
+                            }
+                          });
+                          toast.success('MP3 downloaded and updated!');
+                        }}
+                      />
                     )}
                     
                     <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear as a sticky widget at the bottom-right of the screen. Only one music player per post is allowed. Note: YouTube URLs will open in a new tab when played.</p>
