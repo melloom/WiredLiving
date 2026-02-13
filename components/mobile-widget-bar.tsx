@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SidebarWeather } from './sidebar-weather';
 import { SidebarContact } from './sidebar-contact';
 import { SidebarGallery } from './sidebar-gallery';
@@ -52,38 +52,33 @@ export function MobileWidgetBar({
   const isYouTube = !!(sidebarMusicPlayer?.src?.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)/));
   const ytVideoId = sidebarMusicPlayer?.src?.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1] || null;
 
-  const toggleMusicPlayback = useCallback(() => {
+  const startMusic = () => {
     if (isYouTube) {
-      if (isMusicPlaying) {
-        // Pause: remove the iframe
-        setYtIframeActive(false);
-        setIsMusicPlaying(false);
-      } else {
-        // Play: activate the iframe with autoplay
-        setYtIframeActive(true);
-        setIsMusicPlaying(true);
-      }
+      setYtIframeActive(true);
+      setIsMusicPlaying(true);
     } else if (sidebarMusicPlayer?.src) {
-      if (isMusicPlaying && audioRef.current) {
-        audioRef.current.pause();
-        setIsMusicPlaying(false);
-      } else {
-        if (!audioRef.current) {
-          audioRef.current = new Audio(sidebarMusicPlayer.src);
-          audioRef.current.loop = true;
-          audioRef.current.onended = () => setIsMusicPlaying(false);
-        }
-        audioRef.current.play().then(() => setIsMusicPlaying(true)).catch(() => {});
+      if (!audioRef.current) {
+        audioRef.current = new Audio(sidebarMusicPlayer.src);
+        audioRef.current.loop = true;
       }
+      audioRef.current.play().then(() => setIsMusicPlaying(true)).catch(() => {});
     }
-  }, [isYouTube, isMusicPlaying, sidebarMusicPlayer?.src]);
+  };
 
-  const playAndClose = useCallback(() => {
-    if (!isMusicPlaying) {
-      toggleMusicPlayback();
+  const stopMusic = () => {
+    if (isYouTube) {
+      setYtIframeActive(false);
+      setIsMusicPlaying(false);
+    } else if (audioRef.current) {
+      audioRef.current.pause();
+      setIsMusicPlaying(false);
     }
+  };
+
+  const playAndClose = () => {
+    startMusic();
     setOpenWidget(null);
-  }, [isMusicPlaying, toggleMusicPlayback]);
+  };
 
   // Handle escape key to close modal
   useEffect(() => {
@@ -217,7 +212,7 @@ export function MobileWidgetBar({
                 </button>
                 {isMusicPlaying && (
                   <button
-                    onClick={toggleMusicPlayback}
+                    onClick={stopMusic}
                     className="px-4 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
@@ -242,7 +237,7 @@ export function MobileWidgetBar({
               </button>
               {isMusicPlaying && (
                 <button
-                  onClick={toggleMusicPlayback}
+                  onClick={stopMusic}
                   className="px-4 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
