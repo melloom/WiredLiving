@@ -2301,7 +2301,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                       </div>
                     )}
                     
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear as a sticky widget at the bottom-right of the screen. Only one music player per post is allowed.</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear as a sticky widget at the bottom-right of the screen. Only one music player per post is allowed. Note: YouTube URLs will open in a new tab when played.</p>
                   </div>
                 )}
               </div>
@@ -3577,7 +3577,7 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                       </div>
                     )}
                     
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear as a sticky widget at the bottom-right of the screen. Only one music player per post is allowed.</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear as a sticky widget at the bottom-right of the screen. Only one music player per post is allowed. Note: YouTube URLs will open in a new tab when played.</p>
                   </div>
                 )}
               </div>

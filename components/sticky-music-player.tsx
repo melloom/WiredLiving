@@ -51,6 +51,12 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
   }, []);
 
   const togglePlay = async () => {
+    // For YouTube URLs, open in a new tab
+    if (isYouTube) {
+      window.open(musicPlayer.src, '_blank', 'width=560,height=315');
+      return;
+    }
+
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -58,6 +64,7 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
       audio.pause();
       setIsPlaying(false);
     } else {
+      setIsLoading(true);
       try {
         // Ensure audio is loaded
         if (audio.readyState < 2) {
@@ -122,30 +129,43 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
 
   if (!isVisible || !musicPlayer) return null;
 
-  // Extract YouTube video ID for thumbnail
-  const getYouTubeThumbnail = (url: string) => {
+  // Extract YouTube video ID for thumbnail and audio URL
+  const getYouTubeInfo = (url: string) => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-    return match ? `https://img.youtube.com/vi/${match[1]}/mqdefault.jpg` : null;
+    if (!match) return { videoId: null, thumbnail: null, audioUrl: null };
+    
+    const videoId = match[1];
+    return {
+      videoId,
+      thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+      audioUrl: `https://www.youtube.com/watch?v=${videoId}` // Keep the original URL for now
+    };
   };
 
-  const thumbnail = getYouTubeThumbnail(musicPlayer.src);
+  const youtubeInfo = getYouTubeInfo(musicPlayer.src);
+  const thumbnail = youtubeInfo.thumbnail;
+
+  // Check if it's a YouTube URL
+  const isYouTube = youtubeInfo.videoId !== null;
 
   return (
     <>
-      <audio
-        ref={audioRef}
-        src={musicPlayer.src}
-        crossOrigin="anonymous"
-        preload="metadata"
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onLoadStart={() => setIsLoading(true)}
-        onCanPlay={() => setIsLoading(false)}
-        onError={(e) => {
-          console.error('Audio error:', e);
-          setIsLoading(false);
-        }}
-      />
+      {!isYouTube && (
+        <audio
+          ref={audioRef}
+          src={musicPlayer.src}
+          crossOrigin="anonymous"
+          preload="metadata"
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onLoadStart={() => setIsLoading(true)}
+          onCanPlay={() => setIsLoading(false)}
+          onError={(e) => {
+            console.error('Audio error:', e);
+            setIsLoading(false);
+          }}
+        />
+      )}
       
       <div
         className={`fixed bottom-4 right-4 bg-gradient-to-r from-gray-900 via-purple-900/90 to-gray-900 backdrop-blur-xl border border-purple-500/20 shadow-2xl rounded-2xl transition-all duration-500 z-50 max-w-md ${
@@ -236,6 +256,10 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : isYouTube ? (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
                 </svg>
               ) : isPlaying ? (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
