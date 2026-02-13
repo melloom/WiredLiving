@@ -2694,7 +2694,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-4 pt-6 border-t border-dashed border-gray-200 dark:border-gray-800 mt-2">
+          <div className="flex flex-row flex-wrap items-center gap-3 pt-6 border-t border-dashed border-gray-200 dark:border-gray-800 mt-2">
             <button
               type="button"
               disabled={savingPreview || loading}
@@ -2704,7 +2704,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                 console.log('Save draft button clicked');
                 handleSaveDraft(false);
               }}
-              className="px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
             >
               {savingPreview ? 'Saving...' : 'Save Draft'}
             </button>
@@ -2717,14 +2717,14 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                 console.log('Save draft & preview button clicked');
                 handleSaveDraftAndPreview();
               }}
-              className="px-8 py-3 bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100 rounded-lg border border-amber-300 dark:border-amber-700 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100 rounded-lg border border-amber-300 dark:border-amber-700 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
             >
-              {savingPreview ? 'Saving draft...' : 'Save draft & open preview'}
+              {savingPreview ? 'Saving...' : 'Save & Preview'}
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
             >
               {loading ? 'Creating...' : 'Create Post'}
             </button>
@@ -2765,7 +2765,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                 setError('');
                 localStorage.removeItem('blog_draft_autosave');
               }}
-              className="px-8 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-semibold"
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-semibold text-sm whitespace-nowrap"
             >
               Clear
             </button>
@@ -3946,7 +3946,7 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
             )}
           </div>
 
-          <div className="flex flex-wrap gap-4 pt-6 border-t border-dashed border-gray-200 dark:border-gray-800 mt-2">
+          <div className="flex flex-row flex-wrap items-center gap-3 pt-6 border-t border-dashed border-gray-200 dark:border-gray-800 mt-2">
             <button
               type="button"
               disabled={loading}
@@ -3958,21 +3958,21 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                   window.open(previewUrl, '_blank', 'noopener,noreferrer');
                 }
               }}
-              className="px-6 py-3 bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100 rounded-lg border border-amber-300 dark:border-amber-700 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100 rounded-lg border border-amber-300 dark:border-amber-700 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
             >
               Open Preview
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
             >
               {loading ? 'Updating...' : 'Update Post'}
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-semibold"
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-semibold text-sm whitespace-nowrap"
             >
               Cancel
             </button>

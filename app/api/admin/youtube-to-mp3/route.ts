@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { uploadFile } from '@/lib/supabase-storage';
-import { compressAudio } from '@/lib/audio-compressor';
+import ytdl from '@distube/ytdl-core';
+
+// Allow up to 60 seconds for audio download + upload (requires Vercel Pro for >10s)
+export const maxDuration = 60;
 
 // YouTube video ID extraction
 function extractYouTubeId(url: string): string | null {
@@ -17,108 +20,43 @@ function extractYouTubeId(url: string): string | null {
   return null;
 }
 
-// Get YouTube video info
-async function getYouTubeInfo(videoId: string) {
-  const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-  
-  if (!YOUTUBE_API_KEY) {
-    throw new Error('YouTube API key not configured');
-  }
-
-  const response = await fetch(
-    `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails&key=${YOUTUBE_API_KEY}`
-  );
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch YouTube video info');
-  }
-
-  const data = await response.json();
-  
-  if (!data.items?.[0]) {
-    throw new Error('Video not found');
-  }
-
-  const video = data.items[0];
-  const title = video.snippet?.title || 'Unknown';
-  const artist = video.snippet?.channelTitle || 'Unknown';
-  
-  // Extract duration from ISO 8601 format
-  const duration = video.contentDetails?.duration || 'PT0S';
-  const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-  const hours = parseInt(match?.[1] || '0');
-  const minutes = parseInt(match?.[2] || '0');
-  const seconds = parseInt(match?.[3] || '0');
-  const totalSeconds = hours * 3600 + minutes * 60 + seconds;
-
-  return { title, artist, duration: totalSeconds };
-}
-
-// Download and convert YouTube to MP3 using external service
-async function downloadYouTubeMP3(videoId: string, title: string): Promise<{ url: string; filename: string }> {
-  // Using yt-download.org API with low quality for smaller files
-  // Requesting 64kbps to save space (good enough for background music)
-  
+// Download audio from YouTube using ytdl-core and upload to Supabase
+async function downloadAndStoreAudio(
+  url: string,
+  videoId: string,
+  title: string
+): Promise<{ url: string; filename: string }> {
   try {
-    // Try to get low quality version first
-    const apiUrl = `https://yt-download.org/api/button/mp3/${videoId}?quality=64`;
-    
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/json',
-      },
+    // Download audio-only stream using ytdl-core
+    const stream = ytdl(url, {
+      filter: 'audioonly',
+      quality: 'lowestaudio', // Smallest file size for background music
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch download link');
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) {
+      chunks.push(chunk as Buffer);
     }
 
-    const data = await response.json();
-    
-    if (!data.download_link) {
-      throw new Error('Download link not available');
-    }
+    const audioBuffer = Buffer.concat(chunks);
+    console.log(`Downloaded audio size: ${(audioBuffer.length / 1024 / 1024).toFixed(2)}MB`);
 
-    // Download the MP3 file
-    const mp3Response = await fetch(data.download_link);
-    if (!mp3Response.ok) {
-      throw new Error('Failed to download MP3 file');
-    }
-
-    let mp3Buffer: Buffer<ArrayBufferLike> = Buffer.from(new Uint8Array(await mp3Response.arrayBuffer()));
-    
-    // Compress the audio to save space
-    console.log(`Original audio size: ${(mp3Buffer.length / 1024 / 1024).toFixed(2)}MB`);
-    
-    try {
-      mp3Buffer = await compressAudio({
-        inputBuffer: mp3Buffer,
-        bitrate: '64', // 64kbps for good quality/size ratio
-        maxDuration: 240 // Max 4 minutes to save space
-      });
-    } catch (error) {
-      console.error('Compression failed, using original:', error);
-    }
-    
     // Create a clean filename
     const cleanTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    const filename = `audio/${cleanTitle}-${videoId}-${Date.now()}.mp3`;
-    
+    const filename = `${cleanTitle}-${videoId}-${Date.now()}.mp3`;
+
     // Upload to Supabase Storage
-    const { url } = await uploadFile(mp3Buffer, filename, {
+    const { url: publicUrl } = await uploadFile(audioBuffer, filename, {
       contentType: 'audio/mpeg',
-      bucket: 'audio' // Dedicated audio bucket
+      bucket: 'audio',
     });
-    
-    return {
-      url,
-      filename
-    };
+
+    return { url: publicUrl, filename };
   } catch (error) {
-    console.error('Download error:', error);
-    throw new Error('Failed to download and store audio');
+    console.error('Download/upload error:', error);
+    throw new Error(
+      `Failed to download and store audio: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 
@@ -142,26 +80,37 @@ export async function POST(request: Request) {
       );
     }
 
-    // Extract YouTube video ID
-    const videoId = extractYouTubeId(url);
-    if (!videoId) {
+    // Validate YouTube URL
+    if (!ytdl.validateURL(url)) {
       return NextResponse.json(
         { success: false, error: 'Invalid YouTube URL' },
         { status: 400 }
       );
     }
 
-    // Get video info
-    const videoInfo = await getYouTubeInfo(videoId);
+    // Extract video ID for filename
+    const videoId = extractYouTubeId(url);
+    if (!videoId) {
+      return NextResponse.json(
+        { success: false, error: 'Could not extract video ID' },
+        { status: 400 }
+      );
+    }
 
-    // Download the MP3
-    const downloadResult = await downloadYouTubeMP3(videoId, videoInfo.title);
+    // Get video info using ytdl-core
+    const info = await ytdl.getInfo(url);
+    const title = info.videoDetails.title || 'Unknown';
+    const artist = info.videoDetails.author?.name || 'Unknown';
+    const duration = parseInt(info.videoDetails.lengthSeconds) || 0;
+
+    // Download audio and upload to Supabase
+    const downloadResult = await downloadAndStoreAudio(url, videoId, title);
     
     return NextResponse.json({
       success: true,
       mp3Url: downloadResult.url,
       filename: downloadResult.filename,
-      videoInfo
+      videoInfo: { title, artist, duration },
     });
 
   } catch (error) {

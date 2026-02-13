@@ -599,20 +599,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               {/* Clock Widget */}
               <SidebarClock />
 
-              {/* Sidebar Music Player */}
-              {post.sidebarMusicPlayer?.enabled && post.sidebarMusicPlayer?.src && (
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                    🎵 Now Playing
-                  </h3>
-                  <MusicPlayer
-                    src={post.sidebarMusicPlayer.src}
-                    title={post.sidebarMusicPlayer.title}
-                    artist={post.sidebarMusicPlayer.artist}
-                  />
-                </div>
-              )}
-
               {/* Contact Widget */}
               {(post.sidebarWidgets?.showContact !== false) && <SidebarContact />}
 
