@@ -2230,20 +2230,32 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                       <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400" title="Is this part of a series? If you're writing multiple related posts, give them the same series name to group them together.">
                         Series {existingSeries.length > 0 && <span className="text-gray-400 font-normal">({existingSeries.length} existing)</span>}
                       </label>
-                      <input
-                        type="text"
-                        list="existing-series"
+                      <select
                         value={formData.series}
                         onChange={(e) => setFormData({ ...formData, series: e.target.value })}
                         className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        placeholder="Type or select a series"
                         title="Is this part of a series? If you're writing multiple related posts, give them the same series name to group them together."
-                      />
-                      <datalist id="existing-series">
+                      >
+                        <option value="">Select a series...</option>
+                        <option value="">───────────</option>
                         {existingSeries.map((series) => (
-                          <option key={series} value={series} />
+                          <option key={series} value={series}>
+                            {series}
+                          </option>
                         ))}
-                      </datalist>
+                        <option value="">───────────</option>
+                        <option value="[create-new]">+ Create New Series</option>
+                      </select>
+                      {formData.series === '[create-new]' && (
+                        <input
+                          type="text"
+                          value={formData.series === '[create-new]' ? '' : formData.series}
+                          onChange={(e) => setFormData({ ...formData, series: e.target.value })}
+                          className="w-full mt-2 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          placeholder="Enter new series name..."
+                          autoFocus
+                        />
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400" title="What order should this post appear in the series? Use numbers like 1, 2, 3 to order your posts from first to last.">
@@ -3370,20 +3382,32 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                       <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400" title="Is this part of a series? If you're writing multiple related posts, give them the same series name to group them together.">
                         Series {existingSeries.length > 0 && <span className="text-gray-400 font-normal">({existingSeries.length} existing)</span>}
                       </label>
-                      <input
-                        type="text"
-                        list="existing-series-edit"
+                      <select
                         value={formData.series}
                         onChange={(e) => setFormData({ ...formData, series: e.target.value })}
                         className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        placeholder="Type or select a series"
                         title="Is this part of a series? If you're writing multiple related posts, give them the same series name to group them together."
-                      />
-                      <datalist id="existing-series-edit">
+                      >
+                        <option value="">Select a series...</option>
+                        <option value="">───────────</option>
                         {existingSeries.map((series) => (
-                          <option key={series} value={series} />
+                          <option key={series} value={series}>
+                            {series}
+                          </option>
                         ))}
-                      </datalist>
+                        <option value="">───────────</option>
+                        <option value="[create-new]">+ Create New Series</option>
+                      </select>
+                      {formData.series === '[create-new]' && (
+                        <input
+                          type="text"
+                          value={formData.series === '[create-new]' ? '' : formData.series}
+                          onChange={(e) => setFormData({ ...formData, series: e.target.value })}
+                          className="w-full mt-2 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          placeholder="Enter new series name..."
+                          autoFocus
+                        />
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400" title="What order should this post appear in the series? Use numbers like 1, 2, 3 to order your posts from first to last.">
