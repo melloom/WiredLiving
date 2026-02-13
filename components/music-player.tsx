@@ -1,29 +1,57 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { Play, Pause, Volume2, VolumeX, Lock, Heart, Share2, MoreVertical } from 'lucide-react';
 
 interface MusicPlayerProps {
   src: string;
   className?: string;
+  title?: string;
+  artist?: string;
+  password?: string; // Optional password protection
 }
 
-export function MusicPlayer({ src, className = '' }: MusicPlayerProps) {
+export function MusicPlayer({ 
+  src, 
+  className = '',
+  title: initialTitle,
+  artist: initialArtist,
+  password 
+}: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
-  const [title, setTitle] = useState('Loading...');
-  const [artist, setArtist] = useState('');
+  const [title, setTitle] = useState(initialTitle || 'Loading...');
+  const [artist, setArtist] = useState(initialArtist || '');
   const [thumbnail, setThumbnail] = useState('');
+  const [isMuted, setIsMuted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(!password);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showVolume, setShowVolume] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  
   const audioRef = useRef<HTMLAudioElement>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const progressBarRef = useRef<HTMLInputElement>(null);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Check if it's a YouTube URL
   const isYouTube = src.includes('youtube.com/watch?v=') || src.includes('youtu.be/');
   const videoId = src.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
 
   useEffect(() => {
-    if (isYouTube && videoId) {
+    if (isYouTube && videoId && !initialTitle) {
       // Fetch YouTube video info
       fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`)
         .then(res => res.json())
@@ -35,26 +63,34 @@ export function MusicPlayer({ src, className = '' }: MusicPlayerProps) {
         .catch(() => {
           setTitle('YouTube Video');
         });
-    } else if (!isYouTube) {
+    } else if (!isYouTube && !initialTitle) {
       // For direct audio files, try to extract title from URL
       const urlParts = src.split('/');
       const filename = urlParts[urlParts.length - 1];
       setTitle(filename.replace(/\.(mp3|wav|ogg|m4a)$/i, '') || 'Audio Track');
     }
-  }, [src, isYouTube, videoId]);
+  }, [src, isYouTube, videoId, initialTitle, initialArtist]);
+
+  // Handle password protection
+  const handlePasswordSubmit = () => {
+    if (passwordInput === password) {
+      setIsAuthenticated(true);
+      setShowPassword(false);
+      setPasswordInput('');
+    } else {
+      alert('Incorrect password');
+    }
+  };
 
   const togglePlayPause = () => {
-    if (isYouTube && iframeRef.current) {
-      // YouTube iframe will handle play/pause
-      setIsPlaying(!isPlaying);
-    } else if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
+    if (!audioRef.current || !isAuthenticated) return;
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
     }
+    setIsPlaying(!isPlaying);
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,6 +109,20 @@ export function MusicPlayer({ src, className = '' }: MusicPlayerProps) {
     const newVolume = parseFloat(e.target.value);
     audio.volume = newVolume;
     setVolume(newVolume);
+    setIsMuted(newVolume === 0);
+  };
+
+  const toggleMute = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    
+    if (isMuted) {
+      audio.volume = volume;
+      setIsMuted(false);
+    } else {
+      audio.volume = 0;
+      setIsMuted(true);
+    }
   };
 
   const formatTime = (time: number) => {
@@ -85,7 +135,7 @@ export function MusicPlayer({ src, className = '' }: MusicPlayerProps) {
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || isYouTube) return;
+    if (!audio || isYouTube || !isAuthenticated) return;
 
     const setAudioData = () => {
       setDuration(audio.duration);
@@ -101,60 +151,137 @@ export function MusicPlayer({ src, className = '' }: MusicPlayerProps) {
       audio.removeEventListener('loadeddata', setAudioData);
       audio.removeEventListener('timeupdate', setAudioTime);
     };
-  }, [isYouTube]);
+  }, [isYouTube, isAuthenticated]);
+
+  // Password protection UI
+  if (!isAuthenticated) {
+    return (
+      <div className={`bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 rounded-xl shadow-2xl p-6 my-6 ${className}`}>
+        <div className="flex flex-col items-center justify-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-800 rounded-full flex items-center justify-center mb-4">
+            <Lock className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-white font-semibold mb-2">Password Protected</h3>
+          <p className="text-gray-400 text-sm mb-4 text-center">This audio is protected with a password</p>
+          <div className="flex gap-2 w-full max-w-xs">
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              placeholder="Enter password"
+              className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-red-500 focus:outline-none text-sm"
+              onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+            />
+            <button
+              onClick={handlePasswordSubmit}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
+            >
+              Unlock
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isYouTube) {
     return (
       <div className={`bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 rounded-xl shadow-2xl p-4 my-6 ${className}`}>
-        <div className="flex items-center gap-4">
-          {/* Thumbnail */}
-          <div className="relative w-20 h-20 flex-shrink-0">
-            {thumbnail ? (
-              <img
-                src={thumbnail}
-                alt="Video thumbnail"
-                className="w-full h-full rounded-lg object-cover shadow-lg"
-              />
-            ) : (
-              <div className="w-full h-full rounded-lg bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center shadow-lg">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-              </div>
-            )}
+        <div className={`flex ${isMobile ? 'flex-col gap-4' : 'items-center gap-4'}`}>
+          {/* Left - Thumbnail */}
+          <div className={`relative ${isMobile ? 'w-full flex justify-center' : 'flex-shrink-0'}`}>
+            <div className={`relative ${isMobile ? 'w-32 h-32' : 'w-20 h-20'}`}>
+              {thumbnail ? (
+                <img
+                  src={thumbnail}
+                  alt="Video thumbnail"
+                  className="w-full h-full rounded-lg object-cover shadow-lg"
+                />
+              ) : (
+                <div className="w-full h-full rounded-lg bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center shadow-lg">
+                  <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Video Info and Controls */}
-          <div className="flex-1 min-w-0">
+          {/* Center - Info and Progress */}
+          <div className={`flex-1 ${isMobile ? 'text-center' : 'min-w-0'}`}>
             <div className="mb-3">
-              <h3 className="text-white font-semibold truncate">{title}</h3>
+              <h3 className="text-white font-semibold truncate text-sm md:text-base">{title}</h3>
               {artist && <p className="text-gray-300 text-sm truncate">{artist}</p>}
             </div>
 
-            <button
-              onClick={togglePlayPause}
-              className="w-10 h-10 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
-            >
-              {isPlaying ? (
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                </svg>
-              ) : (
-                <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-              )}
-            </button>
+            {/* Progress Bar */}
+            <div className="mb-3">
+              <input
+                ref={progressBarRef}
+                type="range"
+                min="0"
+                max={duration || 0}
+                value={currentTime}
+                onChange={handleSeek}
+                className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                style={{
+                  background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${(currentTime / duration) * 100}%, #374151 ${(currentTime / duration) * 100}%, #374151 100%)`
+                }}
+              />
+              <div className="flex justify-between mt-1">
+                <span className="text-xs text-gray-400">{formatTime(currentTime)}</span>
+                <span className="text-xs text-gray-400">{formatTime(duration)}</span>
+              </div>
+            </div>
           </div>
 
-          {/* YouTube Embed (hidden) */}
-          <iframe
-            ref={iframeRef}
-            src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=0`}
-            className="hidden"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+          {/* Right - Controls */}
+          <div className={`flex items-center ${isMobile ? 'justify-center gap-4' : 'gap-3'}`}>
+            {/* Play/Pause */}
+            <button
+              onClick={togglePlayPause}
+              className="w-10 h-10 md:w-12 md:h-12 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+            >
+              {isPlaying ? (
+                <Pause className="w-4 h-4 md:w-5 md:h-5" />
+              ) : (
+                <Play className="w-4 h-4 md:w-5 md:h-5 ml-0.5" />
+              )}
+            </button>
+
+            {/* Extra Controls */}
+            <div className="flex items-center gap-2">
+              <button className="text-gray-400 hover:text-white transition-colors p-2">
+                <Heart className="w-4 h-4 md:w-5 md:h-5" />
+              </button>
+              <button className="text-gray-400 hover:text-white transition-colors p-2">
+                <Share2 className="w-4 h-4 md:w-5 md:h-5" />
+              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowMore(!showMore)}
+                  className="text-gray-400 hover:text-white transition-colors p-2"
+                >
+                  <MoreVertical className="w-4 h-4 md:w-5 md:h-5" />
+                </button>
+                
+                {/* Dropdown Menu */}
+                {showMore && (
+                  <div className="absolute right-0 top-full mt-1 bg-gray-800 rounded-lg shadow-xl py-2 min-w-[150px] z-10">
+                    <button className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                      Download
+                    </button>
+                    <button className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                      Add to Playlist
+                    </button>
+                    <button className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                      Share
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -170,37 +297,40 @@ export function MusicPlayer({ src, className = '' }: MusicPlayerProps) {
         onEnded={() => setIsPlaying(false)}
       />
       
-      <div className="flex items-center gap-4">
-        {/* Album Cover */}
-        <div className="relative w-20 h-20 flex-shrink-0">
-          <div className="w-full h-full rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-            </svg>
-          </div>
-          {isPlaying && (
-            <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/30">
-              <div className="flex gap-1">
-                <div className="w-1 h-4 bg-white rounded-full animate-pulse"></div>
-                <div className="w-1 h-6 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-1 h-5 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                <div className="w-1 h-7 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.6s' }}></div>
-              </div>
+      <div className={`flex ${isMobile ? 'flex-col gap-4' : 'items-center gap-4'}`}>
+        {/* Left - Album Cover */}
+        <div className={`relative ${isMobile ? 'w-full flex justify-center' : 'flex-shrink-0'}`}>
+          <div className={`relative ${isMobile ? 'w-32 h-32' : 'w-20 h-20'}`}>
+            <div className="w-full h-full rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+              <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+              </svg>
             </div>
-          )}
+            {isPlaying && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/30">
+                <div className="flex gap-1">
+                  <div className="w-1 h-4 bg-white rounded-full animate-pulse"></div>
+                  <div className="w-1 h-6 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-1 h-5 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                  <div className="w-1 h-7 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.6s' }}></div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Track Info and Controls */}
-        <div className="flex-1 min-w-0">
+        {/* Center - Track Info and Progress */}
+        <div className={`flex-1 ${isMobile ? 'text-center' : 'min-w-0'}`}>
           {/* Track Info */}
           <div className="mb-3">
-            <h3 className="text-white font-semibold truncate">{title}</h3>
+            <h3 className="text-white font-semibold truncate text-sm md:text-base">{title}</h3>
             {artist && <p className="text-gray-300 text-sm truncate">{artist}</p>}
           </div>
 
           {/* Progress Bar */}
           <div className="mb-3">
             <input
+              ref={progressBarRef}
               type="range"
               min="0"
               max={duration || 0}
@@ -216,42 +346,81 @@ export function MusicPlayer({ src, className = '' }: MusicPlayerProps) {
               <span className="text-xs text-gray-400">{formatTime(duration)}</span>
             </div>
           </div>
+        </div>
 
-          {/* Controls */}
-          <div className="flex items-center gap-3">
-            {/* Play/Pause Button */}
+        {/* Right - Controls */}
+        <div className={`flex items-center ${isMobile ? 'justify-center gap-4' : 'gap-3'}`}>
+          {/* Play/Pause */}
+          <button
+            onClick={togglePlayPause}
+            className="w-10 h-10 md:w-12 md:h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+          >
+            {isPlaying ? (
+              <Pause className="w-4 h-4 md:w-5 md:h-5" />
+            ) : (
+              <Play className="w-4 h-4 md:w-5 md:h-5 ml-0.5" />
+            )}
+          </button>
+
+          {/* Volume Control */}
+          <div className="relative">
             <button
-              onClick={togglePlayPause}
-              className="w-10 h-10 bg-purple-600 hover:bg-purple-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+              onClick={toggleMute}
+              onMouseEnter={() => !isMobile && setShowVolume(true)}
+              onMouseLeave={() => !isMobile && setShowVolume(false)}
+              className="text-gray-400 hover:text-white transition-colors p-2"
             >
-              {isPlaying ? (
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
+              {isMuted || volume === 0 ? (
+                <VolumeX className="w-4 h-4 md:w-5 md:h-5" />
               ) : (
-                <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                </svg>
+                <Volume2 className="w-4 h-4 md:w-5 md:h-5" />
               )}
             </button>
-
-            {/* Volume Control */}
-            <div className="flex items-center gap-2 flex-1">
-              <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
-              </svg>
+            
+            {/* Volume Slider - Shows on hover for desktop, always for mobile */}
+            <div className={`${isMobile ? 'absolute right-0 top-full mt-2 opacity-100 visible' : `absolute right-0 top-full mt-2 transition-opacity ${showVolume ? 'opacity-100 visible' : 'opacity-0 invisible'}`} bg-gray-800 rounded-lg p-3 shadow-xl`}>
               <input
                 type="range"
                 min="0"
                 max="1"
                 step="0.01"
-                value={volume}
+                value={isMuted ? 0 : volume}
                 onChange={handleVolumeChange}
-                className="w-20 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${volume * 100}%, #374151 ${volume * 100}%, #374151 100%)`
-                }}
+                className="w-24 h-1 accent-purple-500"
               />
+            </div>
+          </div>
+
+          {/* Extra Controls */}
+          <div className="flex items-center gap-2">
+            <button className="text-gray-400 hover:text-white transition-colors p-2">
+              <Heart className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <button className="text-gray-400 hover:text-white transition-colors p-2">
+              <Share2 className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowMore(!showMore)}
+                className="text-gray-400 hover:text-white transition-colors p-2"
+              >
+                <MoreVertical className="w-4 h-4 md:w-5 md:h-5" />
+              </button>
+              
+              {/* Dropdown Menu */}
+              {showMore && (
+                <div className="absolute right-0 top-full mt-1 bg-gray-800 rounded-lg shadow-xl py-2 min-w-[150px] z-10">
+                  <button className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    Download
+                  </button>
+                  <button className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    Add to Playlist
+                  </button>
+                  <button className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    Share
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
