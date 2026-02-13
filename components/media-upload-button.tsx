@@ -6,7 +6,7 @@ import { useToast } from '@/components/toast';
 interface MediaUploadButtonProps {
   onInsert: (markdown: string) => void;
   postSlug?: string;
-  type?: 'video' | 'image' | 'gif';
+  type?: 'video' | 'image' | 'gif' | 'audio';
 }
 
 export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaUploadButtonProps) {
@@ -32,6 +32,10 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
     }
     if (type === 'gif' && file.type !== 'image/gif') {
       toast.error('Please select a GIF file');
+      return;
+    }
+    if (type === 'audio' && !file.type.startsWith('audio/')) {
+      toast.error('Please select an audio file (MP3, WAV, OGG, M4A)');
       return;
     }
 
@@ -131,9 +135,10 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
     const isGiphy = trimmedUrl.includes('giphy.com');
     const isTenor = trimmedUrl.includes('tenor.com');
     const isImgur = trimmedUrl.includes('imgur.com');
-    const isDirectMedia = /\.(gif|jpg|jpeg|png|webp|mp4|webm|mov)$/i.test(trimmedUrl.split('?')[0]);
+    const isYouTube = trimmedUrl.includes('youtube.com/watch?v=') || trimmedUrl.includes('youtu.be/');
+    const isDirectMedia = /\.(gif|jpg|jpeg|png|webp|mp4|webm|mov|mp3|wav|ogg|m4a)$/i.test(trimmedUrl.split('?')[0]);
 
-    if (!isGiphy && !isTenor && !isImgur && !isDirectMedia) {
+    if (!isGiphy && !isTenor && !isImgur && !isYouTube && !isDirectMedia) {
       const confirm = window.confirm(
         'This URL might not be a direct media link. Insert anyway?'
       );
@@ -167,9 +172,13 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
 
     // Generate appropriate markdown based on type
     let markdown = '';
-    const altText = type === 'gif' ? 'GIF' : type === 'video' ? 'Video' : 'Image';
+    const altText = type === 'gif' ? 'GIF' : type === 'video' ? 'Video' : type === 'audio' ? 'Audio' : 'Image';
     
-    if (type === 'video' || trimmedUrl.match(/\.(mp4|webm|mov)$/i)) {
+    if (type === 'audio' || trimmedUrl.match(/\.(mp3|wav|ogg|m4a)$/i)) {
+      markdown = `<music src="${finalUrl}" />`;
+    } else if (isYouTube) {
+      markdown = `<music src="${finalUrl}" />`;
+    } else if (type === 'video' || trimmedUrl.match(/\.(mp4|webm|mov)$/i)) {
       markdown = `<video controls src="${finalUrl}" class="w-full rounded-lg"></video>`;
     } else if (type === 'gif' || isGiphy || isTenor || trimmedUrl.match(/\.gif$/i)) {
       markdown = `![${altText}](${finalUrl})`;
@@ -180,7 +189,7 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
     onInsert(markdown);
     setUrlValue('');
     setShowUrlInput(false);
-    toast.success(`${type === 'video' ? 'Video' : type === 'gif' ? 'GIF' : 'Image'} URL inserted!`);
+    toast.success(`${type === 'video' ? 'Video' : type === 'gif' ? 'GIF' : type === 'audio' ? 'Audio' : 'Image'} URL inserted!`);
   };
 
   const handleButtonClick = () => {
@@ -197,18 +206,20 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
       }
       return `Uploading... ${progress}%`;
     }
-    return type === 'video' ? 'Upload Video' : type === 'gif' ? 'Upload GIF' : 'Upload Image';
+    return type === 'video' ? 'Upload Video' : type === 'gif' ? 'Upload GIF' : type === 'audio' ? 'Upload Audio' : 'Upload Image';
   };
 
   const getAcceptTypes = () => {
     if (type === 'video') return 'video/*';
     if (type === 'gif') return 'image/gif';
+    if (type === 'audio') return 'audio/*';
     return 'image/*';
   };
 
   const getIcon = () => {
     if (type === 'video') return '📹';
     if (type === 'gif') return '🎬';
+    if (type === 'audio') return '🎵';
     return '📷';
   };
 
@@ -221,8 +232,8 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
         onChange={handleFileSelect}
         className="hidden"
         disabled={uploading}
-        aria-label={type === 'video' ? 'Upload video file' : type === 'gif' ? 'Upload GIF file' : 'Upload image file'}
-        title={type === 'video' ? 'Select a video file to upload' : type === 'gif' ? 'Select a GIF file to upload' : 'Select an image file to upload'}
+        aria-label={type === 'video' ? 'Upload video file' : type === 'gif' ? 'Upload GIF file' : type === 'audio' ? 'Upload audio file' : 'Upload image file'}
+        title={type === 'video' ? 'Select a video file to upload' : type === 'gif' ? 'Select a GIF file to upload' : type === 'audio' ? 'Select an audio file to upload' : 'Select an image file to upload'}
       />
       
       <div className="flex flex-col gap-2">
@@ -239,7 +250,7 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
               }
               flex items-center gap-2
             `}
-            title={type === 'video' ? 'Upload video - Will automatically compress to save storage!' : type === 'gif' ? 'Upload GIF - Will convert to MP4 for better performance!' : 'Upload file'}
+            title={type === 'video' ? 'Upload video - Will automatically compress to save storage!' : type === 'gif' ? 'Upload GIF - Will convert to MP4 for better performance!' : type === 'audio' ? 'Upload audio file' : 'Upload file'}
           >
             <span className="text-lg">{getIcon()}</span>
             <span>{getButtonLabel()}</span>
@@ -287,7 +298,7 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
                   setUrlValue('');
                 }
               }}
-              placeholder={`Paste ${type === 'gif' ? 'Giphy/Tenor' : type} URL here...`}
+              placeholder={`Paste ${type === 'gif' ? 'Giphy/Tenor' : type === 'audio' ? 'YouTube or audio' : type} URL here...`}
               className="flex-1 px-3 py-2 text-sm rounded border border-purple-300 dark:border-purple-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               autoFocus
             />
@@ -322,7 +333,7 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
 
         {showUrlInput && (
           <div className="text-xs text-gray-500 dark:text-gray-400 px-1">
-            💡 Supports Giphy, Tenor, Imgur, and direct media URLs
+            💡 Supports Giphy, Tenor, Imgur, YouTube, and direct media URLs
           </div>
         )}
       </div>

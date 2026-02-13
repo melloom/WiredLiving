@@ -503,8 +503,8 @@ export function MarkdownToolbar({ onInsert, onInsertImage, galleryImages, conten
   };
 
   const insertMusic = () => {
-    onInsert('\n<music src="https://example.com/music.mp3" title="Song Title" artist="Artist Name" album="Album Name" />\n');
-    toast.success('Music player added! Replace the example URL and metadata with your music details.');
+    onInsert('\n<music src="https://www.youtube.com/watch?v=VIDEO_ID" />\n');
+    toast.success('Music player added! Replace with:\n• YouTube link (e.g., https://www.youtube.com/watch?v=abc123)\n• Direct audio link (e.g., https://example.com/song.mp3)\n• Or upload an audio file using the media button');
   };
 
   const insertYouTube = () => {

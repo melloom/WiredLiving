@@ -4,57 +4,57 @@ import { useState, useRef, useEffect } from 'react';
 
 interface MusicPlayerProps {
   src: string;
-  title?: string;
-  artist?: string;
-  album?: string;
-  cover?: string;
   className?: string;
 }
 
-export function MusicPlayer({ 
-  src, 
-  title, 
-  artist, 
-  album, 
-  cover,
-  className = '' 
-}: MusicPlayerProps) {
+export function MusicPlayer({ src, className = '' }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
+  const [title, setTitle] = useState('Loading...');
+  const [artist, setArtist] = useState('');
+  const [thumbnail, setThumbnail] = useState('');
   const audioRef = useRef<HTMLAudioElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Check if it's a YouTube URL
+  const isYouTube = src.includes('youtube.com/watch?v=') || src.includes('youtu.be/');
+  const videoId = src.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
 
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const setAudioData = () => {
-      setDuration(audio.duration);
-      setCurrentTime(audio.currentTime);
-    };
-
-    const setAudioTime = () => setCurrentTime(audio.currentTime);
-
-    audio.addEventListener('loadeddata', setAudioData);
-    audio.addEventListener('timeupdate', setAudioTime);
-
-    return () => {
-      audio.removeEventListener('loadeddata', setAudioData);
-      audio.removeEventListener('timeupdate', setAudioTime);
-    };
-  }, []);
+    if (isYouTube && videoId) {
+      // Fetch YouTube video info
+      fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`)
+        .then(res => res.json())
+        .then(data => {
+          setTitle(data.title || 'YouTube Video');
+          setArtist(data.author_name || '');
+          setThumbnail(data.thumbnail_url || '');
+        })
+        .catch(() => {
+          setTitle('YouTube Video');
+        });
+    } else if (!isYouTube) {
+      // For direct audio files, try to extract title from URL
+      const urlParts = src.split('/');
+      const filename = urlParts[urlParts.length - 1];
+      setTitle(filename.replace(/\.(mp3|wav|ogg|m4a)$/i, '') || 'Audio Track');
+    }
+  }, [src, isYouTube, videoId]);
 
   const togglePlayPause = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
+    if (isYouTube && iframeRef.current) {
+      // YouTube iframe will handle play/pause
+      setIsPlaying(!isPlaying);
+    } else if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
     }
-    setIsPlaying(!isPlaying);
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,6 +83,83 @@ export function MusicPlayer({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || isYouTube) return;
+
+    const setAudioData = () => {
+      setDuration(audio.duration);
+      setCurrentTime(audio.currentTime);
+    };
+
+    const setAudioTime = () => setCurrentTime(audio.currentTime);
+
+    audio.addEventListener('loadeddata', setAudioData);
+    audio.addEventListener('timeupdate', setAudioTime);
+
+    return () => {
+      audio.removeEventListener('loadeddata', setAudioData);
+      audio.removeEventListener('timeupdate', setAudioTime);
+    };
+  }, [isYouTube]);
+
+  if (isYouTube) {
+    return (
+      <div className={`bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 rounded-xl shadow-2xl p-4 my-6 ${className}`}>
+        <div className="flex items-center gap-4">
+          {/* Thumbnail */}
+          <div className="relative w-20 h-20 flex-shrink-0">
+            {thumbnail ? (
+              <img
+                src={thumbnail}
+                alt="Video thumbnail"
+                className="w-full h-full rounded-lg object-cover shadow-lg"
+              />
+            ) : (
+              <div className="w-full h-full rounded-lg bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center shadow-lg">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              </div>
+            )}
+          </div>
+
+          {/* Video Info and Controls */}
+          <div className="flex-1 min-w-0">
+            <div className="mb-3">
+              <h3 className="text-white font-semibold truncate">{title}</h3>
+              {artist && <p className="text-gray-300 text-sm truncate">{artist}</p>}
+            </div>
+
+            <button
+              onClick={togglePlayPause}
+              className="w-10 h-10 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+            >
+              {isPlaying ? (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              )}
+            </button>
+          </div>
+
+          {/* YouTube Embed (hidden) */}
+          <iframe
+            ref={iframeRef}
+            src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=0`}
+            className="hidden"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 rounded-xl shadow-2xl p-4 my-6 ${className}`}>
       <audio
@@ -96,19 +173,11 @@ export function MusicPlayer({
       <div className="flex items-center gap-4">
         {/* Album Cover */}
         <div className="relative w-20 h-20 flex-shrink-0">
-          {cover ? (
-            <img
-              src={cover}
-              alt="Album cover"
-              className="w-full h-full rounded-lg object-cover shadow-lg"
-            />
-          ) : (
-            <div className="w-full h-full rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-              </svg>
-            </div>
-          )}
+          <div className="w-full h-full rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+            </svg>
+          </div>
           {isPlaying && (
             <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/30">
               <div className="flex gap-1">
@@ -125,9 +194,8 @@ export function MusicPlayer({
         <div className="flex-1 min-w-0">
           {/* Track Info */}
           <div className="mb-3">
-            {title && <h3 className="text-white font-semibold truncate">{title}</h3>}
+            <h3 className="text-white font-semibold truncate">{title}</h3>
             {artist && <p className="text-gray-300 text-sm truncate">{artist}</p>}
-            {album && <p className="text-gray-400 text-xs truncate">{album}</p>}
           </div>
 
           {/* Progress Bar */}
