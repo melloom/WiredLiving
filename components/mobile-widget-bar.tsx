@@ -5,7 +5,7 @@ import { SidebarWeather } from './sidebar-weather';
 import { SidebarContact } from './sidebar-contact';
 import { SidebarGallery } from './sidebar-gallery';
 import { SidebarClock } from './sidebar-clock';
-import { MusicPlayer } from './music-player';
+
 import { NewsFeed } from './news-feed';
 import { ContentQuickLinks } from './content-quick-links';
 import { TableOfContents } from './table-of-contents';
@@ -43,55 +43,6 @@ export function MobileWidgetBar({
   const [openWidget, setOpenWidget] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
-
-  // Persistent music playback state
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-  const [ytIframeActive, setYtIframeActive] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const isYouTube = !!(sidebarMusicPlayer?.src?.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)/));
-  const ytVideoId = sidebarMusicPlayer?.src?.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1] || null;
-
-  const startMusic = () => {
-    if (isYouTube) {
-      setYtIframeActive(true);
-      setIsMusicPlaying(true);
-    } else if (sidebarMusicPlayer?.src) {
-      if (!audioRef.current) {
-        audioRef.current = new Audio(sidebarMusicPlayer.src);
-        audioRef.current.loop = true;
-      }
-      audioRef.current.play().then(() => setIsMusicPlaying(true)).catch(() => {});
-    }
-  };
-
-  const stopMusic = () => {
-    if (isYouTube) {
-      setYtIframeActive(false);
-      setIsMusicPlaying(false);
-    } else if (audioRef.current) {
-      audioRef.current.pause();
-      setIsMusicPlaying(false);
-    }
-  };
-
-  const playAndClose = () => {
-    startMusic();
-    setOpenWidget(null);
-  };
-
-  // Cleanup on unmount (navigating away from the page)
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      setYtIframeActive(false);
-      setIsMusicPlaying(false);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Handle escape key to close modal
   useEffect(() => {
@@ -184,52 +135,17 @@ export function MobileWidgetBar({
     {
       id: 'music',
       icon: (
-        <div className="relative">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-          </svg>
-          {isMusicPlaying && (
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
-          )}
-        </div>
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+        </svg>
       ),
-      label: isMusicPlaying ? 'Playing' : 'Music',
+      label: 'Music',
       show: !!(sidebarMusicPlayer?.enabled && sidebarMusicPlayer?.src),
-      content: sidebarMusicPlayer?.src ? (
-        <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
-          {sidebarMusicPlayer.title && (
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1 truncate">{sidebarMusicPlayer.title}</p>
-          )}
-          {sidebarMusicPlayer.artist && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 truncate">{sidebarMusicPlayer.artist}</p>
-          )}
-          {!isYouTube && (
-            <MusicPlayer src={sidebarMusicPlayer.src} title={sidebarMusicPlayer.title} artist={sidebarMusicPlayer.artist} />
-          )}
-          <div className="flex gap-2 mt-3">
-            {!isMusicPlaying ? (
-              <button
-                onClick={playAndClose}
-                className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                Play while reading
-              </button>
-            ) : (
-              <button
-                onClick={stopMusic}
-                className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                Stop Music
-              </button>
-            )}
-          </div>
-          {isYouTube && !isMusicPlaying && (
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-2 text-center">Plays YouTube audio in background while you read</p>
-          )}
-        </div>
-      ) : null,
+      // No modal content — tapping this icon toggles the sticky player directly
+      content: null,
+      onTap: () => {
+        window.dispatchEvent(new CustomEvent('toggle-sticky-music-player'));
+      },
     },
     {
       id: 'contact',
@@ -248,38 +164,6 @@ export function MobileWidgetBar({
 
   return (
     <>
-      {/* Persistent YouTube mini-player — stays alive when modal closes */}
-      {ytIframeActive && ytVideoId && (
-        <div className={`lg:hidden fixed left-0 right-0 z-[45] transition-all duration-300 ${
-          openWidget === 'music'
-            ? 'opacity-0 pointer-events-none bottom-0'
-            : 'bottom-[3.75rem] opacity-100'
-        }`}>
-          <div className="mx-2 mb-1 rounded-xl overflow-hidden bg-gray-900 shadow-lg border border-purple-500/30 flex items-center gap-2 px-3 py-1.5">
-            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-black">
-              <iframe
-                src={`https://www.youtube.com/embed/${ytVideoId}?autoplay=1&rel=0&modestbranding=1&controls=0&playsinline=1`}
-                title="Background music"
-                className="w-full h-full"
-                allow="autoplay; encrypted-media"
-                frameBorder="0"
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] text-white font-medium truncate">{sidebarMusicPlayer?.title || 'Playing'}</p>
-              <p className="text-[9px] text-purple-300 truncate">{sidebarMusicPlayer?.artist || 'YouTube'}</p>
-            </div>
-            <button
-              onClick={stopMusic}
-              className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors flex-shrink-0"
-              aria-label="Stop music"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Mobile Widget Bar - Sticky bottom bar - hidden when menu is open */}
       {!mobileMenuOpen && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-2xl safe-bottom">
@@ -287,7 +171,14 @@ export function MobileWidgetBar({
             {widgets.map((widget) => (
               <button
                 key={widget.id}
-                onClick={() => setOpenWidget(openWidget === widget.id ? null : widget.id)}
+                onClick={() => {
+                  if ('onTap' in widget && typeof widget.onTap === 'function') {
+                    widget.onTap();
+                    setOpenWidget(null);
+                  } else {
+                    setOpenWidget(openWidget === widget.id ? null : widget.id);
+                  }
+                }}
                 className={`flex-1 min-w-0 flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all text-center ${
                   openWidget === widget.id
                     ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'

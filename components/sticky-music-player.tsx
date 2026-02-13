@@ -33,6 +33,29 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
     }
   }, [musicPlayer]);
 
+  // Listen for toggle event from mobile widget bar
+  useEffect(() => {
+    const handleToggle = () => {
+      if (!musicPlayer?.enabled || !musicPlayer?.src) return;
+      setIsExpanded((prev) => {
+        if (!prev) {
+          // Expanding — start playback
+          const ytMatch = musicPlayer.src.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+          if (ytMatch) {
+            setShowYouTubeIframe(true);
+            setIsPlaying(true);
+          } else if (audioRef.current) {
+            audioRef.current.play().catch(() => {});
+            setIsPlaying(true);
+          }
+        }
+        return !prev;
+      });
+    };
+    window.addEventListener('toggle-sticky-music-player', handleToggle);
+    return () => window.removeEventListener('toggle-sticky-music-player', handleToggle);
+  }, [musicPlayer]);
+
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -184,7 +207,7 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
       )}
 
       <div
-        className={`fixed bg-gradient-to-r from-gray-900 via-purple-900/90 to-gray-900 backdrop-blur-xl border border-purple-500/20 shadow-2xl rounded-2xl transition-all duration-500 ease-in-out z-50 overflow-hidden hidden lg:block lg:bottom-4 lg:right-4 ${isExpanded ? 'lg:w-96' : 'lg:w-80'}`}
+        className={`fixed bg-gradient-to-r from-gray-900 via-purple-900/90 to-gray-900 backdrop-blur-xl border border-purple-500/20 shadow-2xl rounded-2xl transition-all duration-500 ease-in-out z-50 overflow-hidden bottom-[4.5rem] right-2 left-2 lg:bottom-4 lg:right-4 lg:left-auto ${isExpanded ? 'lg:w-96' : 'lg:w-80'}`}
         style={{
           maxWidth: 'calc(100vw - 1rem)',
         }}
