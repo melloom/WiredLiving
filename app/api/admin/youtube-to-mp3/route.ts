@@ -87,7 +87,7 @@ async function downloadYouTubeMP3(videoId: string, title: string): Promise<{ url
       throw new Error('Failed to download MP3 file');
     }
 
-    let mp3Buffer = Buffer.from(await mp3Response.arrayBuffer());
+    let mp3Buffer: Buffer<ArrayBufferLike> = Buffer.from(new Uint8Array(await mp3Response.arrayBuffer()));
     
     // Compress the audio to save space
     console.log(`Original audio size: ${(mp3Buffer.length / 1024 / 1024).toFixed(2)}MB`);

@@ -7,12 +7,12 @@ import { tmpdir } from 'os';
 const execAsync = promisify(exec);
 
 interface CompressionOptions {
-  inputBuffer: Buffer;
+  inputBuffer: Buffer<ArrayBufferLike>;
   bitrate?: '32' | '64' | '96' | '128'; // kbps
   maxDuration?: number; // seconds
 }
 
-export async function compressAudio(options: CompressionOptions): Promise<Buffer> {
+export async function compressAudio(options: CompressionOptions): Promise<Buffer<ArrayBufferLike>> {
   const { inputBuffer, bitrate = '64', maxDuration = 240 } = options; // Default 4 minutes
   
   // Create temporary files
