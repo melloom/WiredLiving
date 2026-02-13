@@ -53,11 +53,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<Conversio
     const mp4Path = path.join(tempDir, mp4FileName);
     const webmPath = path.join(tempDir, webmFileName);
 
-    try {
-      // Save uploaded GIF to temp file
-      const gifBuffer = Buffer.from(await file.arrayBuffer());
-      await writeFile(gifPath, gifBuffer);
+    // Save uploaded GIF to temp file and keep buffer for fallback
+    const gifBuffer = Buffer.from(await file.arrayBuffer());
+    await writeFile(gifPath, gifBuffer);
 
+    try {
       // Convert GIF to MP4 using FFmpeg
       console.log(`Converting GIF to MP4: ${gifFileName}`);
       
