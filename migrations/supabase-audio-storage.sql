@@ -4,7 +4,7 @@ VALUES (
   'audio',
   'audio',
   true,
-  52428800, -- 50MB limit
+  10485760, -- 10MB limit (compressed audio)
   ARRAY['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a']
 ) ON CONFLICT (id) DO NOTHING;
 

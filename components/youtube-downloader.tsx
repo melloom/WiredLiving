@@ -105,7 +105,7 @@ export function YoutubeDownloader({ url, onDownloadComplete }: YoutubeDownloader
       )}
       
       <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
-        Note: Downloads and stores the MP3 on your server for permanent access.
+        Note: Downloads and compresses to 64kbps MP3 (max 4 min) to save storage space.
       </p>
     </div>
   );

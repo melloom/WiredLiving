@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { uploadFile } from '@/lib/supabase-storage';
+import { compressAudio } from '@/lib/audio-compressor';
 
 // YouTube video ID extraction
 function extractYouTubeId(url: string): string | null {
@@ -55,15 +56,12 @@ async function getYouTubeInfo(videoId: string) {
 
 // Download and convert YouTube to MP3 using external service
 async function downloadYouTubeMP3(videoId: string, title: string): Promise<{ url: string; filename: string }> {
-  // Using yt-download.org API (free tier)
-  // Alternative services:
-  // - yt1s.com
-  // - y2mate.com
-  // - ssyoutube.com
-  // - Or self-hosted yt-dlp
+  // Using yt-download.org API with low quality for smaller files
+  // Requesting 64kbps to save space (good enough for background music)
   
   try {
-    const apiUrl = `https://yt-download.org/api/button/mp3/${videoId}`;
+    // Try to get low quality version first
+    const apiUrl = `https://yt-download.org/api/button/mp3/${videoId}?quality=64`;
     
     const response = await fetch(apiUrl, {
       method: 'GET',
@@ -89,7 +87,20 @@ async function downloadYouTubeMP3(videoId: string, title: string): Promise<{ url
       throw new Error('Failed to download MP3 file');
     }
 
-    const mp3Buffer = Buffer.from(await mp3Response.arrayBuffer());
+    let mp3Buffer = Buffer.from(await mp3Response.arrayBuffer());
+    
+    // Compress the audio to save space
+    console.log(`Original audio size: ${(mp3Buffer.length / 1024 / 1024).toFixed(2)}MB`);
+    
+    try {
+      mp3Buffer = await compressAudio({
+        inputBuffer: mp3Buffer,
+        bitrate: '64', // 64kbps for good quality/size ratio
+        maxDuration: 240 // Max 4 minutes to save space
+      });
+    } catch (error) {
+      console.error('Compression failed, using original:', error);
+    }
     
     // Create a clean filename
     const cleanTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
