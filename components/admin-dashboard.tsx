@@ -2693,83 +2693,87 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
             )}
           </div>
 
-          <div className="flex flex-row flex-wrap items-center gap-3 pt-6 border-t border-dashed border-gray-200 dark:border-gray-800 mt-2">
-            <button
-              type="button"
-              disabled={savingPreview || loading}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Save draft button clicked');
-                handleSaveDraft(false);
-              }}
-              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
-            >
-              {savingPreview ? 'Saving...' : 'Save Draft'}
-            </button>
-            <button
-              type="button"
-              disabled={savingPreview || loading}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Save draft & preview button clicked');
-                handleSaveDraftAndPreview();
-              }}
-              className="px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100 rounded-lg border border-amber-300 dark:border-amber-700 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
-            >
-              {savingPreview ? 'Saving...' : 'Save & Preview'}
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
-            >
-              {loading ? 'Creating...' : 'Create Post'}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setFormData({
-                  title: '',
-                  description: '',
-                  content: '',
-                  author: '',
-                  tags: '',
-                  excerpt: '',
-                  coverImage: '',
-                  coverImageCrop: undefined,
-                  featured: false,
-                  seoTitle: '',
-                  seoDescription: '',
-                  galleryImages: [],
-                  category: '',
-                  series: '',
-                  seriesOrder: null,
-                  slugOverride: '',
-                  slugLocked: false,
-                  status: 'draft',
-                  scheduledAt: '',
-                  visibility: 'public',
-                  isPremium: false,
-                  requiresLogin: false,
-                  canonicalUrl: '',
-                  ogImageOverride: '',
-                  twitterTitle: '',
-                  twitterDescription: '',
-                  structuredDataType: 'BlogPosting',
-                  relatedLinks: [],
-                  sidebarMusicPlayer: { enabled: false, src: '', title: '', artist: '' },
-                });
-                setError('');
-                localStorage.removeItem('blog_draft_autosave');
-              }}
-              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-semibold text-sm whitespace-nowrap"
-            >
-              Clear
-            </button>
           </div>
-        </div>
+
+          {/* Sticky bottom action bar */}
+          <div className="sticky bottom-0 z-30 -mx-4 px-4 py-3 bg-white/95 dark:bg-gray-950/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-[0_-4px_12px_rgba(0,0,0,0.1)]">
+            <div className="flex flex-row flex-wrap items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                disabled={savingPreview || loading}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Save draft button clicked');
+                  handleSaveDraft(false);
+                }}
+                className="px-3 sm:px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
+              >
+                {savingPreview ? 'Saving...' : 'Save Draft'}
+              </button>
+              <button
+                type="button"
+                disabled={savingPreview || loading}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Save draft & preview button clicked');
+                  handleSaveDraftAndPreview();
+                }}
+                className="px-3 sm:px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100 rounded-lg border border-amber-300 dark:border-amber-700 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
+              >
+                {savingPreview ? 'Saving...' : 'Save & Preview'}
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-4 sm:px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
+              >
+                {loading ? 'Creating...' : 'Create Post'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({
+                    title: '',
+                    description: '',
+                    content: '',
+                    author: '',
+                    tags: '',
+                    excerpt: '',
+                    coverImage: '',
+                    coverImageCrop: undefined,
+                    featured: false,
+                    seoTitle: '',
+                    seoDescription: '',
+                    galleryImages: [],
+                    category: '',
+                    series: '',
+                    seriesOrder: null,
+                    slugOverride: '',
+                    slugLocked: false,
+                    status: 'draft',
+                    scheduledAt: '',
+                    visibility: 'public',
+                    isPremium: false,
+                    requiresLogin: false,
+                    canonicalUrl: '',
+                    ogImageOverride: '',
+                    twitterTitle: '',
+                    twitterDescription: '',
+                    structuredDataType: 'BlogPosting',
+                    relatedLinks: [],
+                    sidebarMusicPlayer: { enabled: false, src: '', title: '', artist: '' },
+                  });
+                  setError('');
+                  localStorage.removeItem('blog_draft_autosave');
+                }}
+                className="px-3 sm:px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-semibold text-xs sm:text-sm whitespace-nowrap"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
         </form>
 
         {/* Crop Modal */}
@@ -3944,38 +3948,42 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
             )}
           </div>
 
-          <div className="flex flex-row flex-wrap items-center gap-3 pt-6 border-t border-dashed border-gray-200 dark:border-gray-800 mt-2">
-            <button
-              type="button"
-              disabled={loading}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (previewSlug) {
-                  const previewUrl = post.published ? `/blog/${previewSlug}` : `/blog/preview/${previewSlug}`;
-                  window.open(previewUrl, '_blank', 'noopener,noreferrer');
-                }
-              }}
-              className="px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100 rounded-lg border border-amber-300 dark:border-amber-700 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
-            >
-              Open Preview
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
-            >
-              {loading ? 'Updating...' : 'Update Post'}
-            </button>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-semibold text-sm whitespace-nowrap"
-            >
-              Cancel
-            </button>
           </div>
-        </div>
+
+          {/* Sticky bottom action bar */}
+          <div className="sticky bottom-0 z-30 -mx-4 px-4 py-3 bg-white/95 dark:bg-gray-950/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-[0_-4px_12px_rgba(0,0,0,0.1)]">
+            <div className="flex flex-row flex-wrap items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (previewSlug) {
+                    const previewUrl = post.published ? `/blog/${previewSlug}` : `/blog/preview/${previewSlug}`;
+                    window.open(previewUrl, '_blank', 'noopener,noreferrer');
+                  }
+                }}
+                className="px-3 sm:px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100 rounded-lg border border-amber-300 dark:border-amber-700 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
+              >
+                Open Preview
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-4 sm:px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
+              >
+                {loading ? 'Updating...' : 'Update Post'}
+              </button>
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-3 sm:px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-semibold text-xs sm:text-sm whitespace-nowrap"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </form>
 
         {/* Crop Modal */}

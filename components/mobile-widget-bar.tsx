@@ -141,12 +141,36 @@ export function MobileWidgetBar({
       ),
       label: 'Music',
       show: !!(sidebarMusicPlayer?.enabled && sidebarMusicPlayer?.src),
-      content: sidebarMusicPlayer?.src ? (
-        <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
-          <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3">🎵 Now Playing</h3>
-          <MusicPlayer src={sidebarMusicPlayer.src} title={sidebarMusicPlayer.title} artist={sidebarMusicPlayer.artist} />
-        </div>
-      ) : null,
+      content: sidebarMusicPlayer?.src ? (() => {
+        const ytMatch = sidebarMusicPlayer.src.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+        if (ytMatch) {
+          const videoId = ytMatch[1];
+          return (
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3">Now Playing</h3>
+              {sidebarMusicPlayer.title && (
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 truncate">{sidebarMusicPlayer.title}{sidebarMusicPlayer.artist ? ` — ${sidebarMusicPlayer.artist}` : ''}</p>
+              )}
+              <div className="relative w-full rounded-lg overflow-hidden bg-black" style={{ aspectRatio: '16/9' }}>
+                <iframe
+                  src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
+                  title={sidebarMusicPlayer.title || 'YouTube Video'}
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  frameBorder="0"
+                />
+              </div>
+            </div>
+          );
+        }
+        return (
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3">Now Playing</h3>
+            <MusicPlayer src={sidebarMusicPlayer.src} title={sidebarMusicPlayer.title} artist={sidebarMusicPlayer.artist} />
+          </div>
+        );
+      })() : null,
     },
     {
       id: 'contact',
