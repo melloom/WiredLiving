@@ -502,6 +502,11 @@ export function MarkdownToolbar({ onInsert, onInsertImage, galleryImages, conten
     onInsert('\n<video controls width="100%" class="rounded-lg my-4">\n  <source src="https://example.com/video.mp4" type="video/mp4" />\n  Your browser does not support the video tag.\n</video>\n');
   };
 
+  const insertMusic = () => {
+    onInsert('\n<music src="https://example.com/music.mp3" title="Song Title" artist="Artist Name" album="Album Name" />\n');
+    toast.success('Music player added! Replace the example URL and metadata with your music details.');
+  };
+
   const insertYouTube = () => {
     const embedCode = '\n<div class="video-wrapper my-6">\n  <iframe width="100%" height="400" src="https://www.youtube.com/embed/VIDEO_ID" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="rounded-lg"></iframe>\n</div>\n';
     onInsert(embedCode);
@@ -839,6 +844,16 @@ Related: [${postTitle}](${currentUrl})
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={insertMusic}
+            className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+            title="Insert music player"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
             </svg>
           </button>
         </div>

@@ -14,6 +14,7 @@ import React, { useState, useRef, useMemo, memo } from 'react';
 import { transformAndValidateContent } from '@/lib/markdown-transformer';
 import { generateHeadingId } from '@/lib/utils';
 import { TableOfContents } from '@/components/table-of-contents';
+import { MusicPlayer } from '@/components/music-player';
 
 interface MDXContentProps {
   content: string;
@@ -764,6 +765,17 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
 
           return <div className={alignClass ? alignClass : className} {...props} />;
         },
+        // Music player component
+        music: ({ node, src, title, artist, album, cover, ...props }: any) => (
+          <MusicPlayer 
+            src={src} 
+            title={title} 
+            artist={artist} 
+            album={album} 
+            cover={cover}
+            {...props} 
+          />
+        ),
       } as any}
     >
         {validationResult.transformedContent}

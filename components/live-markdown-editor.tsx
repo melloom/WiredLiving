@@ -10,6 +10,7 @@ import rehypeKatex from 'rehype-katex';
 import rehypeHighlight from 'rehype-highlight';
 import { MarkdownToolbar } from './markdown-toolbar';
 import { TableOfContents } from './table-of-contents';
+import { MusicPlayer } from './music-player';
 
 // Spoiler/Hidden Text component - click to reveal
 function SpoilerText({ children }: { children: React.ReactNode }) {
@@ -374,6 +375,16 @@ const MarkdownPreview = memo(({ content, inline = false }: { content: string; in
             const alignClass = className?.match(/text-(left|right|center|justify)/)?.[0] || '';
             return <div className={alignClass ? alignClass : className} {...props} />;
           },
+          music: ({ node, src, title, artist, album, cover, ...props }: any) => (
+            <MusicPlayer 
+              src={src} 
+              title={title} 
+              artist={artist} 
+              album={album} 
+              cover={cover}
+              {...props} 
+            />
+          ),
         }}
       >
         {content || (inline ? '*No content yet. Start writing in Edit mode!*' : '*Start typing to see live preview...*')}
