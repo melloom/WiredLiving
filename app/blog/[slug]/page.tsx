@@ -24,16 +24,16 @@ import { siteConfig } from '@/config/site';
 
 // Dynamic imports for heavy components (lazy loaded). Next.js 16: ssr:false only in Client Components.
 const NewsFeed = dynamicImport(() => import('@/components/news-feed').then(mod => ({ default: mod.NewsFeed })), {
-  loading: () => <div className="animate-pulse h-32 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
+  loading: () => <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
 });
 const SidebarWeather = dynamicImport(() => import('@/components/sidebar-weather').then(mod => ({ default: mod.SidebarWeather })), {
-  loading: () => <div className="animate-pulse h-40 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
+  loading: () => <div className="h-40 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
 });
 const SidebarContact = dynamicImport(() => import('@/components/sidebar-contact').then(mod => ({ default: mod.SidebarContact })), {
-  loading: () => <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
+  loading: () => <div className="h-48 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
 });
 const SidebarGallery = dynamicImport(() => import('@/components/sidebar-gallery').then(mod => ({ default: mod.SidebarGallery })), {
-  loading: () => <div className="animate-pulse h-52 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
+  loading: () => <div className="h-52 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
 });
 const BlogPostMobileWidget = dynamicImport(() => import('@/components/blog-post-mobile-widget').then(mod => ({ default: mod.BlogPostMobileWidget })), {});
 
@@ -228,8 +228,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <header className="mb-6">
             <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 md:p-6 border border-gray-200/50 dark:border-gray-800/50 shadow-lg relative overflow-hidden contain-layout">
               {/* Simplified decorative background - optimized for performance */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/5 to-purple-400/5 rounded-full blur-2xl -z-0 will-change-transform" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-400/5 to-blue-400/5 rounded-full blur-2xl -z-0 will-change-transform" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/5 to-purple-400/5 rounded-full blur-2xl -z-0" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-400/5 to-blue-400/5 rounded-full blur-2xl -z-0" />
 
               <div className="relative z-10">
                 {/* Top Meta Bar */}
@@ -472,7 +472,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     {post.galleryImages.map((url, idx) => (
                       <div
                         key={url + idx}
-                        className="relative aspect-video overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900 group cursor-pointer"
+                        className="relative aspect-video overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900"
                       >
                         <Image
                           src={url}
