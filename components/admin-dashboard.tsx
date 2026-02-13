@@ -19,6 +19,7 @@ import { useConfirm } from '@/components/confirm-dialog';
 import { LiveMarkdownEditor, type LiveMarkdownEditorHandle } from '@/components/live-markdown-editor';
 import { generateSmartSEO, validateSEO } from '@/lib/seo-generator';
 import { SeriesMetadataModal } from '@/components/series-metadata-modal';
+import { MusicPreviewPlayer } from '@/components/music-preview-player';
 import type { SeriesMetadata } from '@/types';
 
 const supabase = createClient();
@@ -2296,6 +2297,19 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                         />
                       </div>
                     </div>
+                    
+                    {/* Preview Player */}
+                    {formData.sidebarMusicPlayer?.src && (
+                      <div className="mt-3">
+                        <label className="block text-xs font-medium mb-2 text-gray-600 dark:text-gray-400">Preview</label>
+                        <MusicPreviewPlayer
+                          src={formData.sidebarMusicPlayer.src}
+                          title={formData.sidebarMusicPlayer.title}
+                          artist={formData.sidebarMusicPlayer.artist}
+                        />
+                      </div>
+                    )}
+                    
                     <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear in the sidebar of this post. Only one music player per post is allowed.</p>
                   </div>
                 )}
@@ -3568,6 +3582,19 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                         />
                       </div>
                     </div>
+                    
+                    {/* Preview Player */}
+                    {formData.sidebarMusicPlayer?.src && (
+                      <div className="mt-3">
+                        <label className="block text-xs font-medium mb-2 text-gray-600 dark:text-gray-400">Preview</label>
+                        <MusicPreviewPlayer
+                          src={formData.sidebarMusicPlayer.src}
+                          title={formData.sidebarMusicPlayer.title}
+                          artist={formData.sidebarMusicPlayer.artist}
+                        />
+                      </div>
+                    )}
+                    
                     <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear in the sidebar of this post. Only one music player per post is allowed.</p>
                   </div>
                 )}
