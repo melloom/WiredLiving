@@ -189,7 +189,7 @@ function CodeBlockWithCopy({ id, language, code, className, children }: { id: st
       </div>
       <div className="overflow-x-auto overflow-touch bg-gray-900 dark:bg-black rounded-b-lg -mx-4 sm:mx-0 px-4 sm:px-0" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
         <pre className="m-0 p-0 bg-transparent overflow-x-auto">
-          <code className={`${className || ''} block p-4 text-sm text-gray-100 font-mono overflow-x-auto whitespace-pre text-gray-200`} {...{ 'data-language': language }}>
+          <code className={`${className || ''} block p-4 text-sm font-mono overflow-x-auto whitespace-pre text-gray-200`} {...{ 'data-language': language }}>
             {children}
           </code>
         </pre>
@@ -459,7 +459,7 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
                 Swipe sideways to see all columns →
               </p>
               <div className="overflow-x-auto overflow-y-visible table-scroll-inner">
-                <table className="min-w-full min-w-max divide-y divide-gray-200 dark:divide-gray-700" {...props}>
+                <table className="min-w-max divide-y divide-gray-200 dark:divide-gray-700" {...props}>
                   {children}
                 </table>
               </div>
