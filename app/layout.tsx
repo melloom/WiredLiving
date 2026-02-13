@@ -207,12 +207,14 @@ export default function RootLayout({
       </head>
       <body className={inter.className} suppressHydrationWarning>
         {/* ThemeProvider ensures theme context and <html> class for all pages */}
-        <Providers>
-          <AnalyticsTracker />
-          <KeyboardShortcut />
-          <PWAInstallPrompt />
-          <LayoutWrapper>{children}</LayoutWrapper>
-        </Providers>
+        <div suppressHydrationWarning>
+          <Providers>
+            <AnalyticsTracker />
+            <KeyboardShortcut />
+            <PWAInstallPrompt />
+            <LayoutWrapper>{children}</LayoutWrapper>
+          </Providers>
+        </div>
       </body>
     </html>
   );
