@@ -33,9 +33,9 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
     }
   }, [musicPlayer]);
 
-  // Listen for toggle event from mobile widget bar
+  // Register global toggle callback for mobile widget bar
   useEffect(() => {
-    const handleToggle = () => {
+    (window as unknown as Record<string, unknown>).__toggleStickyMusicPlayer = () => {
       if (!musicPlayer?.enabled || !musicPlayer?.src) return;
       setIsExpanded((prev) => {
         if (!prev) {
@@ -52,8 +52,9 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
         return !prev;
       });
     };
-    window.addEventListener('toggle-sticky-music-player', handleToggle);
-    return () => window.removeEventListener('toggle-sticky-music-player', handleToggle);
+    return () => {
+      delete (window as unknown as Record<string, unknown>).__toggleStickyMusicPlayer;
+    };
   }, [musicPlayer]);
 
   useEffect(() => {

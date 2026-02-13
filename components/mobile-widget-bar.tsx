@@ -65,7 +65,14 @@ export function MobileWidgetBar({
     };
   }, [openWidget]);
 
-  const widgets = [
+  const widgets: Array<{
+    id: string;
+    icon: React.ReactNode;
+    label: string;
+    show: boolean | string | undefined;
+    content: React.ReactNode | null;
+    onTap?: () => void;
+  }> = [
     {
       id: 'quicklinks',
       icon: (
@@ -144,7 +151,8 @@ export function MobileWidgetBar({
       // No modal content — tapping this icon toggles the sticky player directly
       content: null,
       onTap: () => {
-        window.dispatchEvent(new CustomEvent('toggle-sticky-music-player'));
+        const toggle = (window as unknown as Record<string, unknown>).__toggleStickyMusicPlayer;
+        if (typeof toggle === 'function') toggle();
       },
     },
     {
@@ -172,7 +180,7 @@ export function MobileWidgetBar({
               <button
                 key={widget.id}
                 onClick={() => {
-                  if ('onTap' in widget && typeof widget.onTap === 'function') {
+                  if (widget.onTap) {
                     widget.onTap();
                     setOpenWidget(null);
                   } else {
