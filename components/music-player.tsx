@@ -1,22 +1,20 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Lock, Heart, Share2, MoreVertical } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Heart, Share2, MoreVertical } from 'lucide-react';
 
 interface MusicPlayerProps {
   src: string;
   className?: string;
   title?: string;
   artist?: string;
-  password?: string; // Optional password protection
 }
 
 export function MusicPlayer({ 
   src, 
   className = '',
   title: initialTitle,
-  artist: initialArtist,
-  password 
+  artist: initialArtist
 }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -26,9 +24,6 @@ export function MusicPlayer({
   const [artist, setArtist] = useState(initialArtist || '');
   const [thumbnail, setThumbnail] = useState('');
   const [isMuted, setIsMuted] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [passwordInput, setPasswordInput] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(!password);
   const [isMobile, setIsMobile] = useState(false);
   const [showVolume, setShowVolume] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -71,19 +66,8 @@ export function MusicPlayer({
     }
   }, [src, isYouTube, videoId, initialTitle, initialArtist]);
 
-  // Handle password protection
-  const handlePasswordSubmit = () => {
-    if (passwordInput === password) {
-      setIsAuthenticated(true);
-      setShowPassword(false);
-      setPasswordInput('');
-    } else {
-      alert('Incorrect password');
-    }
-  };
-
   const togglePlayPause = () => {
-    if (!audioRef.current || !isAuthenticated) return;
+    if (!audioRef.current) return;
     
     if (isPlaying) {
       audioRef.current.pause();
@@ -135,7 +119,7 @@ export function MusicPlayer({
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || isYouTube || !isAuthenticated) return;
+    if (!audio || isYouTube) return;
 
     const setAudioData = () => {
       setDuration(audio.duration);
@@ -151,38 +135,7 @@ export function MusicPlayer({
       audio.removeEventListener('loadeddata', setAudioData);
       audio.removeEventListener('timeupdate', setAudioTime);
     };
-  }, [isYouTube, isAuthenticated]);
-
-  // Password protection UI
-  if (!isAuthenticated) {
-    return (
-      <div className={`bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 rounded-xl shadow-2xl p-6 my-6 ${className}`}>
-        <div className="flex flex-col items-center justify-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-800 rounded-full flex items-center justify-center mb-4">
-            <Lock className="w-8 h-8 text-white" />
-          </div>
-          <h3 className="text-white font-semibold mb-2">Password Protected</h3>
-          <p className="text-gray-400 text-sm mb-4 text-center">This audio is protected with a password</p>
-          <div className="flex gap-2 w-full max-w-xs">
-            <input
-              type="password"
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-              placeholder="Enter password"
-              className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-red-500 focus:outline-none text-sm"
-              onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-            />
-            <button
-              onClick={handlePasswordSubmit}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
-            >
-              Unlock
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  }, [isYouTube]);
 
   if (isYouTube) {
     return (

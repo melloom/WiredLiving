@@ -35,6 +35,9 @@ const SidebarContact = dynamicImport(() => import('@/components/sidebar-contact'
 const SidebarGallery = dynamicImport(() => import('@/components/sidebar-gallery').then(mod => ({ default: mod.SidebarGallery })), {
   loading: () => <div className="animate-pulse h-52 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
 });
+const SidebarClock = dynamicImport(() => import('@/components/sidebar-clock').then(mod => ({ default: mod.SidebarClock })), {
+  loading: () => <div className="animate-pulse h-52 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
+});
 const BlogPostMobileWidget = dynamicImport(() => import('@/components/blog-post-mobile-widget').then(mod => ({ default: mod.BlogPostMobileWidget })), {});
 
 export const dynamic = 'force-dynamic';
@@ -588,6 +591,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
               {/* Weather Widget */}
               {(post.sidebarWidgets?.showWeather !== false) && <SidebarWeather />}
+
+              {/* Clock Widget */}
+              <SidebarClock />
 
               {/* Contact Widget */}
               {(post.sidebarWidgets?.showContact !== false) && <SidebarContact />}

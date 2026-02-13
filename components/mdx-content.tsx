@@ -766,14 +766,11 @@ export function MDXContent({ content, onValidationComplete }: MDXContentProps) {
           return <div className={alignClass ? alignClass : className} {...props} />;
         },
         // Music player component
-        music: ({ node, src, title, artist, album, cover, password, ...props }: any) => (
+        music: ({ node, src, title, artist, album, cover, ...props }: any) => (
           <MusicPlayer 
             src={src} 
             title={title} 
             artist={artist} 
-            album={album} 
-            cover={cover}
-            password={password}
             {...props} 
           />
         ),
