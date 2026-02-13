@@ -20,6 +20,7 @@ import { BackToTop } from '@/components/back-to-top';
 import { AnalyticsTracker } from '@/components/analytics-tracker';
 import { PostLikes } from '@/components/post-likes';
 import { ReadingHistoryTracker } from '@/components/reading-history-tracker';
+import { StickyMusicPlayer } from '@/components/sticky-music-player';
 import { siteConfig } from '@/config/site';
 
 // Dynamic imports for heavy components (lazy loaded). Next.js 16: ssr:false only in Client Components.
@@ -691,6 +692,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
         {/* Back to Top Button */}
         <BackToTop />
+
+        {/* Sticky Music Player */}
+        <StickyMusicPlayer musicPlayer={post.sidebarMusicPlayer} />
       </main>
     </>
   );
