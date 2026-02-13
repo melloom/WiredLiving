@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-client';
 import { BlogPost } from '@/types';
@@ -59,7 +59,7 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
     }
   };
 
-  const stats = {
+  const stats = useMemo(() => ({
     totalPosts: posts.length,
     publishedPosts: posts.filter(p => p.published).length,
     draftPosts: posts.filter(p => !p.published).length,
@@ -68,9 +68,9 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
     avgReadingTime: posts.length > 0
       ? Math.round(posts.reduce((sum, p) => sum + (p.readingTime || 0), 0) / posts.length)
       : 0,
-  };
+  }), [posts]);
 
-  const filteredPosts = posts
+  const filteredPosts = useMemo(() => posts
     .filter((post) => {
       const matchesSearch =
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -88,11 +88,11 @@ export function AdminDashboard({ posts }: AdminDashboardProps) {
       sortBy === 'newest'
         ? new Date(b.date).getTime() - new Date(a.date).getTime()
         : new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
+    ), [posts, searchQuery, statusFilter, sortBy]);
 
-  const recentPosts = [...posts].sort((a, b) =>
+  const recentPosts = useMemo(() => [...posts].sort((a, b) =>
     new Date(b.date).getTime() - new Date(a.date).getTime()
-  ).slice(0, 5);
+  ).slice(0, 5), [posts]);
 
   const tabs = [
     { id: 'overview' as TabType, label: 'Overview', icon: '📊' },

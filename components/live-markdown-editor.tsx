@@ -219,56 +219,43 @@ interface LiveMarkdownEditorProps {
   className?: string;
 }
 
+// Hoisted remark plugin for custom syntax — stable reference, no re-creation per render
+function remarkCustomSyntax() {
+  return (tree: any) => {
+    const { visit } = require('unist-util-visit');
+    visit(tree, 'text', (node: any, index: number | undefined, parent: any) => {
+      if (!parent || index == null || !node.value) return;
+      let value = node.value;
+      value = value.replace(/==(.*?)==/g, '<mark>$1</mark>');
+      value = value.replace(/\|\|(.*?)\|\|/g, '<span data-spoiler="true">$1</span>');
+      if (value !== node.value) {
+        parent.children[index] = { type: 'html', value };
+      }
+    });
+    visit(tree, 'paragraph', (node: any, index: number | undefined, parent: any) => {
+      if (!parent || index == null) return;
+      const children = node.children || [];
+      if (children.length === 1 && children[0].type === 'link') {
+        const href = children[0].url || '';
+        if (href.includes('twitter.com') || href.includes('x.com')) {
+          parent.children[index] = { type: 'html', value: `<div data-twitter-embed="${href}"></div>` };
+        }
+      }
+    });
+  };
+}
+
+// Stable plugin arrays — never recreated between renders
+const REMARK_PLUGINS = [remarkGfm, remarkMath, remarkSmartypants, remarkCustomSyntax];
+const REHYPE_PLUGINS = [rehypeRaw, rehypeKatex, rehypeHighlight];
+
 // Memoized markdown preview component to prevent re-renders
 const MarkdownPreview = memo(({ content, inline = false }: { content: string; inline?: boolean }) => {
   return (
     <div className="prose prose-base dark:prose-invert max-w-2xl mx-auto">
       <ReactMarkdown
-        remarkPlugins={[
-          remarkGfm,
-          remarkMath,
-          remarkSmartypants,
-          // Handle custom syntax for preview
-          function remarkCustomSyntax() {
-            return (tree: any) => {
-              const { visit } = require('unist-util-visit');
-              visit(tree, 'text', (node: any, index: number | undefined, parent: any) => {
-                if (!parent || index == null || !node.value) return;
-                let value = node.value;
-                
-                // Replace ==highlight== with <mark>
-                value = value.replace(/==(.*?)==/g, '<mark>$1</mark>');
-                
-                // Replace ||spoiler|| with custom spoiler tag
-                value = value.replace(/\|\|(.*?)\|\|/g, '<spoiler-text>$1</spoiler-text>');
-                
-                if (value !== node.value) {
-                  parent.children[index] = {
-                    type: 'html',
-                    value: value
-                  };
-                }
-              });
-              
-              // Handle Twitter embeds
-              visit(tree, 'paragraph', (node: any, index: number | undefined, parent: any) => {
-                if (!parent || index == null) return;
-                const children = node.children || [];
-                
-                if (children.length === 1 && children[0].type === 'link') {
-                  const href = children[0].url || '';
-                  if (href.includes('twitter.com') || href.includes('x.com')) {
-                    parent.children[index] = {
-                      type: 'html',
-                      value: `<twitter-embed url="${href}"></twitter-embed>`
-                    };
-                  }
-                }
-              });
-            };
-          }
-        ]}
-        rehypePlugins={[rehypeRaw, rehypeKatex, rehypeHighlight]}
+        remarkPlugins={REMARK_PLUGINS}
+        rehypePlugins={REHYPE_PLUGINS}
         components={{
           h1: ({ node, id, children, ...props }: any) => (
             <h1 id={id} className="text-3xl font-bold mb-4 text-gray-900 dark:text-white group relative" {...props}>
@@ -411,6 +398,7 @@ export const LiveMarkdownEditor = forwardRef<LiveMarkdownEditorHandle, LiveMarkd
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const parentSyncTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const previewSyncTimerRef = useRef<NodeJS.Timeout | null>(null);
   const scrollSyncTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Sync local value with prop value when it changes externally
@@ -419,9 +407,14 @@ export const LiveMarkdownEditor = forwardRef<LiveMarkdownEditorHandle, LiveMarkd
     setPreviewValue(value);
   }, [value]);
 
-  // Keep preview in sync immediately for a smoother feel
+  // Debounce preview updates to avoid re-rendering markdown on every keystroke
   const updatePreview = useCallback((newValue: string) => {
-    setPreviewValue(newValue);
+    if (previewSyncTimerRef.current) {
+      clearTimeout(previewSyncTimerRef.current);
+    }
+    previewSyncTimerRef.current = setTimeout(() => {
+      setPreviewValue(newValue);
+    }, 500);
   }, []);
 
   // Debounce parent onChange to reduce parent re-renders
@@ -892,7 +885,7 @@ export const LiveMarkdownEditor = forwardRef<LiveMarkdownEditorHandle, LiveMarkd
         const scrollPercentage = textarea.scrollTop / textareaHeight;
         preview.scrollTop = scrollPercentage * previewHeight;
       }
-    }, 16); // ~60fps
+    }, 50);
   }, [mode, syncScroll]);
 
   const syncScrollFromPreview = useCallback(() => {
@@ -916,7 +909,7 @@ export const LiveMarkdownEditor = forwardRef<LiveMarkdownEditorHandle, LiveMarkd
         const scrollPercentage = preview.scrollTop / previewHeight;
         textarea.scrollTop = scrollPercentage * textareaHeight;
       }
-    }, 16); // ~60fps
+    }, 50);
   }, [mode, syncScroll]);
 
   // Manual one-time sync from editor to preview
