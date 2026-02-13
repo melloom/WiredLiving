@@ -218,6 +218,11 @@ ENHANCED MARKDOWN FEATURES - USE THESE!
       </iframe>
     </div>
 
+    **Music Player (NEW!):**
+    <music src="https://www.youtube.com/watch?v=VIDEO_ID" />
+    <!-- OR -->
+    <music src="/uploads/audio/song.mp3" />
+
     Features:
     - Automatic video compression (saves 80-90% storage!)
     - Upload through admin panel - compression is automatic
@@ -226,6 +231,10 @@ ENHANCED MARKDOWN FEATURES - USE THESE!
     - HD quality maintained (1080p CRF 23)
     - Multiple format support (MP4 + WebM)
     - Dark mode compatible
+    - NEW: Music player with YouTube and audio support
+    - YouTube to MP3 conversion - stores locally
+    - Clean audio controls with seek bar and volume
+    - Auto-fetches video metadata for YouTube
 
 12. TEXT HIGHLIGHTING (NEW!)
     ───────────────────────────────────────
@@ -1248,6 +1257,35 @@ const WIREDLIVING_MARKDOWN_SUPPORT = {
       "Rounded corners and subtle shadows",
       "Better visual hierarchy and spacing",
       "Enhanced readability with improved typography",
+    ],
+    musicPlayer: [
+      "NEW: Music player component for blog posts",
+      "Supports YouTube links with automatic metadata fetching",
+      "Supports direct audio files (MP3, WAV, OGG, M4A)",
+      "YouTube to MP3 conversion - stores audio locally",
+      "Clean dark theme with play/pause, seek, and volume controls",
+      "Responsive design with mobile support",
+      "Auto-detects YouTube vs audio URLs",
+      "Shows video thumbnail for YouTube content",
+      "Animated equalizer bars for audio files",
+    ],
+    mediaUpload: [
+      "Enhanced media upload button with audio support",
+      "Upload audio files directly (MP3, WAV, OGG, M4A)",
+      "YouTube URL conversion to MP3",
+      "Progress tracking for uploads and conversions",
+      "File validation and size limits (100MB)",
+      "Support for Giphy, Tenor, Imgur, YouTube URLs",
+      "Auto-generates appropriate markdown for each media type",
+    ],
+    youtubeConversion: [
+      "YouTube to MP3 conversion endpoint: /api/admin/convert-youtube",
+      "Downloads highest quality audio stream",
+      "Converts and saves as MP3 in /public/uploads/audio/",
+      "Extracts video title and artist metadata",
+      "Handles errors gracefully (private videos, etc.)",
+      "Progress tracking at 10%, 30%, 70%, 100%",
+      "No external tools required - everything on your server",
     ],
   },
 
