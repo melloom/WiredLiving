@@ -13,6 +13,7 @@ interface BlogPostMobileWidgetProps {
   showGallery?: boolean;
   showWeather?: boolean;
   showContact?: boolean;
+  sidebarMusicPlayer?: { enabled: boolean; src: string; title?: string; artist?: string };
 }
 
 export function BlogPostMobileWidget({
@@ -25,6 +26,7 @@ export function BlogPostMobileWidget({
   showGallery,
   showWeather,
   showContact,
+  sidebarMusicPlayer,
 }: BlogPostMobileWidgetProps) {
   const { isOpen: mobileMenuOpen } = useMobileMenu();
 
@@ -39,6 +41,7 @@ export function BlogPostMobileWidget({
       showGallery={showGallery}
       showWeather={showWeather}
       showContact={showContact}
+      sidebarMusicPlayer={sidebarMusicPlayer}
       mobileMenuOpen={mobileMenuOpen}
     />
   );

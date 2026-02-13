@@ -497,6 +497,11 @@ function transformPostRow(row: any): BlogPost {
           }
         })()
       : [],
+    sidebarMusicPlayer: row.sidebar_music_player ? (
+      typeof row.sidebar_music_player === 'string'
+        ? JSON.parse(row.sidebar_music_player)
+        : row.sidebar_music_player
+    ) : undefined,
   };
 }
 
@@ -598,6 +603,7 @@ export async function createPost(post: Omit<BlogPost, 'slug'> & { slug?: string 
       canonical_url: post.canonicalUrl || null,
       structured_data_type: post.structuredDataType || null,
       related_links: post.relatedLinks || [],
+      sidebar_music_player: post.sidebarMusicPlayer || null,
     };
 
     const { data: insertedPost, error: insertError } = await supabase!

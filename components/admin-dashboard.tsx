@@ -1208,6 +1208,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
     twitterDescription: '',
     structuredDataType: 'BlogPosting' as string,
     relatedLinks: [] as Array<{ title: string; url: string; description?: string }>,
+    sidebarMusicPlayer: { enabled: false, src: '', title: '', artist: '' } as { enabled: boolean; src: string; title?: string; artist?: string },
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -1410,6 +1411,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
       twitterDescription: formData.twitterDescription || undefined,
       structuredDataType: formData.structuredDataType || undefined,
       relatedLinks: formData.relatedLinks || [],
+      sidebarMusicPlayer: formData.sidebarMusicPlayer?.enabled ? formData.sidebarMusicPlayer : null,
       published,
     };
   };
@@ -1417,6 +1419,14 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate: no two music players
+    const contentHasMusic = /<music\s/i.test(formData.content);
+    if (contentHasMusic && formData.sidebarMusicPlayer?.enabled) {
+      setError('You cannot have both an inline <music> tag in your content AND a sidebar music player enabled. Please remove one.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -1475,6 +1485,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
           twitterDescription: '',
           structuredDataType: 'BlogPosting',
           relatedLinks: [],
+          sidebarMusicPlayer: { enabled: false, src: '', title: '', artist: '' },
         });
         setTimeout(() => {
           setSuccess(false);
@@ -2179,6 +2190,64 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
                   )}
                 </div>
               </div>
+
+              {/* Sidebar Music Player */}
+              <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    🎵 Sidebar Music Player
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: !formData.sidebarMusicPlayer?.enabled } })}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.sidebarMusicPlayer?.enabled ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.sidebarMusicPlayer?.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+                {formData.sidebarMusicPlayer?.enabled && (
+                  <div className="space-y-3">
+                    {/<music\s/i.test(formData.content) && (
+                      <div className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-red-600 dark:text-red-400">
+                        ⚠️ Your content already has an inline &lt;music&gt; tag. You cannot have both — remove it or disable this sidebar player.
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">Audio URL or YouTube URL <span className="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        value={formData.sidebarMusicPlayer?.src || ''}
+                        onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: e.target.value } })}
+                        placeholder="https://example.com/song.mp3 or YouTube URL"
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">Song Title</label>
+                        <input
+                          type="text"
+                          value={formData.sidebarMusicPlayer?.title || ''}
+                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: formData.sidebarMusicPlayer?.src || '', title: e.target.value } })}
+                          placeholder="Song name"
+                          className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">Artist</label>
+                        <input
+                          type="text"
+                          value={formData.sidebarMusicPlayer?.artist || ''}
+                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: formData.sidebarMusicPlayer?.src || '', artist: e.target.value } })}
+                          placeholder="Artist name"
+                          className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear in the sidebar of this post. Only one music player per post is allowed.</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -2678,6 +2747,7 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
     twitterDescription: post.twitterDescription || '',
     structuredDataType: post.structuredDataType || 'BlogPosting',
     relatedLinks: (post.relatedLinks || []) as Array<{ title: string; url: string; description?: string }>,
+    sidebarMusicPlayer: (post.sidebarMusicPlayer || { enabled: false, src: '', title: '', artist: '' }) as { enabled: boolean; src: string; title?: string; artist?: string },
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -2850,12 +2920,21 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
       canonicalUrl: formData.canonicalUrl || null,
       structuredDataType: formData.structuredDataType || null,
       relatedLinks: formData.relatedLinks || [],
+      sidebarMusicPlayer: formData.sidebarMusicPlayer?.enabled ? formData.sidebarMusicPlayer : null,
     };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate: no two music players
+    const contentHasMusic = /<music\s/i.test(formData.content);
+    if (contentHasMusic && formData.sidebarMusicPlayer?.enabled) {
+      setError('You cannot have both an inline <music> tag in your content AND a sidebar music player enabled. Please remove one.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -3329,6 +3408,64 @@ function EditPostForm({ post, onSuccess, onCancel }: { post: BlogPost; onSuccess
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Sidebar Music Player */}
+              <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    🎵 Sidebar Music Player
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: !formData.sidebarMusicPlayer?.enabled } })}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.sidebarMusicPlayer?.enabled ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.sidebarMusicPlayer?.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+                {formData.sidebarMusicPlayer?.enabled && (
+                  <div className="space-y-3">
+                    {/<music\s/i.test(formData.content) && (
+                      <div className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-red-600 dark:text-red-400">
+                        ⚠️ Your content already has an inline &lt;music&gt; tag. You cannot have both — remove it or disable this sidebar player.
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">Audio URL or YouTube URL <span className="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        value={formData.sidebarMusicPlayer?.src || ''}
+                        onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: e.target.value } })}
+                        placeholder="https://example.com/song.mp3 or YouTube URL"
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">Song Title</label>
+                        <input
+                          type="text"
+                          value={formData.sidebarMusicPlayer?.title || ''}
+                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: formData.sidebarMusicPlayer?.src || '', title: e.target.value } })}
+                          placeholder="Song name"
+                          className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">Artist</label>
+                        <input
+                          type="text"
+                          value={formData.sidebarMusicPlayer?.artist || ''}
+                          onChange={(e) => setFormData({ ...formData, sidebarMusicPlayer: { ...formData.sidebarMusicPlayer, enabled: true, src: formData.sidebarMusicPlayer?.src || '', artist: e.target.value } })}
+                          placeholder="Artist name"
+                          className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">This player will appear in the sidebar of this post. Only one music player per post is allowed.</p>
+                  </div>
+                )}
               </div>
 
             </div>

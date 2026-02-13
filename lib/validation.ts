@@ -53,6 +53,12 @@ export const postSchema = z.object({
     url: urlSchema,
     description: z.string().optional(),
   })).optional(),
+  sidebarMusicPlayer: z.object({
+    enabled: z.boolean(),
+    src: z.string(),
+    title: z.string().optional(),
+    artist: z.string().optional(),
+  }).optional().nullable(),
 });
 
 // Draft post schema (more lenient)

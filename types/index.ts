@@ -94,6 +94,17 @@ export interface BlogPost {
     showWeather?: boolean;
     showContact?: boolean;
   };
+
+  /**
+   * Sidebar music player config. When enabled, a music player appears in the sidebar.
+   * Only one music player allowed per post (sidebar OR inline content, not both).
+   */
+  sidebarMusicPlayer?: {
+    enabled: boolean;
+    src: string;
+    title?: string;
+    artist?: string;
+  };
 }
 
 export interface BlogPostFrontmatter {

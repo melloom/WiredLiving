@@ -38,6 +38,9 @@ const SidebarGallery = dynamicImport(() => import('@/components/sidebar-gallery'
 const SidebarClock = dynamicImport(() => import('@/components/sidebar-clock').then(mod => ({ default: mod.SidebarClock })), {
   loading: () => <div className="animate-pulse h-52 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
 });
+const MusicPlayer = dynamicImport(() => import('@/components/music-player').then(mod => ({ default: mod.MusicPlayer })), {
+  loading: () => <div className="animate-pulse h-20 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>,
+});
 const BlogPostMobileWidget = dynamicImport(() => import('@/components/blog-post-mobile-widget').then(mod => ({ default: mod.BlogPostMobileWidget })), {});
 
 export const dynamic = 'force-dynamic';
@@ -595,6 +598,20 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               {/* Clock Widget */}
               <SidebarClock />
 
+              {/* Sidebar Music Player */}
+              {post.sidebarMusicPlayer?.enabled && post.sidebarMusicPlayer?.src && (
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                    🎵 Now Playing
+                  </h3>
+                  <MusicPlayer
+                    src={post.sidebarMusicPlayer.src}
+                    title={post.sidebarMusicPlayer.title}
+                    artist={post.sidebarMusicPlayer.artist}
+                  />
+                </div>
+              )}
+
               {/* Contact Widget */}
               {(post.sidebarWidgets?.showContact !== false) && <SidebarContact />}
 
@@ -669,6 +686,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           showGallery={(post.sidebarWidgets?.showGallery !== false) && post.galleryImages && post.galleryImages.length > 0}
           showWeather={post.sidebarWidgets?.showWeather !== false}
           showContact={post.sidebarWidgets?.showContact !== false}
+          sidebarMusicPlayer={post.sidebarMusicPlayer}
         />
 
         {/* Back to Top Button */}

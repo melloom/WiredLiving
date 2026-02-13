@@ -41,7 +41,7 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   );
 
   // Strict Content Security Policy tuned for this app
-  const scriptSrc = "script-src 'self' 'unsafe-inline' https:";
+  const scriptSrc = "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:";
 
   const csp = [
     "default-src 'self'",

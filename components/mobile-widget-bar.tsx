@@ -5,6 +5,7 @@ import { SidebarWeather } from './sidebar-weather';
 import { SidebarContact } from './sidebar-contact';
 import { SidebarGallery } from './sidebar-gallery';
 import { SidebarClock } from './sidebar-clock';
+import { MusicPlayer } from './music-player';
 import { NewsFeed } from './news-feed';
 import { ContentQuickLinks } from './content-quick-links';
 import { TableOfContents } from './table-of-contents';
@@ -20,6 +21,7 @@ interface MobileWidgetBarProps {
   showGallery?: boolean;
   showWeather?: boolean;
   showContact?: boolean;
+  sidebarMusicPlayer?: { enabled: boolean; src: string; title?: string; artist?: string };
   mobileMenuOpen?: boolean;
   onClose?: () => void;
 }
@@ -34,6 +36,7 @@ export function MobileWidgetBar({
   showGallery = true,
   showWeather = true,
   showContact = true,
+  sidebarMusicPlayer,
   mobileMenuOpen = false,
   onClose,
 }: MobileWidgetBarProps) {
@@ -128,6 +131,22 @@ export function MobileWidgetBar({
       label: 'Clock',
       show: true,
       content: <SidebarClock />,
+    },
+    {
+      id: 'music',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+        </svg>
+      ),
+      label: 'Music',
+      show: !!(sidebarMusicPlayer?.enabled && sidebarMusicPlayer?.src),
+      content: sidebarMusicPlayer?.src ? (
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
+          <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3">🎵 Now Playing</h3>
+          <MusicPlayer src={sidebarMusicPlayer.src} title={sidebarMusicPlayer.title} artist={sidebarMusicPlayer.artist} />
+        </div>
+      ) : null,
     },
     {
       id: 'contact',

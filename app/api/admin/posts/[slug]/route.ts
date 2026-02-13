@@ -143,6 +143,7 @@ export async function PUT(
       slugOverride,
       slugLocked,
       relatedLinks,
+      sidebarMusicPlayer,
     } = body;
 
     if (!isSupabaseConfigured()) {
@@ -207,6 +208,7 @@ export async function PUT(
       canonical_url: canonicalUrl || null,
       structured_data_type: structuredDataType || null,
       related_links: relatedLinks || [],
+      sidebar_music_player: sidebarMusicPlayer || null,
       updated_at: new Date().toISOString(),
     };
 
