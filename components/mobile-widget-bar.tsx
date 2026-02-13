@@ -80,6 +80,19 @@ export function MobileWidgetBar({
     setOpenWidget(null);
   };
 
+  // Cleanup on unmount (navigating away from the page)
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      setYtIframeActive(false);
+      setIsMusicPlaying(false);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Handle escape key to close modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -182,52 +195,19 @@ export function MobileWidgetBar({
       ),
       label: isMusicPlaying ? 'Playing' : 'Music',
       show: !!(sidebarMusicPlayer?.enabled && sidebarMusicPlayer?.src),
-      content: sidebarMusicPlayer?.src ? (() => {
-        const ytMatch = sidebarMusicPlayer.src.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-        if (ytMatch) {
-          const videoId = ytMatch[1];
-          return (
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3">Now Playing</h3>
-              {sidebarMusicPlayer.title && (
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 truncate">{sidebarMusicPlayer.title}{sidebarMusicPlayer.artist ? ` — ${sidebarMusicPlayer.artist}` : ''}</p>
-              )}
-              <div className="relative w-full rounded-lg overflow-hidden bg-black" style={{ aspectRatio: '16/9' }}>
-                <iframe
-                  src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
-                  title={sidebarMusicPlayer.title || 'YouTube Video'}
-                  className="absolute inset-0 w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  frameBorder="0"
-                />
-              </div>
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={playAndClose}
-                  className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                  Play while reading
-                </button>
-                {isMusicPlaying && (
-                  <button
-                    onClick={stopMusic}
-                    className="px-4 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                    Pause
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        }
-        return (
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3">Now Playing</h3>
+      content: sidebarMusicPlayer?.src ? (
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
+          {sidebarMusicPlayer.title && (
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1 truncate">{sidebarMusicPlayer.title}</p>
+          )}
+          {sidebarMusicPlayer.artist && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 truncate">{sidebarMusicPlayer.artist}</p>
+          )}
+          {!isYouTube && (
             <MusicPlayer src={sidebarMusicPlayer.src} title={sidebarMusicPlayer.title} artist={sidebarMusicPlayer.artist} />
-            <div className="flex gap-2 mt-3">
+          )}
+          <div className="flex gap-2 mt-3">
+            {!isMusicPlaying ? (
               <button
                 onClick={playAndClose}
                 className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
@@ -235,19 +215,21 @@ export function MobileWidgetBar({
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 Play while reading
               </button>
-              {isMusicPlaying && (
-                <button
-                  onClick={stopMusic}
-                  className="px-4 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                  Pause
-                </button>
-              )}
-            </div>
+            ) : (
+              <button
+                onClick={stopMusic}
+                className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                Stop Music
+              </button>
+            )}
           </div>
-        );
-      })() : null,
+          {isYouTube && !isMusicPlaying && (
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-2 text-center">Plays YouTube audio in background while you read</p>
+          )}
+        </div>
+      ) : null,
     },
     {
       id: 'contact',
@@ -266,16 +248,36 @@ export function MobileWidgetBar({
 
   return (
     <>
-      {/* Persistent hidden YouTube iframe for background playback */}
+      {/* Persistent YouTube mini-player — stays alive when modal closes */}
       {ytIframeActive && ytVideoId && (
-        <iframe
-          src={`https://www.youtube.com/embed/${ytVideoId}?autoplay=1&rel=0&modestbranding=1`}
-          title="Background music"
-          className="fixed w-0 h-0 opacity-0 pointer-events-none"
-          style={{ position: 'fixed', top: -9999, left: -9999 }}
-          allow="autoplay; encrypted-media"
-          frameBorder="0"
-        />
+        <div className={`lg:hidden fixed left-0 right-0 z-[45] transition-all duration-300 ${
+          openWidget === 'music'
+            ? 'opacity-0 pointer-events-none bottom-0'
+            : 'bottom-[3.75rem] opacity-100'
+        }`}>
+          <div className="mx-2 mb-1 rounded-xl overflow-hidden bg-gray-900 shadow-lg border border-purple-500/30 flex items-center gap-2 px-3 py-1.5">
+            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-black">
+              <iframe
+                src={`https://www.youtube.com/embed/${ytVideoId}?autoplay=1&rel=0&modestbranding=1&controls=0&playsinline=1`}
+                title="Background music"
+                className="w-full h-full"
+                allow="autoplay; encrypted-media"
+                frameBorder="0"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-white font-medium truncate">{sidebarMusicPlayer?.title || 'Playing'}</p>
+              <p className="text-[9px] text-purple-300 truncate">{sidebarMusicPlayer?.artist || 'YouTube'}</p>
+            </div>
+            <button
+              onClick={stopMusic}
+              className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors flex-shrink-0"
+              aria-label="Stop music"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Mobile Widget Bar - Sticky bottom bar - hidden when menu is open */}
