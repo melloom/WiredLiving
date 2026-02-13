@@ -57,13 +57,20 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
       setProgress(30);
 
       const isVideo = type === 'video';
+      const isGif = type === 'gif';
+      
+      // For GIFs, use the conversion endpoint
+      const endpoint = isGif ? '/api/admin/convert-gif' : '/api/admin/upload-media';
+      
       const uploadMessage = isVideo 
         ? `Uploading and compressing ${file.name}... This may take a minute.`
+        : isGif
+        ? `Converting ${file.name} to MP4 for better performance... This may take a moment.`
         : `Uploading ${file.name}...`;
       
       toast.info(uploadMessage);
 
-      const response = await fetch('/api/admin/upload-media', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         body: formData,
       });
@@ -86,6 +93,8 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
       // Show success message
       if (isVideo && data.compressionRatio) {
         toast.success(`Video uploaded and compressed! Saved ${data.compressionRatio}% storage 🎉`);
+      } else if (isGif && data.compressionRatio) {
+        toast.success(`GIF converted to MP4! ${data.compressionRatio}% smaller file with same animation 🚀`);
       } else {
         toast.success('File uploaded successfully!');
       }
@@ -183,6 +192,9 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
       if (type === 'video') {
         return `Compressing... ${progress}%`;
       }
+      if (type === 'gif') {
+        return `Converting... ${progress}%`;
+      }
       return `Uploading... ${progress}%`;
     }
     return type === 'video' ? 'Upload Video' : type === 'gif' ? 'Upload GIF' : 'Upload Image';
@@ -227,7 +239,7 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
               }
               flex items-center gap-2
             `}
-            title={type === 'video' ? 'Upload video - Will automatically compress to save storage!' : 'Upload file'}
+            title={type === 'video' ? 'Upload video - Will automatically compress to save storage!' : type === 'gif' ? 'Upload GIF - Will convert to MP4 for better performance!' : 'Upload file'}
           >
             <span className="text-lg">{getIcon()}</span>
             <span>{getButtonLabel()}</span>
@@ -299,7 +311,7 @@ export function MediaUploadButton({ onInsert, postSlug, type = 'video' }: MediaU
           </div>
         )}
 
-        {uploading && type === 'video' && (
+        {uploading && (type === 'video' || type === 'gif') && (
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
             <div className="bg-blue-600 h-1.5 rounded-full transition-all duration-300 progress-inner"></div>
             <style jsx>{`
