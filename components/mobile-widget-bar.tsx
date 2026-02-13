@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { SidebarWeather } from './sidebar-weather';
 import { SidebarContact } from './sidebar-contact';
 import { SidebarGallery } from './sidebar-gallery';
@@ -43,6 +43,47 @@ export function MobileWidgetBar({
   const [openWidget, setOpenWidget] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Persistent music playback state
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [ytIframeActive, setYtIframeActive] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const isYouTube = !!(sidebarMusicPlayer?.src?.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)/));
+  const ytVideoId = sidebarMusicPlayer?.src?.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1] || null;
+
+  const toggleMusicPlayback = useCallback(() => {
+    if (isYouTube) {
+      if (isMusicPlaying) {
+        // Pause: remove the iframe
+        setYtIframeActive(false);
+        setIsMusicPlaying(false);
+      } else {
+        // Play: activate the iframe with autoplay
+        setYtIframeActive(true);
+        setIsMusicPlaying(true);
+      }
+    } else if (sidebarMusicPlayer?.src) {
+      if (isMusicPlaying && audioRef.current) {
+        audioRef.current.pause();
+        setIsMusicPlaying(false);
+      } else {
+        if (!audioRef.current) {
+          audioRef.current = new Audio(sidebarMusicPlayer.src);
+          audioRef.current.loop = true;
+          audioRef.current.onended = () => setIsMusicPlaying(false);
+        }
+        audioRef.current.play().then(() => setIsMusicPlaying(true)).catch(() => {});
+      }
+    }
+  }, [isYouTube, isMusicPlaying, sidebarMusicPlayer?.src]);
+
+  const playAndClose = useCallback(() => {
+    if (!isMusicPlaying) {
+      toggleMusicPlayback();
+    }
+    setOpenWidget(null);
+  }, [isMusicPlaying, toggleMusicPlayback]);
 
   // Handle escape key to close modal
   useEffect(() => {
@@ -135,11 +176,16 @@ export function MobileWidgetBar({
     {
       id: 'music',
       icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-        </svg>
+        <div className="relative">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+          </svg>
+          {isMusicPlaying && (
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
+          )}
+        </div>
       ),
-      label: 'Music',
+      label: isMusicPlaying ? 'Playing' : 'Music',
       show: !!(sidebarMusicPlayer?.enabled && sidebarMusicPlayer?.src),
       content: sidebarMusicPlayer?.src ? (() => {
         const ytMatch = sidebarMusicPlayer.src.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
@@ -161,6 +207,24 @@ export function MobileWidgetBar({
                   frameBorder="0"
                 />
               </div>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={playAndClose}
+                  className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  Play while reading
+                </button>
+                {isMusicPlaying && (
+                  <button
+                    onClick={toggleMusicPlayback}
+                    className="px-4 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    Pause
+                  </button>
+                )}
+              </div>
             </div>
           );
         }
@@ -168,6 +232,24 @@ export function MobileWidgetBar({
           <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
             <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3">Now Playing</h3>
             <MusicPlayer src={sidebarMusicPlayer.src} title={sidebarMusicPlayer.title} artist={sidebarMusicPlayer.artist} />
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={playAndClose}
+                className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                Play while reading
+              </button>
+              {isMusicPlaying && (
+                <button
+                  onClick={toggleMusicPlayback}
+                  className="px-4 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                  Pause
+                </button>
+              )}
+            </div>
           </div>
         );
       })() : null,
@@ -189,6 +271,18 @@ export function MobileWidgetBar({
 
   return (
     <>
+      {/* Persistent hidden YouTube iframe for background playback */}
+      {ytIframeActive && ytVideoId && (
+        <iframe
+          src={`https://www.youtube.com/embed/${ytVideoId}?autoplay=1&rel=0&modestbranding=1`}
+          title="Background music"
+          className="fixed w-0 h-0 opacity-0 pointer-events-none"
+          style={{ position: 'fixed', top: -9999, left: -9999 }}
+          allow="autoplay; encrypted-media"
+          frameBorder="0"
+        />
+      )}
+
       {/* Mobile Widget Bar - Sticky bottom bar - hidden when menu is open */}
       {!mobileMenuOpen && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-2xl safe-bottom">
