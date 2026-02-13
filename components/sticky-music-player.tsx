@@ -38,7 +38,11 @@ export function StickyMusicPlayer({ musicPlayer }: StickyMusicPlayerProps) {
     (window as unknown as Record<string, unknown>).__toggleStickyMusicPlayer = () => {
       if (!musicPlayer?.enabled || !musicPlayer?.src) return;
       setIsExpanded((prev) => {
-        if (!prev) {
+        if (prev) {
+          // Collapsing — hide iframe so it stops playing
+          setShowYouTubeIframe(false);
+          setIsPlaying(false);
+        } else {
           // Expanding — start playback
           const ytMatch = musicPlayer.src.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
           if (ytMatch) {
