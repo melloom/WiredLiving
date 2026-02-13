@@ -694,7 +694,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <BackToTop />
 
         {/* Sticky Music Player */}
-        <StickyMusicPlayer musicPlayer={post.sidebarMusicPlayer} />
+        <StickyMusicPlayer musicPlayer={post.sidebarMusicPlayer || null} />
       </main>
     </>
   );
