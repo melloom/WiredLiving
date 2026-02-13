@@ -375,17 +375,15 @@ const MarkdownPreview = memo(({ content, inline = false }: { content: string; in
             const alignClass = className?.match(/text-(left|right|center|justify)/)?.[0] || '';
             return <div className={alignClass ? alignClass : className} {...props} />;
           },
-          music: ({ node, src, title, artist, album, cover, ...props }: any) => (
+          music: ({ node, src, title, artist, ...props }: any) => (
             <MusicPlayer 
               src={src} 
               title={title} 
               artist={artist} 
-              album={album} 
-              cover={cover}
               {...props} 
             />
           ),
-        }}
+        } as any}
       >
         {content || (inline ? '*No content yet. Start writing in Edit mode!*' : '*Start typing to see live preview...*')}
       </ReactMarkdown>
