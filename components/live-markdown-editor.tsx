@@ -367,6 +367,7 @@ const MarkdownPreview = memo(({ content, inline = false }: { content: string; in
               src={src} 
               title={title} 
               artist={artist} 
+              compact={true}
               {...props} 
             />
           ),
