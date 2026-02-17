@@ -21,6 +21,20 @@ export function SidebarWeather() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Load cached weather immediately to avoid UI flash when reopening the widget
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem('weather-cache');
+      if (cached) {
+        const parsed = JSON.parse(cached) as WeatherData;
+        setWeather(parsed);
+        setLoading(false);
+      }
+    } catch (err) {
+      console.warn('⚠️ Failed to read cached weather:', err);
+    }
+  }, []);
+
   useEffect(() => {
     // Check if user already denied geolocation permission permanently
     const permissionDenied = localStorage.getItem('weather-permission-denied');
@@ -92,6 +106,14 @@ export function SidebarWeather() {
     }
   }, []);
 
+  const saveWeatherCache = (data: WeatherData) => {
+    try {
+      localStorage.setItem('weather-cache', JSON.stringify(data));
+    } catch (err) {
+      console.warn('⚠️ Failed to cache weather:', err);
+    }
+  };
+
   const fetchWeather = async (lat: number, lon: number) => {
     try {
       setLoading(true);
@@ -113,7 +135,7 @@ export function SidebarWeather() {
             console.log('✅ Weather data received from OpenWeatherMap:', { location: data.name, temp: data.main?.temp });
             
             if (data && data.main && data.weather && data.weather[0]) {
-              setWeather({
+              const nextWeather = {
                 temp: Math.round(data.main.temp),
                 feelsLike: Math.round(data.main.feels_like),
                 condition: data.weather[0].main,
@@ -125,7 +147,9 @@ export function SidebarWeather() {
                 pressure: data.main.pressure,
                 visibility: data.visibility ? Math.round(data.visibility / 1609.34) : undefined, // Convert to miles
                 uvIndex: undefined, // Not available in current weather endpoint
-              });
+              } as WeatherData;
+              setWeather(nextWeather);
+              saveWeatherCache(nextWeather);
               setLoading(false);
               setError(null);
               return; // Success, exit early
@@ -153,7 +177,7 @@ export function SidebarWeather() {
         const current = data.current_condition[0];
         const location = data.nearest_area?.[0]?.areaName?.[0]?.value || 'Your Location';
         
-        setWeather({
+        const nextWeather = {
           temp: Math.round(parseFloat(current.temp_F) || 72),
           feelsLike: Math.round(parseFloat(current.FeelsLikeF) || 72),
           condition: current.weatherDesc?.[0]?.value || 'Partly Cloudy',
@@ -165,7 +189,9 @@ export function SidebarWeather() {
           pressure: parseInt(current.pressure) || undefined,
           visibility: parseInt(current.visibility) || undefined,
           uvIndex: current.uvIndex || undefined,
-        });
+        } as WeatherData;
+        setWeather(nextWeather);
+        saveWeatherCache(nextWeather);
         setLoading(false);
         setError(null);
       } else {
@@ -174,12 +200,14 @@ export function SidebarWeather() {
     } catch (err) {
       console.error('❌ All weather services failed:', err);
       // Final fallback - show default weather
-      setWeather({
+      const nextWeather = {
         temp: 72,
         condition: 'Partly Cloudy',
         icon: '⛅',
         location: 'Your Location',
-      });
+      } as WeatherData;
+      setWeather(nextWeather);
+      saveWeatherCache(nextWeather);
       setError(null);
       setLoading(false);
     }
@@ -238,7 +266,7 @@ export function SidebarWeather() {
             console.log('✅ Weather data received from OpenWeatherMap:', { location: data.name, temp: data.main?.temp });
             
             if (data && data.main && data.weather && data.weather[0]) {
-              setWeather({
+              const nextWeather = {
                 temp: Math.round(data.main.temp),
                 feelsLike: Math.round(data.main.feels_like),
                 condition: data.weather[0].main,
@@ -249,7 +277,9 @@ export function SidebarWeather() {
                 windSpeed: Math.round(data.wind?.speed || 0),
                 pressure: data.main.pressure,
                 visibility: data.visibility ? Math.round(data.visibility / 1609.34) : undefined,
-              });
+              } as WeatherData;
+              setWeather(nextWeather);
+              saveWeatherCache(nextWeather);
               setLoading(false);
               setError(null);
               return; // Success, exit early
@@ -263,41 +293,60 @@ export function SidebarWeather() {
 
       // Fallback to wttr.in (free, no API key required)
       console.log('📡 Using wttr.in fallback (free, no API key)...');
-      const encodedCity = encodeURIComponent(city);
-      const wttrUrl = `https://wttr.in/${encodedCity}?format=j1`;
-      const response = await fetch(wttrUrl);
+      try {
+        const encodedCity = encodeURIComponent(city);
+        const wttrUrl = `https://wttr.in/${encodedCity}?format=j1`;
+        const response = await fetch(wttrUrl);
 
-      if (!response.ok) {
-        throw new Error(`wttr.in API error: ${response.status}`);
-      }
+        if (!response.ok) {
+          throw new Error(`wttr.in API error: ${response.status}`);
+        }
 
-      const data = await response.json();
-      console.log('✅ Weather data received from wttr.in');
-      
-      if (data && data.current_condition && data.current_condition[0]) {
-        const current = data.current_condition[0];
-        const location = data.nearest_area?.[0]?.areaName?.[0]?.value || city;
-        
-        setWeather({
-          temp: Math.round(parseFloat(current.temp_F) || 72),
-          condition: current.weatherDesc?.[0]?.value || 'Partly Cloudy',
-          icon: getWeatherIconFromCode(parseInt(current.weatherCode) || 116),
-          location: location,
-        });
-        setLoading(false);
+        const data = await response.json();
+        console.log('✅ Weather data received from wttr.in');
+
+        if (data && data.current_condition && data.current_condition[0]) {
+          const current = data.current_condition[0];
+          const location = data.nearest_area?.[0]?.areaName?.[0]?.value || city;
+
+          const nextWeather = {
+            temp: Math.round(parseFloat(current.temp_F) || 72),
+            condition: current.weatherDesc?.[0]?.value || 'Partly Cloudy',
+            icon: getWeatherIconFromCode(parseInt(current.weatherCode) || 116),
+            location: location,
+          } as WeatherData;
+          setWeather(nextWeather);
+          saveWeatherCache(nextWeather);
+          setLoading(false);
+          setError(null);
+        } else {
+          throw new Error('Invalid weather data from wttr.in');
+        }
+      } catch (err) {
+        console.error('❌ All weather services failed:', err);
+        // Final fallback - show default weather
+        const nextWeather = {
+          temp: 72,
+          condition: 'Partly Cloudy',
+          icon: '⛅',
+          location: city,
+        } as WeatherData;
+        setWeather(nextWeather);
+        saveWeatherCache(nextWeather);
         setError(null);
-      } else {
-        throw new Error('Invalid weather data from wttr.in');
+        setLoading(false);
       }
     } catch (err) {
-      console.error('❌ All weather services failed:', err);
-      // Final fallback - show default weather
-      setWeather({
+      console.error('❌ Weather by city failed:', err);
+      // Final fallback - show default weather for the provided city
+      const nextWeather = {
         temp: 72,
         condition: 'Partly Cloudy',
         icon: '⛅',
         location: city,
-      });
+      } as WeatherData;
+      setWeather(nextWeather);
+      saveWeatherCache(nextWeather);
       setError(null);
       setLoading(false);
     }
